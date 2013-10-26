@@ -6,7 +6,7 @@ App.Bundle.DefaultBundle.Config.Storage = function () {
 
 };
 
-App.Bundle.DefaultBundle.Config.prototype = Object.create(Sy.Configurator.prototype, {
+App.Bundle.DefaultBundle.Config.Storage.prototype = Object.create(Sy.Configurator.prototype, {
 
     define: {
         value: function () {
