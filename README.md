@@ -24,7 +24,9 @@ To declare namespaces, use the `UpperCamelCase` syntax, examples:
 
 A "class" naming also use `UpperCamelCase`.
 
-An "instance" or any variables is declared using `lowerCamelCase`
+An "instance" or any variables is declared using `lowerCamelCase`.
+
+Services name are `lowercase` and words are separated by a double colon (ie: `foo::bar::baz`).
 
 ### Structure
 
