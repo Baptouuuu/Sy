@@ -15,6 +15,7 @@ App.Bundle.DefaultBundle.Controller.Main = function () {
             context: this
         }
     });
+    this.myService = this.container.get('my::service');
 
 };
 
@@ -36,6 +37,8 @@ App.Bundle.DefaultBundle.Controller.Main.prototype = Object.create(Sy.Controller
             this.todos.set(todo);   /*add a new entity to the stack*/
 
             this.todos.flush();     /*tell the stack to apply modifications (create/update/delete) to the storage*/
+
+            this.myService.someMethod();
 
         }
     }
