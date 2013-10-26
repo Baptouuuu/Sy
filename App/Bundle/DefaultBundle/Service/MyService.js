@@ -8,18 +8,6 @@ App.Bundle.DefaultBundle.Service.MyService = function () {
 
 App.Bundle.DefaultBundle.Service.MyService.prototype = Object.create(Sy.Service.prototype, {
 
-    configure: {
-        value: function () {
-
-            this.depd = this.container.get('another');
-
-            return {
-                name: 'my::service'     /*beware of your services naming, those are global to your app*/
-            };
-
-        }
-    },
-
     someMethod: {
         value: function () {
 
@@ -27,6 +15,16 @@ App.Bundle.DefaultBundle.Service.MyService.prototype = Object.create(Sy.Service.
             this.depd.processData({
                 foo: 'bar'
             });
+
+        }
+    },
+
+    setDependency: {
+        value: function (object) {
+
+            if(object instanceof App.Bundle.DefaultBundle.Service.Another) {
+                this.depd = object;
+            }
 
         }
     }
