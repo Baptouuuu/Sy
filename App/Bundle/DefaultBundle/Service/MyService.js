@@ -4,14 +4,14 @@ App.Bundle.DefaultBundle.Service.MyService = function () {
 
     Sy.Service.call(this);
 
-    this.depd = this.container.get('another');
-
 };
 
 App.Bundle.DefaultBundle.Service.MyService.prototype = Object.create(Sy.Service.prototype, {
 
     configure: {
         value: function () {
+
+            this.depd = this.container.get('another');
 
             return {
                 name: 'my::service'     /*beware of your services naming, those are global to your app*/
