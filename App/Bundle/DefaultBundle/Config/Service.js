@@ -13,7 +13,7 @@ App.Bundle.DefaultBundle.Config.Service.prototype = Object.create(Sy.Configurato
 
             return [
                 {
-                    name        : 'my::service',
+                    name        : 'my::service',        /*beware of your services naming, those are global to your app*/
                     object      : 'MyService',
                     dependencies: [
                         'another'
