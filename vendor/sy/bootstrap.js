@@ -17,3 +17,20 @@ Sy.service.set('core::mediator', function () {
     return m;
 
 });
+
+Sy.service.set('core::logger', function () {
+
+    var logger = new Sy.Lib.Logger.CoreLogger('core'),
+        info = new Sy.Lib.Logger.Handler.Console(logger.INFO),
+        debug = new Sy.Lib.Logger.Handler.Console(logger.DEBUG),
+        error = new Sy.Lib.Logger.Handler.Console(logger.ERROR),
+        log = new Sy.Lib.Logger.Handler.Console(logger.LOG);
+
+    logger.setHandler(info, logger.INFO);
+    logger.setHandler(debug, logger.DEBUG);
+    logger.setHandler(error, logger.ERROR);
+    logger.setHandler(log, logger.LOG);
+
+    return logger;
+
+});

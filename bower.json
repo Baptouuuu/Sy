@@ -1,16 +1,15 @@
 {
-    "name": "sy",
-    "homepage": "https://github.com/baptouuuu/sy",
-    "version": "1.0.0",
-    "main": "",
-    "ignore": [
-        ".jshintrc",
-        "**/*.txt"
-    ],
-    "dependencies": {
-        "underscore": "1.5.1"
-    },
-    "devDependencies": {
-
-    }
+  "name": "sy",
+  "homepage": "https://github.com/baptouuuu/sy",
+  "version": "1.0.0",
+  "main": "",
+  "ignore": [
+    ".jshintrc",
+    "**/*.txt"
+  ],
+  "dependencies": {
+    "underscore": "1.5.1",
+    "moment": "~2.4.0"
+  },
+  "devDependencies": {}
 }
