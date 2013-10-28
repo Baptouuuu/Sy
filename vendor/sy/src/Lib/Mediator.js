@@ -62,7 +62,14 @@ Sy.Lib.Mediator.prototype = Object.create(Object.prototype, {
     */
 
     publish: {
-        value: function (channel, args) {
+        value: function () {
+
+            if (arguments.length === 0) {
+                return this;
+            }
+
+            var channel = Array.prototype.slice.call(arguments, 0, 1)[0],
+                args = Array.prototype.slice.call(arguments, 1);
 
             if (this.channels[channel] !== undefined) {
 
