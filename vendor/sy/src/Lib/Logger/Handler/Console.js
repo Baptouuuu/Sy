@@ -51,7 +51,7 @@ Sy.Lib.Logger.Handler.Console.prototype = Object.create(Sy.Lib.Logger.Handler.In
     handle: {
         value: function (level, message, data) {
 
-            if (this.isHandling(level)) {
+            if (this.isHandling(level) && 'console' in window) {
 
                 var output = '[' + moment().format('YYYY-M-D hh:mm:ss') + ']',
                     extra = data || [];
