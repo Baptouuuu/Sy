@@ -4,6 +4,7 @@ Sy.Lib.Mediator = function () {
 
     this.channels = {};
     this.generator = null;
+    this.logger = null;
 
 };
 
@@ -27,6 +28,7 @@ Sy.Lib.Mediator.prototype = Object.create(Object.prototype, {
 
                 channel = new Sy.Lib.MediatorChannel(options.channel);
                 channel.setGenerator(this.generator);
+                channel.setLogger(this.logger);
 
                 this.channels[options.channel] = channel;
 
@@ -144,10 +146,24 @@ Sy.Lib.Mediator.prototype = Object.create(Object.prototype, {
         value: function (object) {
 
             if (!(object instanceof Sy.Lib.Generator.Interface)) {
-                throw 'Invalid generator';
+                throw new TypeError('Invalid generator');
             }
 
             this.generator = object;
+
+            return this;
+
+        }
+    },
+
+    setLogger: {
+        value: function (object) {
+
+            if (!(object instanceof Sy.Lib.Logger.Interface)) {
+                throw new TypeError('Invalid logger');
+            }
+
+            this.logger = object;
 
             return this;
 
@@ -166,6 +182,7 @@ Sy.Lib.MediatorChannel = function (name){
     this.stopped = false;
     this.subscribers = {};
     this.generator = null;
+    this.logger = null;
 
 };
 
@@ -249,12 +266,14 @@ Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
                             setTimeout(
                                 this.subscriberCall,
                                 0,
+                                this,
                                 subscriber.fn,
                                 subscriber.context,
                                 args
                             );
                         } else {
                             this.subscriberCall(
+                                this,
                                 subscriber.fn,
                                 subscriber.context,
                                 args
@@ -263,7 +282,9 @@ Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
 
                     } catch (error) {
 
-                        console.log(error);
+                        if (this.logger) {
+                            this.logger.error(error.message, error);
+                        }
 
                     }
 
@@ -287,10 +308,34 @@ Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
         }
     },
 
-    subscriberCall: {
-        value: function (fn, context, args) {
+    setLogger: {
+        value: function (object) {
 
-            fn.apply(context, args);
+            if (!(object instanceof Sy.Lib.Logger.Interface)) {
+                throw new TypeError('Invalid logger');
+            }
+
+            this.logger = object;
+
+            return this;
+
+        }
+    },
+
+    subscriberCall: {
+        value: function (self, fn, context, args) {
+
+            try {
+
+                fn.apply(context, args);
+
+            } catch (error) {
+
+                if (self.logger) {
+                    self.logger.error(error.message, error);
+                }
+
+            }
 
         }
     }

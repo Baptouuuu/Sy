@@ -13,6 +13,7 @@ Sy.service.set('core::mediator', function () {
     var m = new Sy.Lib.Mediator();
 
     m.setGenerator(Sy.service.get('core::generator::uuid'));
+    m.setLogger(Sy.service.get('core::logger'));
 
     return m;
 
