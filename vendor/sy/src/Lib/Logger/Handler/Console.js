@@ -56,9 +56,9 @@ Sy.Lib.Logger.Handler.Console.prototype = Object.create(Sy.Lib.Logger.Handler.In
                 var output = '[' + moment().format('YYYY-M-D hh:mm:ss') + ']',
                     extra = data || [];
 
-                output += ' ' + message.toString() + ' ' + JSON.stringify(extra);
+                output += ' ' + message.toString();
 
-                console[level](output);
+                console[level](output, extra);
 
             }
 
