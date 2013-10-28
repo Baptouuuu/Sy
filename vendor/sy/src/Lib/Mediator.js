@@ -239,22 +239,26 @@ Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
                     return a.priority - b.priority;
                 });
 
-                for (var s = 0, l = fns.length; s < l; s++) {
+                for (var i = 0, l = fns.length; i < l; i++) {
 
                     try {
 
-                        var subscriber = fns[s];
+                        var subscriber = fns[i];
 
                         if (subscriber.async === true) {
                             setTimeout(
-                                function (subscriber) {
-                                    subscriber.fn.apply(subscriber.context, args);
-                                },
+                                this.subscriberCall,
                                 0,
-                                subscriber
+                                subscriber.fn,
+                                subscriber.context,
+                                args
                             );
                         } else {
-                            subscriber.fn.apply(subscriber.context, args);
+                            this.subscriberCall(
+                                subscriber.fn,
+                                subscriber.context,
+                                args
+                            );
                         }
 
                     } catch (error) {
@@ -279,6 +283,14 @@ Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
             this.generator = object;
 
             return this;
+
+        }
+    },
+
+    subscriberCall: {
+        value: function (fn, context, args) {
+
+            fn.apply(context, args);
 
         }
     }
