@@ -7,7 +7,7 @@ Sy.Lib.Logger.Handler.Interface = function () {
 Sy.Lib.Logger.Handler.Interface.prototype = Object.create(Object.prototype, {
 
     handle: {
-        value: function (records) {}
+        value: function (message, data) {}
     },
 
     isHandling: {
