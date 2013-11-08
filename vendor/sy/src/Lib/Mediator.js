@@ -1,5 +1,13 @@
 namespace('Sy.Lib');
 
+/**
+ * Allow to set a series of function that will be called when a channel is "published" via this object
+ *
+ * @package Sy
+ * @subpackage Lib
+ * @class
+ */
+
 Sy.Lib.Mediator = function () {
 
     this.channels = {};
@@ -11,8 +19,12 @@ Sy.Lib.Mediator = function () {
 Sy.Lib.Mediator.prototype = Object.create(Object.prototype, {
 
     /**
-        * Add a subscriber to a channel
-    */
+     * Add a subscriber to a channel
+     *
+     * @param {object} options Available properties: {channel: string, fn: function, context: object, priority: integer, async: boolean}
+     *
+     * @return {string} A unique identifier for this subscriber
+     */
 
     subscribe: {
         value: function (options) {
@@ -41,8 +53,13 @@ Sy.Lib.Mediator.prototype = Object.create(Object.prototype, {
     },
 
     /**
-        * Remove an element of a channel subscribers list
-    */
+     * Remove an element of a channel subscribers list
+     *
+     * @param {string} channel
+     * @param {string} id Identifier returned by the method subscribe
+     *
+     * @return {Sy.Lib.Mediator}
+     */
 
     remove: {
         value: function (channel, id) {
@@ -60,8 +77,13 @@ Sy.Lib.Mediator.prototype = Object.create(Object.prototype, {
     },
 
     /**
-        * Publish a channel
-    */
+     * Publish a channel, all arguments after the channel name will
+     * be passed to the subscribers as arguments
+     *
+     * @param {string} channel Channel name
+     *
+     * @return {Sy.Lib.Mediator}
+     */
 
     publish: {
         value: function () {
@@ -86,8 +108,12 @@ Sy.Lib.Mediator.prototype = Object.create(Object.prototype, {
     },
 
     /**
-        * Pause a channel from being fired
-    */
+     * Pause a channel from being fired
+     *
+     * @param {string} channel
+     *
+     * @return {Sy.Lib.Mediator}
+     */
 
     pause: {
         value: function (channel) {
@@ -105,8 +131,12 @@ Sy.Lib.Mediator.prototype = Object.create(Object.prototype, {
     },
 
     /**
-        * Unpause a channel from being fired
-    */
+     * Unpause a channel from being fired
+     *
+     * @param {string} channel
+     *
+     * @return {Sy.Lib.Mediator}
+     */
 
     unpause: {
         value: function (channel) {
@@ -124,8 +154,12 @@ Sy.Lib.Mediator.prototype = Object.create(Object.prototype, {
     },
 
     /**
-        * Say if a channel is paused or not
-    */
+     * Say if a channel is paused or not
+     *
+     * @param {string} channel
+     *
+     * @return {boolean}
+     */
 
     paused: {
         value: function (channel) {
@@ -142,6 +176,14 @@ Sy.Lib.Mediator.prototype = Object.create(Object.prototype, {
 
     },
 
+    /**
+     * Generator dependency setter
+     *
+     * @param {Sy.Lib.Generator.Interface} object
+     *
+     * @return {Sy.Lib.Mediator}
+     */
+
     setGenerator: {
         value: function (object) {
 
@@ -155,6 +197,14 @@ Sy.Lib.Mediator.prototype = Object.create(Object.prototype, {
 
         }
     },
+
+    /**
+     * Logger dependency setter
+     *
+     * @param {Sy.Lib.Logger.Interface} object
+     *
+     * @return {Sy.Lib.Mediator}
+     */
 
     setLogger: {
         value: function (object) {
@@ -173,8 +223,14 @@ Sy.Lib.Mediator.prototype = Object.create(Object.prototype, {
 });
 
 /**
-    * Channel object to be instanciated every time a new channel is created
-*/
+ * Channel object to be instanciated every time a new channel is created
+ *
+ * @package Sy
+ * @subpackage Lib
+ * @class
+ *
+ * @param {string} name
+ */
 
 Sy.Lib.MediatorChannel = function (name){
 
@@ -186,15 +242,16 @@ Sy.Lib.MediatorChannel = function (name){
 
 };
 
-/**
-    * Channel object prototype
-*/
-
 Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
 
     /**
-        * Add a subscriber to the channel
-    */
+     * Add a subscriber to the channel
+     *
+     * @param {function} fn
+     * @param {object} context Callback context
+     * @param {integer} priority
+     * @param {boolean} async
+     */
 
     add: {
         value: function (fn, context, priority, async) {
@@ -215,8 +272,12 @@ Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
     },
 
     /**
-        * Remove an element of the subscribers list
-    */
+     * Remove an element of the subscribers list
+     *
+     * @param {string} id
+     *
+     * @return {Sy.Lib.MediatorChannel}
+     */
 
     remove: {
         value: function (id) {
@@ -230,8 +291,12 @@ Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
     },
 
     /**
-        * Call every subscribers function when a channel is published
-    */
+     * Call every subscribers function when a channel is published
+     *
+     * @param {Array} args Arguments to be passed to the subscribers
+     *
+     * @return {Sy.Lib.MediatorChannel}
+     */
 
     publish: {
         value: function (args) {
@@ -298,6 +363,14 @@ Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
 
     },
 
+    /**
+     * Generator dependency setter
+     *
+     * @param {Sy.Lib.Generator.interface} object
+     *
+     * @return {Sy.Lib.MediatorChannel}
+     */
+
     setGenerator: {
         value: function (object) {
 
@@ -307,6 +380,14 @@ Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
 
         }
     },
+
+    /**
+     * Logger dependency setter
+     *
+     * @param {Sy.Lib.Logger.Interface} object
+     *
+     * @return {Sy.Lib.MediatorChannel}
+     */
 
     setLogger: {
         value: function (object) {
@@ -321,6 +402,17 @@ Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
 
         }
     },
+
+    /**
+     * Handle calling subscribers and catching exceptions it may throw
+     *
+     * @param {Sy.Lib.MediatorChannel} self Channel instance
+     * @param {function} fn
+     * @param {object} context Subscriber context
+     * @param {Array} args Subscriber arguments
+     *
+     * @return {void}
+     */
 
     subscriberCall: {
         value: function (self, fn, context, args) {
