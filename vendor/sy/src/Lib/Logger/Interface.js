@@ -14,20 +14,36 @@ Sy.Lib.Logger.Interface = function (name) {
 
 Sy.Lib.Logger.Interface.prototype = Object.create(Object.prototype, {
 
+    /**
+     * @constant
+     */
+
     LOG: {
         value: 'log',
         writable: false
     },
+
+    /**
+     * @constant
+     */
 
     DEBUG: {
         value: 'debug',
         writable: false
     },
 
+    /**
+     * @constant
+     */
+
     ERROR: {
         value: 'error',
         writable: false
     },
+
+    /**
+     * @constant
+     */
 
     INFO: {
         value: 'info',
