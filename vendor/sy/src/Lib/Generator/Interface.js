@@ -1,5 +1,13 @@
 namespace('Sy.Lib.Generator');
 
+/**
+ * Interface for all generators
+ *
+ * @package Sy
+ * @subpackage Lib.Generator
+ * @interface
+ */
+
 Sy.Lib.Generator.Interface = function () {
 
 };
