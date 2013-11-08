@@ -1,5 +1,16 @@
 namespace('Sy.Lib.Logger');
 
+/**
+ * Default logger of the framework
+ *
+ * @package Sy
+ * @subpackage Lib.Logger
+ * @class
+ * @implements {Sy.Lib.Logger.Interface}
+ *
+ * @param {string} name
+ */
+
 Sy.Lib.Logger.CoreLogger = function (name) {
 
     this.name = '';
@@ -31,6 +42,10 @@ Sy.Lib.Logger.CoreLogger.prototype = Object.create(Sy.Lib.Logger.Interface.proto
         writable: false
     },
 
+    /**
+     * @inheritDoc
+     */
+
     setName: {
         value: function (name) {
 
@@ -40,6 +55,10 @@ Sy.Lib.Logger.CoreLogger.prototype = Object.create(Sy.Lib.Logger.Interface.proto
 
         }
     },
+
+    /**
+     * @inheritDoc
+     */
 
     setHandler: {
         value: function (handler, level) {
@@ -55,6 +74,16 @@ Sy.Lib.Logger.CoreLogger.prototype = Object.create(Sy.Lib.Logger.Interface.proto
         }
     },
 
+    /**
+     * Transfer the log information to the appropriate handler depending on the level wished
+     *
+     * @param {string} level
+     * @param {string} message
+     * @param {mixed} data
+     *
+     * @return {Sy.Lib.Logger.CoreLogger}
+     */
+
     handle: {
         value: function (level, message, data) {
 
@@ -69,6 +98,10 @@ Sy.Lib.Logger.CoreLogger.prototype = Object.create(Sy.Lib.Logger.Interface.proto
         }
     },
 
+    /**
+     * @inheritDoc
+     */
+
     log: {
         value: function (message, data) {
 
@@ -78,6 +111,10 @@ Sy.Lib.Logger.CoreLogger.prototype = Object.create(Sy.Lib.Logger.Interface.proto
 
         }
     },
+
+    /**
+     * @inheritDoc
+     */
 
     debug: {
         value: function (message, data) {
@@ -89,6 +126,10 @@ Sy.Lib.Logger.CoreLogger.prototype = Object.create(Sy.Lib.Logger.Interface.proto
         }
     },
 
+    /**
+     * @inheritDoc
+     */
+
     error: {
         value: function (message, data) {
 
@@ -98,6 +139,10 @@ Sy.Lib.Logger.CoreLogger.prototype = Object.create(Sy.Lib.Logger.Interface.proto
 
         }
     },
+
+    /**
+     * @inheritDoc
+     */
 
     info: {
         value: function (message, data) {
