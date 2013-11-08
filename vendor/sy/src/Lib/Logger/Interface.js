@@ -14,6 +14,26 @@ Sy.Lib.Logger.Interface = function (name) {
 
 Sy.Lib.Logger.Interface.prototype = Object.create(Object.prototype, {
 
+    LOG: {
+        value: 'log',
+        writable: false
+    },
+
+    DEBUG: {
+        value: 'debug',
+        writable: false
+    },
+
+    ERROR: {
+        value: 'error',
+        writable: false
+    },
+
+    INFO: {
+        value: 'info',
+        writable: false
+    },
+
     /**
      * Set the name of the logger
      *

@@ -53,7 +53,7 @@ Sy.Lib.Logger.Handler.Console.prototype = Object.create(Sy.Lib.Logger.Handler.In
     checkLevel: {
         value: function (level) {
 
-            if (level.toUpperCase() in Sy.Lib.Logger.CoreLogger.prototype) {
+            if (level.toUpperCase() in Sy.Lib.Logger.Interface.prototype) {
                 return true;
             }
 

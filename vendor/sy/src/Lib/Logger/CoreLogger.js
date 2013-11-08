@@ -22,26 +22,6 @@ Sy.Lib.Logger.CoreLogger = function (name) {
 
 Sy.Lib.Logger.CoreLogger.prototype = Object.create(Sy.Lib.Logger.Interface.prototype, {
 
-    LOG: {
-        value: 'log',
-        writable: false
-    },
-
-    DEBUG: {
-        value: 'debug',
-        writable: false
-    },
-
-    ERROR: {
-        value: 'error',
-        writable: false
-    },
-
-    INFO: {
-        value: 'info',
-        writable: false
-    },
-
     /**
      * @inheritDoc
      */
