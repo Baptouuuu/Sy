@@ -55,6 +55,12 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
 
         value: function (serviceName, creator, args) {
 
+            var regexp = new RegExp(/^((\w+::)|(\w+))+$/gi);
+
+            if (!regexp.test(serviceName)) {
+                throw new SyntaxError('Service name "' + serviceName + '" does not follow pattern convention');
+            }
+
             if (typeof creator != 'function'){
                 throw new TypeError('Invalid creator type');
             }
