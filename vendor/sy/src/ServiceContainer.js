@@ -37,7 +37,7 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
 
             } else if (this.services[serviceName] === undefined) {
 
-                throw new TypeError('Unknown service');
+                throw new ReferenceError('Unknown service');
 
             }
 
