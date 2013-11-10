@@ -1,7 +1,16 @@
-function namespace (ns, referer) {
+/**
+ * Transform a dotted string to a multi level object.
+ * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
+ * If object exists it is not transformed.
+ * You can modify the root object by doing namespace.call(rootObject, nsString).
+ *
+ * @param {string} ns
+ */
+
+function namespace (ns) {
 
     var namespaces = null,
-        referer = referer || window;
+        referer = this;
 
     if (typeof ns === 'string') {
         namespaces = ns.split('.');
@@ -15,6 +24,6 @@ function namespace (ns, referer) {
 
     ns = namespaces.shift();
 
-    namespace(namespaces, referer[ns]);
+    namespace.call(referer[ns], namespaces);
 
 }
