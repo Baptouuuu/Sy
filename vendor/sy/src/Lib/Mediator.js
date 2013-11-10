@@ -40,7 +40,10 @@ Sy.Lib.Mediator.prototype = Object.create(Object.prototype, {
 
                 channel = new Sy.Lib.MediatorChannel(options.channel);
                 channel.setGenerator(this.generator);
-                channel.setLogger(this.logger);
+
+                if(this.logger) {
+                    channel.setLogger(this.logger);
+                }
 
                 this.channels[options.channel] = channel;
 
