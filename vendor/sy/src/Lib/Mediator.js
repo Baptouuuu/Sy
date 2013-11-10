@@ -377,6 +377,10 @@ Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
     setGenerator: {
         value: function (object) {
 
+            if (!(object instanceof Sy.Lib.Generator.Interface)) {
+                throw new TypeError('Invalid generator');
+            }
+
             this.generator = object;
 
             return this;
