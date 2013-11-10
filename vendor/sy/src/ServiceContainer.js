@@ -1,5 +1,15 @@
 namespace('Sy');
 
+/**
+ * Default implementation of the service container interface
+ *
+ * @package Sy
+ * @class
+ * @implements {Sy.ServiceContainerInterface}
+ *
+ * @param {string} name
+ */
+
 Sy.ServiceContainer = function (name) {
 
     this.name = '';
@@ -11,6 +21,10 @@ Sy.ServiceContainer = function (name) {
 };
 
 Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
 
     get: {
 
@@ -32,6 +46,10 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
         }
 
     },
+
+    /**
+     * @inheritDoc
+     */
 
     set: {
 
@@ -60,6 +78,10 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
 
     },
 
+    /**
+     * @inheritDoc
+     */
+
     getName: {
 
         value: function () {
@@ -69,6 +91,10 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
         }
 
     },
+
+    /**
+     * @inheritDoc
+     */
 
     setName: {
         value: function (name) {
