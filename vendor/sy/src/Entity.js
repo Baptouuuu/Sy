@@ -115,7 +115,9 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
 
             this.locked = true;
 
-            this.lockedAttributes = attributes;
+            for (var i = 0, l = attributes.length; i < l; i++) {
+                this.lockedAttributes.push(attributes[i]);
+            }
 
             return this;
 
