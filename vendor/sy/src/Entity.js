@@ -8,13 +8,13 @@ namespace('Sy');
  * @implements {Sy.EntityInterface}
  */
 
-Sy.EntityInterface = function (attributes) {
+Sy.Entity = function (attributes) {
 
     this.attributes = attributes;
 
 };
 
-Sy.EntityInterface.prototype = Object.create(Object.prototype, {
+Sy.Entity.prototype = Object.create(Object.prototype, {
 
     indexes: {
         value: [],
