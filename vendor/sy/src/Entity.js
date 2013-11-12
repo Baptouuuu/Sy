@@ -8,9 +8,9 @@ namespace('Sy');
  * @implements {Sy.EntityInterface}
  */
 
-Sy.Entity = function (attributes) {
+Sy.Entity = function () {
 
-    this.attributes = attributes;
+    this.attributes = {};
 
 };
 
