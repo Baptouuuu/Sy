@@ -51,7 +51,7 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
                 }
             } else if (this.locked && this.lockedAttributes.indexOf(attr) !== -1) {
                 this.attributes[attr] = value;
-            } else {
+            } else if (attr !== undefined) {
                 this.attributes[attr] = value;
             }
 
