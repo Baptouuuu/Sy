@@ -114,6 +114,43 @@ Sy.EntityInterface.prototype = Object.create(Object.prototype, {
             return this;
 
         }
+    },
+
+    /**
+     * Return a POJO, connection attributes will return the uuid of entities;
+     * dates will be formalized via the toJSON method.
+     *
+     * @return {object}
+     */
+
+    getRaw: {
+        value: function () {
+
+            var pojo = {};
+
+            for (var attr in this.attributes) {
+                if (this.attributes.hasOwnProperty(attr)) {
+
+                    if (this.locked && !this.lockedAttributes[attr]) {
+                        continue;
+                    }
+
+                    pojo[attr] = this.attributes[attr];
+
+                    if (this.connections[attr]) {
+                        pojo[attr] = pojo[attr].get('uuid');
+                    }
+
+                    if (pojo[attr] instanceof Date) {
+                        pojo[attr] = pojo[attr].toJSON();
+                    }
+
+                }
+            }
+
+            return pojo;
+
+        }
     }
 
 });
