@@ -43,7 +43,13 @@ Sy.EntityInterface.prototype = Object.create(Object.prototype, {
     set: {
         value: function (attr, value) {
 
-            if (this.locked && this.lockedAttributes.indexOf(attr) !== -1) {
+            if (attr instanceof Object) {
+                for (var p in attr) {
+                    if (attr.hasOwnProperty(p)) {
+                        this.set(p, attr[p]);
+                    }
+                }
+            } else if (this.locked && this.lockedAttributes.indexOf(attr) !== -1) {
                 this.attributes[attr] = value;
             } else {
                 this.attributes[attr] = value;
