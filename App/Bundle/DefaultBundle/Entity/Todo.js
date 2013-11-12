@@ -7,7 +7,7 @@ App.Bundle.DefaultBundle.Entity.Todo = function (data) {
     /*no need to register the id attribute, one is automatically registered*/
 
     this.lock([
-        'created',
+        'name',
         'created',
         'sticky',
         'done',
