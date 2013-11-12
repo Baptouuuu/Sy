@@ -6,9 +6,9 @@ App.Bundle.DefaultBundle.Entity.Todo = function (data) {
 
     /*no need to register the id attribute, one is automatically registered*/
 
-    this.register('name');
-    this.register('created');
-    this.register([
+    this.lock([
+        'created',
+        'created',
         'sticky',
         'done',
         'updated'
