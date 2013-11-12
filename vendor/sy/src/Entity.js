@@ -14,7 +14,7 @@ Sy.Entity = function () {
 
 };
 
-Sy.Entity.prototype = Object.create(Object.prototype, {
+Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
 
     indexes: {
         value: [],
