@@ -28,7 +28,8 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
 
     locked: {
         value: false,
-        enumerable: false
+        enumerable: false,
+        writable: true
     },
 
     lockedAttributes: {
@@ -51,7 +52,7 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
                 }
             } else if (this.locked && this.lockedAttributes.indexOf(attr) !== -1) {
                 this.attributes[attr] = value;
-            } else if (attr !== undefined) {
+            } else if (!this.locked && attr !== undefined) {
                 this.attributes[attr] = value;
             }
 
