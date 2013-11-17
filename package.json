@@ -1,0 +1,9 @@
+{
+  "name": "sy",
+  "version": "1.0.0",
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-uglify": "~0.2.7",
+    "grunt-bower-install": "~0.6.1"
+  }
+}
