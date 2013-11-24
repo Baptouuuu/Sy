@@ -114,16 +114,21 @@ Sy.Lib.Mediator.prototype = Object.create(Object.prototype, {
      * Pause a channel from being fired
      *
      * @param {string} channel
+     * @param {string} subscriber Subscriber id, if you want to pause only one subscriber (optional)
      *
      * @return {Sy.Lib.Mediator}
      */
 
     pause: {
-        value: function (channel) {
+        value: function (channel, subscriber) {
 
             if (this.channels[channel] !== undefined) {
 
                 this.channels[channel].stopped = true;
+
+                if (subscriber) {
+                    this.channels[channel].pause(subscriber);
+                }
 
             }
 
@@ -137,20 +142,25 @@ Sy.Lib.Mediator.prototype = Object.create(Object.prototype, {
      * Unpause a channel from being fired
      *
      * @param {string} channel
+     * @param {string} subscriber Subscriber id, if you want to unpause only one subscriber (optional)
      *
      * @return {Sy.Lib.Mediator}
      */
 
     unpause: {
-        value: function (channel) {
+        value: function (channel, subscriber) {
 
-            if (this.channels[channel] === undefined) {
+            if (this.channels[channel] !== undefined) {
 
-                return;
+                this.channels[channel].stopped = false;
+
+                if (subscriber) {
+                    this.channels[channel].unpause(subscriber);
+                }
 
             }
 
-            this.channels[channel].stopped = false;
+            return this;
 
         }
 
@@ -265,7 +275,8 @@ Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
                 fn: fn,
                 context: context || window,
                 priority: priority || 1,
-                async: !!async
+                async: !!async,
+                stopped: false
             };
 
             return guid;
@@ -312,7 +323,7 @@ Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
 
                 for (var s in this.subscribers) {
 
-                    if (this.subscribers.hasOwnProperty(s)) {
+                    if (this.subscribers.hasOwnProperty(s) && this.subscribers[s].stopped === false) {
 
                         fns.push(this.subscribers[s]);
 
@@ -435,6 +446,46 @@ Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
                 }
 
             }
+
+        }
+    },
+
+    /**
+     * Prevent a subscriber from being fired when the channel is published
+     *
+     * @param {string} id Subscriber id
+     *
+     * @return {Sy.Lib.MediatorChannel}
+     */
+
+    pause: {
+        value: function (id) {
+
+            if (this.subscribers[id]) {
+                this.subscribers[id].stopped = true;
+            }
+
+            return this;
+
+        }
+    },
+
+    /**
+     * Re-enable a subscriber from being fired if it has been paused before
+     *
+     * @param {string} id
+     *
+     * @return {Sy.Lib.MediatorChannel}
+     */
+
+    unpause: {
+        value: function (id) {
+
+            if (this.subscribers[id]) {
+                this.subscribers[id].stopped = false;
+            }
+
+            return this;
 
         }
     }

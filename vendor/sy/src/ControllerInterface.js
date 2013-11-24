@@ -55,6 +55,17 @@ Sy.ControllerInterface.prototype = Object.create(Object.prototype, {
     },
 
     /**
+     * Method called when the controller is not used by the framework,
+     * like when the controller is not used for the current screen
+     *
+     * @return {void}
+     */
+
+    idle: {
+        value: function () {}
+    },
+
+    /**
      * Method called when the controller is destroyed by the framework
      *
      * @return {void}
