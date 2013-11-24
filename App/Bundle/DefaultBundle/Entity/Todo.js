@@ -4,7 +4,7 @@ App.Bundle.DefaultBundle.Entity.Todo = function (data) {
 
     Sy.Entity.call(this);
 
-    /*no need to register the id attribute, one is automatically registered*/
+    /*no need to register the uuid attribute, one is automatically registered*/
 
     this.lock([
         'name',

@@ -12,6 +12,8 @@ Sy.Entity = function () {
 
     this.attributes = {};
 
+    this.register(this.UUID);
+
 };
 
 Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
