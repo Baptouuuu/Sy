@@ -114,6 +114,24 @@ Sy.Controller.prototype = Object.create(Object.prototype, {
     /**
      * @inheritDoc
      */
+
+    idle: {
+        value: function () {
+
+            for (var channel in this.mediatorListeners) {
+                if (this.mediatorListeners.hasOwnProperty(channel)) {
+                    for (var i = 0, l = this.mediatorListeners[channel].length; i < l; i++) {
+                        this.mediator.pause(channel, this.mediatorListeners[channel][i]);
+                    }
+                }
+            }
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
     destroy: {
         value: function () {
 
