@@ -37,6 +37,10 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
         enumerable: false
     },
 
+    UUID: {
+        value: 'uuid'
+    },
+
     /**
      * @inheritDoc
      */
@@ -116,6 +120,8 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
 
             this.locked = true;
 
+            this.lockedAttributes.push(this.UUID);
+
             for (var i = 0, l = attributes.length; i < l; i++) {
                 if (this.lockedAttributes.indexOf(attributes[i]) === -1) {
                     this.lockedAttributes.push(attributes[i]);
@@ -149,7 +155,7 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
                     pojo[attr] = this.attributes[attr];
 
                     if (this.connections[attr]) {
-                        pojo[attr] = pojo[attr].get('uuid');
+                        pojo[attr] = pojo[attr].get(pojo[attr].UUID);
                     }
 
                     if (pojo[attr] instanceof Date) {
