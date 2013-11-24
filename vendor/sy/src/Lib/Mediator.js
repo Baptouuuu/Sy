@@ -144,13 +144,13 @@ Sy.Lib.Mediator.prototype = Object.create(Object.prototype, {
     unpause: {
         value: function (channel) {
 
-            if (this.channels[channel] === undefined) {
+            if (this.channels[channel] !== undefined) {
 
-                return;
+                this.channels[channel].stopped = false;
 
             }
 
-            this.channels[channel].stopped = false;
+            return this;
 
         }
 
