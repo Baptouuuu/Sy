@@ -8,7 +8,26 @@ module.exports = function (grunt) {
             },
             build: {
                 files: {
-                    'vendor/sy/sy.js': ['vendor/sy/bootstrap.js']
+                    'vendor/sy/framework.min.js': [
+                        'vendor/sy/src/functions.js',
+                        'vendor/sy/src/Lib/Generator/Interface.js',
+                        'vendor/sy/src/Lib/Generator/UUID.js',
+                        'vendor/sy/src/Lib/Logger/Handler/Interface.js',
+                        'vendor/sy/src/Lib/Logger/Handler/Console.js',
+                        'vendor/sy/src/Lib/Logger/Interface.js',
+                        'vendor/sy/src/Lib/Logger/CoreLogger.js',
+                        'vendor/sy/src/Lib/Mediator.js',
+                        'vendor/sy/src/ConfiguratorInterface.js',
+                        'vendor/sy/src/Configurator.js',
+                        'vendor/sy/src/ControllerInterface.js',
+                        'vendor/sy/src/Controller.js',
+                        'vendor/sy/src/EntityInterface.js',
+                        'vendor/sy/src/ServiceContainerInterface.js',
+                        'vendor/sy/src/ServiceContainer.js',
+                        'vendor/sy/src/ServiceInterface.js',
+                        'vendor/sy/src/StackInterface.js',
+                        'vendor/sy/bootstrap.js'
+                    ]
                 }
             }
         },
