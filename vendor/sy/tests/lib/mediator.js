@@ -47,6 +47,29 @@ describe('mediator', function () {
 
     });
 
+    it('should pause/unpause a channel\'s subscriber', function () {
+
+        var switchValue = false,
+            key = mediator.subscribe({
+                channel: 'foo.subscriber',
+                fn: function(){
+                    switchValue = true;
+                },
+                async: false
+            });
+
+        mediator.pause('foo.subscriber', key);
+        mediator.publish('foo.subscriber');
+
+        expect(switchValue).toBe(false);
+
+        mediator.unpause('foo.subscriber', key);
+        mediator.publish('foo.subscriber');
+
+        expect(switchValue).toBe(true);
+
+    });
+
     it('should throw when setting bad generator', function () {
 
         expect(function () {
