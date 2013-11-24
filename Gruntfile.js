@@ -20,8 +20,7 @@ module.exports = function (grunt) {
         }
     });
 
-    grunt.loadNpmTasks('grunt-contrib-uglify');
-    grunt.loadNpmTasks('grunt-bower-install');
+    require('load-grunt-tasks')(grunt);
 
     grunt.registerTask('default', ['bower-install']);
 
