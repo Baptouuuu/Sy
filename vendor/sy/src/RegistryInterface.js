@@ -51,6 +51,16 @@ Sy.RegistryInterface.prototype = Object.create(Object.prototype, {
     },
 
     /**
+     * Return all the key/value pairs
+     *
+     * @return {object}
+     */
+
+    getMapping: {
+        value: function () {}
+    },
+
+    /**
      * Remove elements from the registry
      *
      * If a key is specified it will removed only this one.
