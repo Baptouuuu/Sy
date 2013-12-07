@@ -89,18 +89,19 @@ Sy.HTTP.RequestInterface.prototype = Object.create(Object.prototype, {
      * Set a listener to the request to be executed when the response is received
      *
      * @param {function} fn
+     * @param {object} context Context object for the listener
      *
      * @return {Sy.HHTP.RequestInterface}
      */
 
     setListener: {
-        value: function (fn) {}
+        value: function (fn, context) {}
     },
 
     /**
      * Get the listener
      *
-     * @return {function}
+     * @return {object}
      */
 
     getListener: {
