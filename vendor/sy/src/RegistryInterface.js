@@ -39,6 +39,7 @@ Sy.RegistryInterface.prototype = Object.create(Object.prototype, {
      * Get the value associated of the passed key
      *
      * If the key is not referenced, it will throw a ReferenceError
+     * If the key is not specified, it will return an array of all values
      *
      * @param {string} key
      *
