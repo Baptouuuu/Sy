@@ -62,6 +62,18 @@ Sy.Registry.prototype = Object.create(Sy.RegistryInterface.prototype, {
 
                 return this.data[key];
 
+            } else if (key === undefined) {
+
+                var data = [];
+
+                for (var k in this.data) {
+                    if (this.data.hasOwnProperty(k)) {
+                        data.push(this.data[k]);
+                    }
+                }
+
+                return data;
+
             }
 
             throw new ReferenceError('"' + key + '" is not defined');
