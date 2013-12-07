@@ -1,7 +1,7 @@
 namespace('Sy.HTTP');
 
 /**
- * Interface for building HTTP requests
+ * Default implementationof the RequestInterface
  *
  * @package Sy
  * @subpackage HTTP
@@ -18,6 +18,7 @@ Sy.HTTP.Request = function () {
         fn: null,
         context: window
     };
+    this.type = '';
 
 };
 
@@ -155,6 +156,34 @@ Sy.HTTP.Request.prototype = Object.create(Sy.HTTP.RequestInterface.prototype, {
         value: function () {
 
             return this.listener;
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    setType: {
+        value: function (type) {
+
+            if (['html', 'json'].indexOf(type) !== -1) {
+                this.type = type;
+            }
+
+            return this;
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    getType: {
+        value: function () {
+
+            return this.type;
 
         }
     }

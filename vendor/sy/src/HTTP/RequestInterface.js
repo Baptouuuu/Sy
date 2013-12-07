@@ -106,6 +106,28 @@ Sy.HTTP.RequestInterface.prototype = Object.create(Object.prototype, {
 
     getListener: {
         value: function () {}
+    },
+
+    /**
+     * Set the type of content requested (html/json)
+     *
+     * @param {string} type
+     *
+     * @return {Sy.HTTP.RequestInterface}
+     */
+
+    setType: {
+        value: function (type) {}
+    },
+
+    /**
+     * Get the request type
+     *
+     * @return {string}
+     */
+
+    getType: {
+        value: function () {}
     }
 
 });
