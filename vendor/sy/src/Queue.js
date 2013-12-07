@@ -85,7 +85,7 @@ Sy.Queue.prototype = Object.create(Sy.QueueInterface.prototype, {
 
                     for (var s in this.states) {
                         if (this.states.hasOwnProperty(s)) {
-                            data[s] = this.data.get(state).get();
+                            data[this.states[s]] = this.data.get(this.states[s]).get();
                         }
                     }
 
@@ -107,8 +107,8 @@ Sy.Queue.prototype = Object.create(Sy.QueueInterface.prototype, {
             var states = [];
 
             for (var s in this.states) {
-                if (this.data.get(s).has(key)) {
-                    states.push(s);
+                if (this.data.get(this.states[s]).has(key)) {
+                    states.push(this.states[s]);
                 }
             }
 
