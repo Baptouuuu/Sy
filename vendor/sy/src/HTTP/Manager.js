@@ -179,6 +179,8 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
                 response.setBody(event.target.response);
 
+                this.requests.remove(event.target.UUID);
+
                 lstn.fn.call(lstn.context, response);
 
             }
