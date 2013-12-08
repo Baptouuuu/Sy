@@ -13,6 +13,28 @@ Sy.HTTP.RequestInterface = function () {};
 Sy.HTTP.RequestInterface.prototype = Object.create(Object.prototype, {
 
     /**
+     * Set the uri of the request
+     *
+     * @param {string} uri
+     *
+     * @return {Sy.HTTP.RequestInterface}
+     */
+
+    setURI: {
+        value: function (uri) {}
+    },
+
+    /**
+     * Get the uri
+     *
+     * @return {string}
+     */
+
+    getURI: {
+        value: function () {}
+    },
+
+    /**
      * Set the method for the request (GET, POST, ...)
      *
      * @param {string} method

@@ -1,7 +1,7 @@
 namespace('Sy.HTTP');
 
 /**
- * Default implementationof the RequestInterface
+ * Default implementation of the RequestInterface
  *
  * @package Sy
  * @subpackage HTTP
@@ -19,10 +19,37 @@ Sy.HTTP.Request = function () {
         context: window
     };
     this.type = '';
+    this.uri = '';
 
 };
 
 Sy.HTTP.Request.prototype = Object.create(Sy.HTTP.RequestInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
+
+    setURI: {
+        value: function (uri) {
+
+            this.uri = uri;
+
+            return this;
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    getURI: {
+        value: function () {
+
+            return this.uri;
+
+        }
+    },
 
     /**
      * @inheritDoc
