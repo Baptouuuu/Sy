@@ -47,3 +47,13 @@ Sy.service.set('sy::core::http', function () {
     return manager;
 
 });
+
+Sy.service.set('sy::core::http::rest', function () {
+
+    var rest = new Sy.HTTP.REST();
+
+    rest.setManager(Sy.service.get('sy::core::http'));
+
+    return rest;
+
+});
