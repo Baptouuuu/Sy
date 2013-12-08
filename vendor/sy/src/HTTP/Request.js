@@ -108,7 +108,7 @@ Sy.HTTP.Request.prototype = Object.create(Sy.HTTP.RequestInterface.prototype, {
     getData: {
         value: function () {
 
-            return this.data.get();
+            return this.data.getMapping();
 
         }
     },
