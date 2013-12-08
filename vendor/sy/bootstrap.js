@@ -58,9 +58,53 @@ Sy.service.set('sy::core::http::rest', function () {
 
 });
 
+Sy.service.set('sy::core::storage', function () {
+
+    var meta = [
+            {
+                name: 'DefaultBundle::Todo',
+                repository: 'Sy.Storage.Repository',            //todo: remove the quotes
+                entity: 'App.Bundle.DefaultBundle.Entity.Todo', //todo: remove the quotes,
+                indexes: [],
+                uuid: 'uuid'
+            }
+        ],
+        storage = new Sy.Storage.Core(),
+        managerFact = new Sy.Storage.ManagerFactory(),
+        repositoryFact = new Sy.Storage.RepositoryFactory(),
+        conf = Sy.config.get('storage');
+
+    repositoryFact
+        .setMetaRegistry(new Sy.Registry())
+        .setRepoRegistry(new Sy.Registry())
+        .setMeta(meta);
+
+    managerFact
+        .setEngines(conf.engines)
+        .setRepositoryFactory(repositoryFact);
+
+    for (var name in conf.managers) {
+        if (conf.managers.hasOwnProperty(name)) {
+            var manager = managerFact.make(name, conf.managers[name]);
+
+            storage.setManager(name, manager);
+        }
+    }
+
+    return storage;
+
+});
+
 Sy.config = new Sy.Configurator();
 
 Sy.config.set({
     env: 'prod',
-    storage: {}
+    storage: {
+        engines: {  //todo: remove the quotes
+            rest: 'Sy.Storage.Engine.Rest',
+            indexeddb: 'Sy.Storage.Engine.IndexedDB',
+            localstorage: 'Sy.Storage.Engine.Localstorage',
+            memory: 'Sy.Storage.Engine.Memory'
+        }
+    }
 });
