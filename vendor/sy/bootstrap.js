@@ -35,3 +35,15 @@ Sy.service.set('sy::core::logger', function () {
     return logger;
 
 });
+
+Sy.service.set('sy::core::http', function () {
+
+    var parser = new Sy.HTTP.HeaderParser(),
+        manager = new Sy.HTTP.Manager();
+
+    manager.setParser(parser);
+    manager.setGenerator(Sy.service.get('sy::core::generator::uuid'));
+
+    return manager;
+
+});

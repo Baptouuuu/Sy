@@ -85,6 +85,26 @@ Sy.Registry.prototype = Object.create(Sy.RegistryInterface.prototype, {
      * @inheritDoc
      */
 
+    getMapping: {
+        value: function () {
+
+            var data = {};
+
+            for (var k in this.data) {
+                if (this.data.hasOwnProperty(k)) {
+                    data[k] = this.data[k];
+                }
+            }
+
+            return data;
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
     remove: {
         value: function (keys) {
 
