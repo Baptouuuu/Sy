@@ -1,15 +1,13 @@
-namespace('App');
-
-App.config = new Sy.Configurator();
-
-App.config.set({
+Sy.config.set({
     env     : 'dev',
     name    : 'My App Name',
-    api: {
-        headers: {
-            'X-Authorization': 'token'
+    storage : {
+        default: {
+            type: 'rest',
+            version: 1,
+            mapping: [
+                'DefaultBundle::Todo'
+            ]
         }
     }
 });
-
-Sy.init();

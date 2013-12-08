@@ -57,3 +57,10 @@ Sy.service.set('sy::core::http::rest', function () {
     return rest;
 
 });
+
+Sy.config = new Sy.Configurator();
+
+Sy.config.set({
+    env: 'prod',
+    storage: {}
+});
