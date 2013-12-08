@@ -103,6 +103,8 @@ Sy.HTTP.REST.prototype = Object.create(Object.prototype, {
 
             this.request(args);
 
+            return this;
+
         }
     },
 
@@ -120,6 +122,8 @@ Sy.HTTP.REST.prototype = Object.create(Object.prototype, {
             args.method = 'post';
 
             this.request(args);
+
+            return this;
 
         }
     },
@@ -140,6 +144,8 @@ Sy.HTTP.REST.prototype = Object.create(Object.prototype, {
 
             this.request(args);
 
+            return this;
+
         }
     },
 
@@ -158,6 +164,8 @@ Sy.HTTP.REST.prototype = Object.create(Object.prototype, {
             args.data = args.data || {_method: 'delete'};
 
             this.request(args);
+
+            return this;
 
         }
     }
