@@ -36,6 +36,14 @@ module.exports = function (grunt) {
                 html: 'index.html',
                 jsPattern: '<script src="{{filePath}}"></script>'
             }
+        },
+        shell: {
+            syTests: {
+                command: 'venus run -t vendor/sy/tests -n',
+                options: {
+                    stdout: true
+                }
+            }
         }
     });
 
