@@ -1,3 +1,12 @@
+/**
+ * @venus-library jasmine
+ * @venus-include ../../src/functions.js
+ * @venus-include ../../src/Lib/Generator/Interface.js
+ * @venus-include ../../src/Lib/Generator/UUID.js
+ * @venus-include ../../src/Lib/Logger/Interface.js
+ * @venus-include ../../src/Lib/Mediator.js
+ */
+
 describe('mediator', function () {
 
     var mediator = null,

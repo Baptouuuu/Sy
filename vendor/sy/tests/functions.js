@@ -1,3 +1,8 @@
+/**
+ * @venus-library jasmine
+ * @venus-include ../src/functions.js
+ */
+
 describe('functions', function () {
 
     it('should create two sub-objects of window', function () {

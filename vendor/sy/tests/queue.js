@@ -1,3 +1,12 @@
+/**
+ * @venus-library jasmine
+ * @venus-include ../src/functions.js
+ * @venus-include ../src/RegistryInterface.js
+ * @venus-include ../src/Registry.js
+ * @venus-include ../src/QueueInterface.js
+ * @venus-include ../src/Queue.js
+ */
+
 describe('queue', function () {
 
     it('should set an element in a new state', function () {

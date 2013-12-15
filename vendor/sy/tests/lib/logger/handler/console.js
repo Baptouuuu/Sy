@@ -1,3 +1,12 @@
+/**
+ * @venus-library jasmine
+ * @venus-include ../../../../../moment/moment.js
+ * @venus-include ../../../../src/functions.js
+ * @venus-include ../../../../src/Lib/Logger/Handler/Interface.js
+ * @venus-include ../../../../src/Lib/Logger/Interface.js
+ * @venus-include ../../../../src/Lib/Logger/Handler/Console.js
+ */
+
 describe('console logger handler', function () {
 
     it('should not handle', function () {
