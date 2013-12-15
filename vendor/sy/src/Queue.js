@@ -122,6 +122,26 @@ Sy.Queue.prototype = Object.create(Sy.QueueInterface.prototype, {
             }
 
         }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    remove: {
+        value: function (state, key) {
+
+            if (state === undefined) {
+                for (var i = 0, l = this.states.length; i < l; i++) {
+                    this.remove(this.states[i]);
+                }
+            } else {
+                this.data.get(state).remove(key);
+            }
+
+            return this;
+
+        }
     }
 
 });

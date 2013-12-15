@@ -67,6 +67,22 @@ Sy.QueueInterface.prototype = Object.create(Object.prototype, {
 
     state: {
         value: function (key) {}
+    },
+
+    /**
+     * Remove an element in a state
+     *
+     * If no key specified it will remove all elements of the state
+     * if no parameters it will remove all elements
+     *
+     * @param {string} state
+     * @param {string} key
+     *
+     * @return {Sy.QueueInterface}
+     */
+
+    remove: {
+        value: function (state, key) {}
     }
 
 });
