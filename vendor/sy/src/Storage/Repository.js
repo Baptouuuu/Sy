@@ -142,6 +142,34 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
                 throw new TypeError('Entity not handled by the repository');
             }
 
+            if (entity.get(this.entityKey) === undefined) {
+
+                entity.set(this.entityKey, this.generator.generate());
+
+                this.queue.set(
+                    'create',
+                    entity.get(this.entityKey),
+                    entity
+                );
+
+            } else if (this.queue.has('create', entity.get(this.entityKey))) {
+
+                this.queue.set(
+                    'create',
+                    entity.get(this.entityKey),
+                    entity
+                );
+
+            } else {
+
+                this.queue.set(
+                    'update',
+                    entity.get(this.entityKey),
+                    entity
+                );
+
+            }
+
             return this;
 
         }
@@ -156,6 +184,24 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
 
             if (!(entity instanceof this.entityConstructor)) {
                 throw new TypeError('Entity not handled by the repository');
+            }
+
+            var key = entity.get(this.entityKey);
+
+            if (key) {
+
+                if (this.queue.has('create', key)) {
+                    this.queue.remove('create', key);
+                } else if (this.queue.has('update', key)) {
+                    this.queue.remove('update', key);
+                } else {
+                    this.queue.set(
+                        'remove',
+                        key,
+                        key
+                    );
+                }
+
             }
 
             return this;
