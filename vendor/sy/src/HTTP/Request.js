@@ -14,10 +14,7 @@ Sy.HTTP.Request = function () {
     this.method = 'GET';
     this.data = new Sy.Registry();
     this.headers = new Sy.Registry();
-    this.listener = {
-        fn: null,
-        context: window
-    };
+    this.listener = null;
     this.type = '';
     this.uri = '';
 
@@ -162,13 +159,9 @@ Sy.HTTP.Request.prototype = Object.create(Sy.HTTP.RequestInterface.prototype, {
      */
 
     setListener: {
-        value: function (fn, context) {
+        value: function (fn) {
 
-            this.listener.fn = fn;
-
-            if (context !== undefined) {
-                this.listener.context = context;
-            }
+            this.listener = fn;
 
             return this;
 

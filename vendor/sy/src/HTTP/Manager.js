@@ -176,9 +176,9 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
                 this.requests.remove(event.target.UUID);
 
-                if (lstn.fn !== undefined) {
+                if (lstn !== undefined) {
 
-                    lstn.fn.call(lstn.context, response);
+                    lstn(response);
 
                 }
 
