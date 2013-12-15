@@ -81,7 +81,9 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
     setEntityConstructor: {
         value: function (constructor) {
 
-            if (!(constructor instanceof Sy.EntityInterface)) {
+            var tmp = new constructor();
+
+            if (!(tmp instanceof Sy.EntityInterface)) {
                 throw new TypeError('Invalid entity constructor');
             }
 
