@@ -108,9 +108,11 @@ Sy.Storage.RepositoryFactory.prototype = Object.create(Sy.FactoryInterface.proto
             var meta = this.meta.get(alias),
                 repo = new meta.repository();
 
-            repo.setEntityKey(meta.uuid);
-            repo.setEntityConstructor(meta.entity);
-            repo.setIndexes(meta.indexes);
+            repo
+                .setEntityKey(meta.uuid)
+                .setEntityConstructor(meta.entity)
+                .setIndexes(meta.indexes)
+                .setQueue(new Sy.Queue());
 
             return repo;
 

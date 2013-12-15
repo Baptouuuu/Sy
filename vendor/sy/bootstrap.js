@@ -63,8 +63,8 @@ Sy.service.set('sy::core::storage', function () {
     var meta = [
             {
                 name: 'DefaultBundle::Todo',
-                repository: 'Sy.Storage.Repository',            //todo: remove the quotes
-                entity: 'App.Bundle.DefaultBundle.Entity.Todo', //todo: remove the quotes,
+                repository: Sy.Storage.Repository,
+                entity: App.Bundle.DefaultBundle.Entity.Todo,
                 indexes: [],
                 uuid: 'uuid'
             }
@@ -72,6 +72,7 @@ Sy.service.set('sy::core::storage', function () {
         storage = new Sy.Storage.Core(),
         managerFact = new Sy.Storage.ManagerFactory(),
         repositoryFact = new Sy.Storage.RepositoryFactory(),
+        engineFact = new Sy.Storage.EngineFactory(),
         conf = Sy.config.get('storage');
 
     repositoryFact
@@ -79,8 +80,14 @@ Sy.service.set('sy::core::storage', function () {
         .setRepoRegistry(new Sy.Registry())
         .setMeta(meta);
 
+    for (var engineName in conf.engines) {
+        if (conf.engines.hasOwnProperty(engineName)) {
+            engineFact.setEngine(conf.engines[engineName]);
+        }
+    }
+
     managerFact
-        .setEngines(conf.engines)
+        .setEngineFactory(engineFact)
         .setRepositoryFactory(repositoryFact);
 
     for (var name in conf.managers) {
@@ -100,11 +107,27 @@ Sy.config = new Sy.Configurator();
 Sy.config.set({
     env: 'prod',
     storage: {
-        engines: {  //todo: remove the quotes
-            rest: 'Sy.Storage.Engine.Rest',
-            indexeddb: 'Sy.Storage.Engine.IndexedDB',
-            localstorage: 'Sy.Storage.Engine.Localstorage',
-            memory: 'Sy.Storage.Engine.Memory'
+        engines: {
+            rest: function (version) {
+
+                return new Sy.Storage.Engine.Rest(version);
+
+            },
+            indexeddb: function (version) {
+
+                return new Sy.Storage.Engine.IndexedDB();
+
+            },
+            localstorage: function (version) {
+
+                return new Sy.Storage.Engine.Localstorage();
+
+            },
+            memory: function (version) {
+
+                return new Sy.Storage.Engine.Memory();
+
+            }
         }
     }
 });

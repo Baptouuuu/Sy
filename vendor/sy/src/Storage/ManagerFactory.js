@@ -11,7 +11,7 @@ namespace('Sy.Storage');
 
 Sy.Storage.ManagerFactory = function () {
 
-    this.engines = {};
+    this.engineFact = null;
     this.repositoryFact = null;
 
 };
@@ -19,17 +19,21 @@ Sy.Storage.ManagerFactory = function () {
 Sy.Storage.ManagerFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
 
     /**
-     * Set the list of available engines
+     * Set the engine factory
      *
-     * @param {object} engines
+     * @param {Sy.Storage.EngineFactory} factory
      *
      * @return {Sy.Storage.ManagerFactory}
      */
 
-    setEngines: {
-        value: function (engines) {
+    setEngineFactory: {
+        value: function (factory) {
 
-            this.engines = engines;
+            if (!(factory instanceof Sy.Storage.EngineFactory)) {
+                throw new TypeError('Invalid engine factory');
+            }
+
+            this.engineFact = factory;
 
             return this;
 
@@ -69,7 +73,8 @@ Sy.Storage.ManagerFactory.prototype = Object.create(Sy.FactoryInterface.prototyp
                 throw new ReferenceError('Unknown engine "' + args.type + '"');
             }
 
-            var manager = new Sy.Storage.Manager();
+            var manager = new Sy.Storage.Manager(),
+                engine = this.engineFact.make(args.type, args.version);
 
             manager
                 .setRepositoryFactory(this.repositoryFact)
