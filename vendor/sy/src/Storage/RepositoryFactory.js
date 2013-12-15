@@ -13,6 +13,7 @@ Sy.Storage.RepositoryFactory = function () {
 
     this.meta = null;
     this.loaded = null;
+    this.generator = null;
 
 };
 
@@ -91,6 +92,28 @@ Sy.Storage.RepositoryFactory.prototype = Object.create(Sy.FactoryInterface.proto
     },
 
     /**
+     * Set the identifier generator
+     *
+     * @param {Sy.Lib.Generator.Interface} generator
+     *
+     * @return {Sy.Storage.RepositoryInterface}
+     */
+
+    setGenerator: {
+        value: function (generator) {
+
+            if (!(generator instanceof Sy.Lib.Generator.Interface)) {
+                throw new TypeError('Invalid generator');
+            }
+
+            this.generator = generator;
+
+            return this;
+
+        }
+    },
+
+    /**
      * @inheritDoc
      */
 
@@ -112,7 +135,8 @@ Sy.Storage.RepositoryFactory.prototype = Object.create(Sy.FactoryInterface.proto
                 .setEntityKey(meta.uuid)
                 .setEntityConstructor(meta.entity)
                 .setIndexes(meta.indexes)
-                .setQueue(new Sy.Queue());
+                .setQueue(new Sy.Queue())
+                .setGenerator(this.generator);
 
             return repo;
 

@@ -62,6 +62,18 @@ Sy.Storage.RepositoryInterface.prototype = Object.create(Object.prototype, {
     },
 
     /**
+     * Set the identifier generator
+     *
+     * @param {Sy.Lib.Generator.Interface} generator
+     *
+     * @return {Sy.Storage.RepositoryInterface}
+     */
+
+    setGenerator: {
+        value: function (generator) {}
+    },
+
+    /**
      * Persist a new entity
      *
      * If trying to persist an entity not handled by the repo, raise a TypeError

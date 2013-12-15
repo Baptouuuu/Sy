@@ -15,6 +15,7 @@ Sy.Storage.Repository = function () {
     this.entityKey = null;
     this.entityConstructor = null;
     this.queue = null;
+    this.generator = null;
 
 };
 
@@ -36,6 +37,24 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
             }
 
             this.queue = queue;
+
+            return this;
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    setGenerator: {
+        value: function (generator) {
+
+            if (!(generator instanceof Sy.Lib.Generator.Interface)) {
+                throw new TypeError('Invalid generator');
+            }
+
+            this.generator = generator;
 
             return this;
 

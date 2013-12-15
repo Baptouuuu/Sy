@@ -78,7 +78,8 @@ Sy.service.set('sy::core::storage', function () {
     repositoryFact
         .setMetaRegistry(new Sy.Registry())
         .setRepoRegistry(new Sy.Registry())
-        .setMeta(meta);
+        .setMeta(meta)
+        .setGenerator(Sy.service.get('sy::core::generator::uuid'));
 
     for (var engineName in conf.engines) {
         if (conf.engines.hasOwnProperty(engineName)) {
