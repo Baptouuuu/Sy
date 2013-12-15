@@ -11,8 +11,10 @@ namespace('Sy.Storage.Engine');
 
 Sy.Storage.Engine.Rest = function (version) {
 
+    this.version = version || 1;
     this.stores = {};
     this.manager = null;
+    this.basePath = '/api/' + this.version + '/{{path}}/{{key}}';
 
 };
 
@@ -52,6 +54,164 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
                 key: identifier,
                 indexes: indexes
             };
+
+            return this;
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    read: {
+        value: function (store, identifier, callback) {
+
+            if (!this.stores[store]) {
+                throw new ReferenceError('Unknown store');
+            }
+
+            var meta = this.stores[store];
+
+            this.manager.get({
+                uri: this.basePath
+                    .replace(/{{path}}/, meta.path)
+                    .replace(/{{key}}/, identifier),
+                listener: function (resp) {
+
+                    callback(resp.getBody());
+
+                }
+            });
+
+            return this;
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    create: {
+        value: function (store, object, callback) {
+
+            if (!this.stores[store]) {
+                throw new ReferenceError('Unknown store');
+            }
+
+            var meta = this.stores[store];
+
+            this.manager.post({
+                uri: this.basePath
+                    .replace(/{{path}}/, meta.path)
+                    .replace(/{{key}}/, ''),
+                data: object,
+                listener: function (resp) {
+
+                    callback(resp.getBody());
+
+                }
+            });
+
+            return this;
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    update: {
+        value: function (store, identifier, object, callback) {
+
+            if (!this.stores[store]) {
+                throw new ReferenceError('Unknown store');
+            }
+
+            var meta = this.stores[store];
+
+            this.manager.put({
+                uri: this.basePath
+                    .replace(/{{path}}/, meta.path)
+                    .replace(/{{key}}/, identifier),
+                data: object,
+                listener: function (resp) {
+
+                    callback(resp.getBody());
+
+                }
+            });
+
+            return this;
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    remove: {
+        value: function (store, identifier, callback) {
+
+            if (!this.stores[store]) {
+                throw new ReferenceError('Unknown store');
+            }
+
+            var meta = this.stores[store];
+
+            this.manager.put({
+                uri: this.basePath
+                    .replace(/{{path}}/, meta.path)
+                    .replace(/{{key}}/, identifier),
+                listener: function (resp) {
+
+                    callback(identifier);
+
+                }
+            });
+
+            return this;
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    find: {
+        value: function (args) {
+
+            if (!this.stores[store]) {
+                throw new ReferenceError('Unknown store');
+            }
+
+            var meta = this.stores[store],
+                queries = [];
+
+            if (args.value instanceof Array) {
+                queries.push(args.index + '[]=' + args.value[0] + '&' + args.index + '[]=' + args.value[1]);
+            } else {
+                queries.push(args.index + '=' + args.value);
+            }
+
+            if (args.limit) {
+                queries.push('limit=' + args.limit);
+            }
+
+            this.manager.get({
+                uri: this.basePath
+                    .replace(/{{path}}/, meta.path)
+                    .replace(/{{key}}/, '?' + queries.join('&')),
+                listener: function (resp) {
+
+                    callback(resp.getBody());
+
+                }
+            });
 
             return this;
 
