@@ -82,7 +82,7 @@ Sy.service.set('sy::core::storage', function () {
 
     for (var engineName in conf.engines) {
         if (conf.engines.hasOwnProperty(engineName)) {
-            engineFact.setEngine(conf.engines[engineName]);
+            engineFact.setEngine(engineName, conf.engines[engineName]);
         }
     }
 
@@ -92,7 +92,7 @@ Sy.service.set('sy::core::storage', function () {
 
     for (var name in conf.managers) {
         if (conf.managers.hasOwnProperty(name)) {
-            var manager = managerFact.make(name, conf.managers[name]);
+            var manager = managerFact.make(name, conf.managers[name], meta);
 
             storage.setManager(name, manager);
         }
@@ -108,24 +108,70 @@ Sy.config.set({
     env: 'prod',
     storage: {
         engines: {
-            rest: function (version) {
+            rest: function (version, entitiesMeta) {
 
-                return new Sy.Storage.Engine.Rest(version);
+                var engine = new Sy.Storage.Engine.Rest(version);
+
+                engine.setManager(Sy.service.get('sy::core::http::rest'));
+
+                for (var i = 0, l = entitiesMeta.length; i < l; i++) {
+                    engine.setStore(
+                        entitiesMeta[i].name,
+                        entitiesMeta[i].name.toLowerCase().replace('::', '/'),
+                        entitiesMeta[i].uuid,
+                        entitiesMeta[i].indexes
+                    );
+                }
+
+                return engine;
 
             },
-            indexeddb: function (version) {
+            indexeddb: function (version, entitiesMeta) {
 
-                return new Sy.Storage.Engine.IndexedDB();
+                var engine =  new Sy.Storage.Engine.IndexedDB(version);
+
+                for (var i = 0, l = entitiesMeta.length; i < l; i++) {
+                    engine.setStore(
+                        entitiesMeta[i].name,
+                        entitiesMeta[i].name.toLowerCase(),
+                        entitiesMeta[i].uuid,
+                        entitiesMeta[i].indexes
+                    );
+                }
+
+                return engine;
 
             },
-            localstorage: function (version) {
+            localstorage: function (version, entitiesMeta) {
 
-                return new Sy.Storage.Engine.Localstorage();
+                var engine = new Sy.Storage.Engine.Localstorage(version);
+
+                for (var i = 0, l = entitiesMeta.length; i < l; i++) {
+                    engine.setStore(
+                        entitiesMeta[i].name,
+                        entitiesMeta[i].name.toLowerCase(),
+                        entitiesMeta[i].uuid,
+                        entitiesMeta[i].indexes
+                    );
+                }
+
+                return engine;
 
             },
-            memory: function (version) {
+            memory: function (version, entitiesMeta) {
 
-                return new Sy.Storage.Engine.Memory();
+                var engine = new Sy.Storage.Engine.Memory(version);
+
+                for (var i = 0, l = entitiesMeta.length; i < l; i++) {
+                    engine.setStore(
+                        entitiesMeta[i].name,
+                        entitiesMeta[i].name.toLowerCase(),
+                        entitiesMeta[i].uuid,
+                        entitiesMeta[i].indexes
+                    );
+                }
+
+                return engine;
 
             }
         }

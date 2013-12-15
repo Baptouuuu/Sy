@@ -13,6 +13,7 @@ Sy.Storage.Manager = function () {
 
     this.repositoryFact = null;
     this.mapping = [];
+    this.engine = null;
 
 };
 
@@ -65,6 +66,28 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
     },
 
     /**
+     * Set the engine associated to the manager
+     *
+     * @param {Sy.Storage.EngineInterface} engine
+     *
+     * @return {Sy.Storage.Manager}
+     */
+
+    setEngine: {
+        value: function (engine) {
+
+            if (!(engine instanceof Sy.Storage.EngineInterface)) {
+                throw new TypeError('Invalid engine');
+            }
+
+            this.engine = engine;
+
+            return this;
+
+        }
+    },
+
+    /**
      * Return an entity repository
      *
      * @param {string} alias
@@ -79,7 +102,11 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
                 throw new ReferenceError('The manager does not handle "' + alias + '"');
             }
 
-            return this.repositoryFact.make(alias);
+            var repo = this.repositoryFact.make(alias);
+
+            repo.setEngine(this.engine);
+
+            return repo;
 
         }
     }

@@ -67,18 +67,26 @@ Sy.Storage.ManagerFactory.prototype = Object.create(Sy.FactoryInterface.prototyp
      */
 
     make: {
-        value: function (name, args) {
-
-            if (this.engines[args.type] === undefined) {
-                throw new ReferenceError('Unknown engine "' + args.type + '"');
-            }
+        value: function (name, args, entitiesMeta) {
 
             var manager = new Sy.Storage.Manager(),
-                engine = this.engineFact.make(args.type, args.version);
+                meta = [],
+                engine;
+
+                args.mapping = args.mapping || [];
+
+            for (var i = 0, l = entitiesMeta.length; i < l; i++) {
+                if (args.mapping.length === 0 || args.mapping.indexOf(entitiesMeta[i].name) !== -1) {
+                    meta.push(entitiesMeta[i]);
+                }
+            }
+
+            engine = this.engineFact.make(args.type, args.version, meta);
 
             manager
                 .setRepositoryFactory(this.repositoryFact)
-                .setMapping(args.mapping || []);
+                .setMapping(args.mapping)
+                .setEngine(engine);
 
             return manager;
 

@@ -14,7 +14,7 @@ Sy.Storage.EngineFactory = function () {
 
 };
 
-Sy.Storage.EngineFactory.prototype = Objec.create(Sy.FactoryInterface.prototype, {
+Sy.Storage.EngineFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
 
     /**
      * Set a new engine constructor
@@ -48,13 +48,13 @@ Sy.Storage.EngineFactory.prototype = Objec.create(Sy.FactoryInterface.prototype,
      */
 
     make: {
-        value: function (name, version) {
+        value: function (name, version, entitiesMeta) {
 
             if (!this.engines[name]) {
                 throw new ReferenceError('Specified engine does not exist');
             }
 
-            var engine = new this.engines[name](version);
+            var engine = new this.engines[name](version, entitiesMeta);
 
             if (!(engine instanceof Sy.Storage.EngineInterface)) {
                 throw new TypeError('Invalid engine');
