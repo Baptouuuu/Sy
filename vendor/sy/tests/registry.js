@@ -1,3 +1,10 @@
+/**
+ * @venus-library jasmine
+ * @venus-include ../src/functions.js
+ * @venus-include ../src/RegistryInterface.js
+ * @venus-include ../src/Registry.js
+ */
+
 describe('registry', function () {
 
     it('should set an element', function () {

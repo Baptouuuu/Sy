@@ -5,6 +5,8 @@
     "grunt": "~0.4.1",
     "grunt-contrib-uglify": "~0.2.7",
     "grunt-bower-install": "~0.6.1",
-    "load-grunt-tasks": "~0.2.0"
+    "load-grunt-tasks": "~0.2.0",
+    "venus": "~2.3.1",
+    "grunt-shell": "~0.6.1"
   }
 }

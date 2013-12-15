@@ -74,8 +74,7 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
                 throw new TypeError('Invalid request type');
             }
 
-            var self = this,
-                uuid = this.generator.generate(),
+            var uuid = this.generator.generate(),
                 req = {
                     xhr: null,
                     obj: request,
@@ -94,11 +93,7 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
             req.xhr.UUID = uuid;
 
-            req.xhr.addEventListener('readystatechange', function (event) {
-
-                self.listener.call(self, event);
-
-            }, false);
+            req.xhr.addEventListener('readystatechange', this.listener.bind(this), false);
 
             switch (request.getType()) {
                 case 'html':

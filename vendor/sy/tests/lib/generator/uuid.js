@@ -1,3 +1,10 @@
+/**
+ * @venus-library jasmine
+ * @venus-include ../../../src/functions.js
+ * @venus-include ../../../src/Lib/Generator/Interface.js
+ * @venus-include ../../../src/Lib/Generator/UUID.js
+ */
+
 describe('uuid generator', function () {
 
     it('should generate a random string of 4 characters', function () {
