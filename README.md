@@ -1,6 +1,8 @@
 Sy Javascript Framework
 =======================
 
+[![Build Status](https://travis-ci.org/Baptouuuu/Sy.png?branch=develop)](https://travis-ci.org/Baptouuuu/Sy)
+
 ## Philosophy
 
 The aim of this framework is to help you build Single-Page Application (SPA). Sy is built around three principles:
