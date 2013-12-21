@@ -50,5 +50,6 @@ module.exports = function (grunt) {
     require('load-grunt-tasks')(grunt);
 
     grunt.registerTask('default', ['bower-install']);
+    grunt.registerTask('test', ['shell:syTests']);
 
 };
