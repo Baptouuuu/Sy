@@ -454,7 +454,11 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
                     var result = event.target.result;
 
                     if (!!result === false) {
-                        args.callback(results);
+                        if (args.limit) {
+                            args.callback(results.slice(0, args.limit));
+                        } else {
+                            args.callback(results);
+                        }
                         return;
                     }
 
