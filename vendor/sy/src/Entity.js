@@ -150,7 +150,7 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
             for (var attr in this.attributes) {
                 if (this.attributes.hasOwnProperty(attr)) {
 
-                    if (this.locked && !this.lockedAttributes[attr]) {
+                    if (this.locked && this.lockedAttributes.indexOf(attr) === -1) {
                         continue;
                     }
 
