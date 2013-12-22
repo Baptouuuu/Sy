@@ -18,7 +18,7 @@ Sy.Storage.EngineInterface.prototype = Object.create(Object.prototype, {
      *
      * @param {string} alias Callable store
      * @param {string} name Actual name used to construct the store
-     * @param {string} identifier Property used identifier
+     * @param {string} identifier Property used as identifier
      * @param {Array} indexes
      *
      * @return {Sy.Storage.EngineInterface}
