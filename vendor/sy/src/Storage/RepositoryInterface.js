@@ -14,6 +14,18 @@ Sy.Storage.RepositoryInterface = function () {};
 Sy.Storage.RepositoryInterface.prototype = Object.create(Object.prototype, {
 
     /**
+     * Set the alias name of entities handled by the repository
+     *
+     * @param {string} name
+     *
+     * @return {Sy.Storage.RepositoryInterface}
+     */
+
+    setName: {
+        value: function (name) {}
+    },
+
+    /**
      * Set the storage engine
      *
      * @param {Sy.Storage.EngineInterface} engine

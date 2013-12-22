@@ -132,6 +132,7 @@ Sy.Storage.RepositoryFactory.prototype = Object.create(Sy.FactoryInterface.proto
                 repo = new meta.repository();
 
             repo
+                .setName(alias)
                 .setEntityKey(meta.uuid)
                 .setEntityConstructor(meta.entity)
                 .setIndexes(meta.indexes)

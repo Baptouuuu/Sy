@@ -16,6 +16,7 @@ Sy.Storage.Repository = function () {
     this.entityConstructor = null;
     this.queue = null;
     this.generator = null;
+    this.name = null;
 
 };
 
@@ -37,6 +38,20 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
             }
 
             this.queue = queue;
+
+            return this;
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    setName: {
+        value: function (name) {
+
+            this.name = name;
 
             return this;
 
