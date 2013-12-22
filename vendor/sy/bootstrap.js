@@ -182,22 +182,6 @@ Sy.config.set({
 
                 return engine;
 
-            },
-            memory: function (version, entitiesMeta) {
-
-                var engine = new Sy.Storage.Engine.Memory(version);
-
-                for (var i = 0, l = entitiesMeta.length; i < l; i++) {
-                    engine.setStore(
-                        entitiesMeta[i].name,
-                        entitiesMeta[i].name.toLowerCase(),
-                        entitiesMeta[i].uuid,
-                        entitiesMeta[i].indexes
-                    );
-                }
-
-                return engine;
-
             }
         }
     }
