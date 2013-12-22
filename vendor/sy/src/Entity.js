@@ -86,7 +86,7 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
     register: {
         value: function (attr, entity) {
 
-            var regexp = new RegExp(/^((\w+::)|(\w+))+$/gi);
+            var regexp = new RegExp(/^\w+::\w+$/gi);
 
             if (this.indexes.indexOf(attr) === -1) {
                 this.indexes.push(attr);
