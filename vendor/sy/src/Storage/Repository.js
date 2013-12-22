@@ -209,6 +209,11 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
                     this.queue.remove('create', key);
                 } else if (this.queue.has('update', key)) {
                     this.queue.remove('update', key);
+                    this.queue.set(
+                        'remove',
+                        key,
+                        key
+                    );
                 } else {
                     this.queue.set(
                         'remove',
