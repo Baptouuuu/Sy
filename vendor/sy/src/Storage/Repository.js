@@ -277,6 +277,21 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
     findOneBy: {
         value: function (args) {
 
+            if (args.index === this.entityKey) {
+                this.engine.read(
+                    this.name,
+                    args.value,
+                    function (object) {
+                        args.callback(
+                            this.buildEntity(object)
+                        );
+                    }.bind(this)
+                );
+            } else {
+                args.limit = 1;
+                this.findBy(args);
+            }
+
             return this;
 
         }
@@ -288,6 +303,18 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
 
     findBy: {
         value: function (args) {
+
+            this.engine.find(
+                this.name,
+                {
+                    index: args.index,
+                    value: args.value,
+                    callback: function (results) {
+                        this.findListener(args.callback, results);
+                    }.bind(this),
+                    limit: 1
+                }
+            );
 
             return this;
 
@@ -338,6 +365,47 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
         value: function (identifier) {
 
             this.queue.remove('create', identifier);
+
+        }
+    },
+
+    /**
+     * Intercept raw results and transform objects array into enitites one
+     *
+     * @param {function} callback
+     * @param {Array} results
+     *
+     * @return {void}
+     */
+
+    findListener: {
+        value: function (callback, results) {
+
+            var data = [];
+
+            for (var i = 0, l = results.length; i < l; i++) {
+                data.push(
+                    this.buildEntity(results[i])
+                );
+            }
+
+            callback(data);
+
+        }
+    },
+
+    /**
+     * Transform a raw object into an entity
+     *
+     * @param {object} object
+     *
+     * @return {Sy.EntityInterface}
+     */
+
+    buildEntity: {
+        value: function (object) {
+
+            return new this.entityConstructor(object);
 
         }
     }
