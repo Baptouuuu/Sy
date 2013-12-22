@@ -307,12 +307,12 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
                 });
 
                 request.addEventListener('error', function (event) {
-                    this.logger.error('Read operation failed!', event);
+                    this.logger.error('Create operation failed!', event);
                 }.bind(this));
 
             } catch (e) {
 
-                this.logger.error('Read operation failed!', e);
+                this.logger.error('Create operation failed!', e);
 
             }
 
