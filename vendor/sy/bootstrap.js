@@ -114,6 +114,7 @@ Sy.config.set({
                 var engine = new Sy.Storage.Engine.Rest(version);
 
                 engine.setManager(Sy.service.get('sy::core::http::rest'));
+                engine.setPattern('/api/{{version}}/{{path}}/{{key}}');
 
                 for (var i = 0, l = entitiesMeta.length; i < l; i++) {
                     engine.setStore(
