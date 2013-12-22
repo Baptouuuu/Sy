@@ -236,6 +236,35 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
     flush: {
         value: function () {
 
+            var toRemove = this.queue.has('remove') ? this.queue.get('remove') : [],
+                toUpdate = this.queue.has('update') ? this.queue.get('update') : [],
+                toCreate = this.queue.has('create') ? this.queue.get('create') : [];
+
+            for (var i = 0, l = toRemove.length; i < l; i++) {
+                this.engine.remove(
+                    this.name,
+                    toRemove[i],
+                    this.removalListener.bind(this)
+                );
+            }
+
+            for (i = 0, l = toUpdate.length; i < l; i++) {
+                this.engine.update(
+                    this.name,
+                    toUpdate[i].get(this.entityKey),
+                    toUpdate[i].getRaw(),
+                    this.updateListener.bind(this)
+                );
+            }
+
+            for (i = 0, l = toCreate.length; i < l; i++) {
+                this.engine.create(
+                    this.name,
+                    toCreate[i].getRaw(),
+                    this.createListener.bind(this)
+                );
+            }
+
             return this;
 
         }
@@ -261,6 +290,54 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
         value: function (args) {
 
             return this;
+
+        }
+    },
+
+    /**
+     * Engine removal listener callback
+     *
+     * @param {string} identifier
+     *
+     * @return {void}
+     */
+
+    removalListener: {
+        value: function (identifier) {
+
+            this.queue.remove('remove', identifier);
+
+        }
+    },
+
+    /**
+     * Engine update listener callback
+     *
+     * @param {object} object
+     *
+     * @return {void}
+     */
+
+    updateListener: {
+        value: function (object) {
+
+            this.queue.remove('update', object[this.entityKey]);
+
+        }
+    },
+
+    /**
+     * Engine create listener callback
+     *
+     * @param {string} identifier
+     *
+     * @return {void}
+     */
+
+    createListener: {
+        value: function (identifier) {
+
+            this.queue.remove('create', identifier);
 
         }
     }
