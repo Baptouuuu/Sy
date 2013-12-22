@@ -14,11 +14,35 @@ Sy.Storage.Engine.Rest = function (version) {
     this.version = version || 1;
     this.stores = {};
     this.manager = null;
-    this.basePath = '/api/' + this.version + '/{{path}}/{{key}}';
+    this.basePath = '';
 
 };
 
 Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prototype, {
+
+    /**
+     * Set the pattern of the api url
+     * The pattern must at least contain "{{path}}" and "{{key}}" placeholders
+     * An extra "{{version}}" placeholder can be set
+     *
+     * @param {string} pattern
+     *
+     * @return {Sy.Storage.Engine.Rest}
+     */
+
+    setPattern: {
+        value: function (pattern) {
+
+            if (pattern.indexOf('{{path}}') === -1 || pattern.indexOf('{{key}}') === -1) {
+                throw new SyntaxError('Invalid pattern');
+            }
+
+            this.basePath = pattern.replace(/{{version}}/, this.version);
+
+            return this;
+
+        }
+    },
 
     /**
      * Set the rest manager
