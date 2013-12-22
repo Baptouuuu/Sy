@@ -137,7 +137,7 @@ Sy.config.set({
                         entitiesMeta[i].name,
                         entitiesMeta[i].name.toLowerCase(),
                         entitiesMeta[i].uuid,
-                        entitiesMeta[i].indexes
+                        entitiesMeta[i].indexes.concat(entitiesMeta[i].uuid)
                     );
                 }
 
