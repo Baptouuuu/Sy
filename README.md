@@ -1,6 +1,8 @@
 Sy Javascript Framework
 =======================
 
+[![Build Status](https://travis-ci.org/Baptouuuu/Sy.png?branch=develop)](https://travis-ci.org/Baptouuuu/Sy)
+
 ## Philosophy
 
 The aim of this framework is to help you build Single-Page Application (SPA). Sy is built around three principles:
@@ -11,7 +13,19 @@ The aim of this framework is to help you build Single-Page Application (SPA). Sy
 
 ## Project state
 
-Sy is currently in the phase of finding the right structure for the app. So nothing's ready to be used, yet!
+Sy is still in development, but some libraries are already fully functional:
+
+- HTTP manager
+- Generator
+- Logger
+- Mediator (Pub/Sub library)
+- Configurator
+- Queue
+- Registry
+- Service container
+
+Bare in mind that until the first release some methods of those libraries may change.
+
 
 ## Conventions
 
