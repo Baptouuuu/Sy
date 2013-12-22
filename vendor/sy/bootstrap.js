@@ -157,6 +157,9 @@ Sy.config.set({
                     );
                 }
 
+                engine.setStorage(window.localStorage);
+                engine.open();
+
                 return engine;
 
             },
