@@ -141,6 +141,25 @@ Sy.config.set({
                     );
                 }
 
+                engine
+                    .setConnection(
+                        window.indexedDB ||
+                        window.webkitIndexedDB ||
+                        window.mozIndexedDB ||
+                        window.msIndexedDB
+                    )
+                    .setTransaction(
+                        window.IDBTransaction ||
+                        window.webkitIDBTransaction
+                    )
+                    .setKeyRange(
+                        window.IDBKeyRange ||
+                        window.webkitIDBKeyRange
+                    )
+                    .setLogger(
+                        Sy.service.get('sy::core::logger')
+                    );
+
                 return engine;
 
             },
