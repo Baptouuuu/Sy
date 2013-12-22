@@ -158,7 +158,8 @@ Sy.config.set({
                     )
                     .setLogger(
                         Sy.service.get('sy::core::logger')
-                    );
+                    )
+                    .open();
 
                 return engine;
 
