@@ -50,10 +50,7 @@ Sy.HTTP.REST.prototype = Object.create(Object.prototype, {
      *           headerName: 'header value'
      *       },
      *       uri: 'url/to/request',
-     *       listener: {
-     *           fn: 'function to call',
-     *           context: 'context object to apply on the function'
-     *       },
+     *       listener: 'function to call',
      *       method: 'get|post|put|delete'
      *   }
      * </code>
@@ -72,16 +69,12 @@ Sy.HTTP.REST.prototype = Object.create(Object.prototype, {
 
             args.data = args.data || {};
             args.headers = args.headers || {};
-            args.listener = args.listener || {};
 
             request.setMethod(args.method);
             request.setURI(args.uri);
             request.setHeader(args.headers);
             request.setData(args.data);
-            request.setListener(
-                args.listener.fn,
-                args.listener.context
-            );
+            request.setListener(args.listener);
 
             this.manager.launch(request);
 

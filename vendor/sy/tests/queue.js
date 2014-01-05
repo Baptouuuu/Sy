@@ -94,4 +94,40 @@ describe('queue', function () {
 
     });
 
+    it('should remove an element of a state', function () {
+
+        var q = new Sy.Queue();
+
+        q.set('foo', 'foo', 'bar');
+        q.remove('foo', 'foo');
+
+        expect(q.has('foo', 'foo')).toBe(false);
+
+    });
+
+    it('should remove all elements of a state', function () {
+
+        var q = new Sy.Queue();
+
+        q.set('foo', 'foo', 'bar');
+        q.set('foo', 'bar', 'baz');
+        q.remove('foo');
+
+        expect(q.get('foo').length).toEqual(0);
+
+    });
+
+    it('should remove all elements', function () {
+
+        var q = new Sy.Queue();
+
+        q.set('foo', 'foo', 'bar');
+        q.set('bar', 'bar', 'baz');
+        q.remove();
+
+        expect(q.get('foo').length).toEqual(0);
+        expect(q.get('bar').length).toEqual(0);
+
+    });
+
 });

@@ -9,7 +9,7 @@ Sy Javascript Framework
 The aim of this framework is to help you build Single-Page Application (SPA). Sy is built around three principles:
 
 - **Fully asynchronous**
-- **Zero closures**
+- **Avoiding closures (as mush as possible)**
 - **Building apps not websites**
 
 ## Project state

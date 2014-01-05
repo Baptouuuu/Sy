@@ -86,7 +86,7 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
     register: {
         value: function (attr, entity) {
 
-            var regexp = new RegExp(/^((\w+::)|(\w+))+$/gi);
+            var regexp = new RegExp(/^\w+::\w+$/gi);
 
             if (this.indexes.indexOf(attr) === -1) {
                 this.indexes.push(attr);
@@ -136,10 +136,7 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
     },
 
     /**
-     * Return a POJO, connection attributes will return the uuid of entities;
-     * dates will be formalized via the toJSON method.
-     *
-     * @return {object}
+     * @inheritDoc
      */
 
     getRaw: {
@@ -150,7 +147,7 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
             for (var attr in this.attributes) {
                 if (this.attributes.hasOwnProperty(attr)) {
 
-                    if (this.locked && !this.lockedAttributes[attr]) {
+                    if (this.locked && this.lockedAttributes.indexOf(attr) === -1) {
                         continue;
                     }
 
