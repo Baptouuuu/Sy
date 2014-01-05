@@ -312,7 +312,7 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
                     callback: function (results) {
                         this.findListener(args.callback, results);
                     }.bind(this),
-                    limit: 1
+                    limit: args.limit
                 }
             );
 
