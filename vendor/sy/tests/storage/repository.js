@@ -1,17 +1,17 @@
 /**
  * @venus-library jasmine
  * @venus-include ../../src/functions.js
- * @venus-include ../../src/registryinterface.js
- * @venus-include ../../src/registry.js
- * @venus-include ../../src/queueinterface.js
- * @venus-include ../../src/queue.js
- * @venus-include ../../src/entityinterface.js
- * @venus-include ../../src/entity.js
- * @venus-include ../../src/lib/generator/interface.js
- * @venus-include ../../src/lib/generator/uuid.js
- * @venus-include ../../src/storage/engineinterface.js
- * @venus-include ../../src/storage/repositoryinterface.js
- * @venus-include ../../src/storage/repository.js
+ * @venus-include ../../src/RegistryInterface.js
+ * @venus-include ../../src/Registry.js
+ * @venus-include ../../src/QueueInterface.js
+ * @venus-include ../../src/Queue.js
+ * @venus-include ../../src/EntityInterface.js
+ * @venus-include ../../src/Entity.js
+ * @venus-include ../../src/Lib/Generator/Interface.js
+ * @venus-include ../../src/Lib/Generator/UUID.js
+ * @venus-include ../../src/Storage/EngineInterface.js
+ * @venus-include ../../src/Storage/RepositoryInterface.js
+ * @venus-include ../../src/Storage/Repository.js
  */
 
 describe('storage repository', function () {

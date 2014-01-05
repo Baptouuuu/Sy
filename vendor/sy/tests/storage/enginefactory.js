@@ -1,9 +1,9 @@
 /**
  * @venus-library jasmine
  * @venus-include ../../src/functions.js
- * @venus-include ../../src/factoryinterface.js
- * @venus-include ../../src/storage/engineinterface.js
- * @venus-include ../../src/storage/enginefactory.js
+ * @venus-include ../../src/FactoryInterface.js
+ * @venus-include ../../src/Storage/EngineInterface.js
+ * @venus-include ../../src/Storage/EngineFactory.js
  */
 
 describe('storage engine factory', function () {
