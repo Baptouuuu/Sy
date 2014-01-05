@@ -47,7 +47,7 @@ Sy.Storage.EngineInterface.prototype = Object.create(Object.prototype, {
      *
      * @param {string} store Alias name of the store
      * @param {object} object
-     * @param {function} callback Called when the item is created with it's id as argument
+     * @param {function} callback Called when the item is created with its id as argument
      *
      * @return {Sy.Storage.EngineInterface}
      */
