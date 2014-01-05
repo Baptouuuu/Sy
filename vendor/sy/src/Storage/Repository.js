@@ -324,6 +324,7 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
     /**
      * Engine removal listener callback
      *
+     * @private
      * @param {string} identifier
      *
      * @return {void}
@@ -340,6 +341,7 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
     /**
      * Engine update listener callback
      *
+     * @private
      * @param {object} object
      *
      * @return {void}
@@ -356,6 +358,7 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
     /**
      * Engine create listener callback
      *
+     * @private
      * @param {string} identifier
      *
      * @return {void}
@@ -372,6 +375,7 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
     /**
      * Intercept raw results and transform objects array into enitites one
      *
+     * @private
      * @param {function} callback
      * @param {Array} results
      *
@@ -397,6 +401,7 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
     /**
      * Transform a raw object into an entity
      *
+     * @private
      * @param {object} object
      *
      * @return {Sy.EntityInterface}

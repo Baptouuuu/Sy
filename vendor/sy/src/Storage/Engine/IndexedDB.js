@@ -168,6 +168,7 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
     /**
      * Upgrade the definition of the database
      *
+     * @private
      * @param {object} event
      *
      * @return {Sy.Storage.Engine.IndexedDB}

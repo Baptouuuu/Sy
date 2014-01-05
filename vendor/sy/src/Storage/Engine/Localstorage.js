@@ -91,6 +91,7 @@ Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterf
     /**
      * Create the storage
      *
+     * @private
      * @return {Sy.Storage.Engine.Localstorage}
      */
 
@@ -115,6 +116,7 @@ Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterf
     /**
      * Write all the data to the LocalStorage
      *
+     * @private
      * @return {Sy.Storage.Engine.Localstorage}
      */
 
