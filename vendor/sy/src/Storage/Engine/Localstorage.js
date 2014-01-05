@@ -19,6 +19,7 @@ Sy.Storage.Engine.Localstorage = function (version) {
     this.stores = {};
     this.data = null;
     this.storageKey = 'app::storage';
+    this.mediator = null;
 
 };
 
@@ -55,6 +56,24 @@ Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterf
         value: function (storage) {
 
             this.storage = storage;
+
+            return this;
+
+        }
+    },
+
+    /**
+     * Set mediator object
+     *
+     * @param {Sy.Lib.Mediator} mediator
+     *
+     * @return {Sy.Storage.Engine.Localstorage}
+     */
+
+    setMediator: {
+        value: function (mediator) {
+
+            this.mediator = mediator;
 
             return this;
 
@@ -189,9 +208,21 @@ Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterf
 
             var key = store.key;
 
+            this.mediator.publish(
+                this.storageKey + '::on::pre::create',
+                store,
+                object
+            );
+
             this.data[store.path][object[key]] = object;
 
             this.flush();
+
+            this.mediator.publish(
+                this.storageKey + '::on::post::create',
+                store,
+                object
+            );
 
             setTimeout(
                 callback,
@@ -217,9 +248,23 @@ Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterf
 
             store = this.stores[store];
 
+            this.mediator.publish(
+                this.storageKey + '::on::pre::update',
+                store,
+                identifier,
+                object
+            );
+
             this.data[store.path][identifier] = object;
 
             this.flush();
+
+            this.mediator.publish(
+                this.storageKey + '::on::post::update',
+                store,
+                identifier,
+                object
+            );
 
             setTimeout(
                 callback,
@@ -247,9 +292,21 @@ Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterf
 
             var key = this.stores[store].key;
 
+            this.mediator.publish(
+                this.storageKey + '::on::pre::remove',
+                store,
+                identifier
+            );
+
             delete this.data[store.path][identifier];
 
             this.flush();
+
+            this.mediator.publish(
+                this.storageKey + '::on::post::remove',
+                store,
+                identifier
+            );
 
             setTimeout(
                 callback,

@@ -23,6 +23,7 @@ Sy.Storage.Engine.IndexedDB = function (version) {
     this.stores = {};
     this.storage = null;
     this.logger = null;
+    this.mediator = null;
 
 };
 
@@ -114,7 +115,7 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
      *
      * @param {Sy.Lib.Logger.Interface} logger
      *
-     * @return {Sy.Storage.Engine.Interface}
+     * @return {Sy.Storage.Engine.IndexedDB}
      */
 
     setLogger: {
@@ -125,6 +126,24 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
             }
 
             this.logger = logger;
+
+            return this;
+
+        }
+    },
+
+    /**
+     * Set the mediator object
+     *
+     * @param {Sy.Lib.Mediator} mediator
+     *
+     * @return {Sy.Storage.EngineIndexedDB}
+     */
+
+    setMediator: {
+        value: function (mediator) {
+
+            this.mediator = mediator;
 
             return this;
 
@@ -296,6 +315,12 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
 
             try {
 
+                this.mediator.publish(
+                    this.name + '::on::pre::create',
+                    store,
+                    object
+                );
+
                 var transaction = this.storage.transaction(
                         [store.path],
                         this.transactionModes.READ_WRITE
@@ -305,7 +330,12 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
 
                 request.addEventListener('success', function (event) {
                     callback(event.target.result);
-                });
+                    this.mediator.publish(
+                        this.name + '::on::post::create',
+                        store,
+                        object
+                    );
+                }.bind(this));
 
                 request.addEventListener('error', function (event) {
                     this.logger.error('Create operation failed!', event);
@@ -337,6 +367,13 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
 
             try {
 
+                this.mediator.publish(
+                    this.name + '::on::pre::update',
+                    store,
+                    identifier,
+                    object
+                );
+
                 var transaction = this.storage.transaction(
                         [store.path],
                         this.transactionModes.READ_WRITE
@@ -346,7 +383,13 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
 
                 request.addEventListener('success', function (event) {
                     callback(event.target.result);
-                });
+                    this.mediator.publish(
+                        this.name + '::on::post::update',
+                        store,
+                        identifier,
+                        object
+                    );
+                }.bind(this));
 
                 request.addEventListener('error', function (event) {
                     this.logger.error('Update operation failed!', event);
@@ -378,6 +421,12 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
 
             try {
 
+                this.mediator.publish(
+                    this.name + '::on::pre::remove',
+                    store,
+                    identifier
+                );
+
                 var transaction = this.storage.transaction(
                         [store.path],
                         this.transactionModes.READ_WRITE
@@ -387,6 +436,11 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
 
                 request.addEventListener('success', function (event) {
                     callback(event.target.result);
+                    this.mediator.publish(
+                        this.name + '::on::post::remove',
+                        store,
+                        identifier
+                    );
                 });
 
                 request.addEventListener('error', function (event) {

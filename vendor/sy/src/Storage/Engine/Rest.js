@@ -15,6 +15,7 @@ Sy.Storage.Engine.Rest = function (version) {
     this.stores = {};
     this.manager = null;
     this.basePath = '';
+    this.mediator = null;
 
 };
 
@@ -60,6 +61,24 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
             }
 
             this.manager = manager;
+
+            return this;
+
+        }
+    },
+
+    /**
+     * Set mediator object
+     *
+     * @param {Sy.Lib.Mediator} mediator
+     *
+     * @return {Sy.Storage.Engine.Localstorage}
+     */
+
+    setMediator: {
+        value: function (mediator) {
+
+            this.mediator = mediator;
 
             return this;
 
@@ -126,6 +145,13 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
 
             var meta = this.stores[store];
 
+            this.mediator.publish(
+                'app::storage::on::pre::create',
+                this.basePath,
+                store,
+                object
+            );
+
             this.manager.post({
                 uri: this.basePath
                     .replace(/{{path}}/, meta.path)
@@ -135,7 +161,14 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
 
                     callback(resp.getBody());
 
-                }
+                    this.mediator.publish(
+                        'app::storage::on::post::create',
+                        this.basePath,
+                        store,
+                        object
+                    );
+
+                }.bind(this)
             });
 
             return this;
@@ -156,6 +189,14 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
 
             var meta = this.stores[store];
 
+            this.mediator.publish(
+                'app::storage::on::pre::update',
+                this.basePath,
+                store,
+                identifier,
+                object
+            );
+
             this.manager.put({
                 uri: this.basePath
                     .replace(/{{path}}/, meta.path)
@@ -165,7 +206,15 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
 
                     callback(resp.getBody());
 
-                }
+                    this.mediator.publish(
+                        'app::storage::on::post::update',
+                        this.basePath,
+                        store,
+                        identifier,
+                        object
+                    );
+
+                }.bind(this)
             });
 
             return this;
@@ -186,6 +235,13 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
 
             var meta = this.stores[store];
 
+            this.mediator.publish(
+                'app::storage::on::pre::remove',
+                this.basePath,
+                store,
+                identifier
+            );
+
             this.manager.put({
                 uri: this.basePath
                     .replace(/{{path}}/, meta.path)
@@ -194,7 +250,14 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
 
                     callback(identifier);
 
-                }
+                    this.mediator.publish(
+                        'app::storage::on::post::remove',
+                        this.basePath,
+                        store,
+                        identifier
+                    );
+
+                }.bind(this)
             });
 
             return this;
