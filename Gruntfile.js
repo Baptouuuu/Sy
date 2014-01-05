@@ -66,7 +66,29 @@ module.exports = function (grunt) {
         },
         shell: {
             syTests: {
-                command: 'venus run -t vendor/sy/tests -n',
+                command: function (pkg) {
+                    var path;
+
+                    switch (pkg) {
+                        case 'lib':
+                            path = 'lib/';
+                            break;
+                        case 'storage':
+                            path = 'storage/';
+                            break;
+                        case 'topLevel':
+                            path = [
+                                'entity.js',
+                                'functions.js',
+                                'queue.js',
+                                'registry.js',
+                                'servicecontainer.js',
+                            ].join(',vendor/sy/tests/');
+                            break;
+                    }
+
+                    return 'venus run -t vendor/sy/tests/' + path + ' -n';
+                },
                 options: {
                     stdout: true
                 }
@@ -77,6 +99,10 @@ module.exports = function (grunt) {
     require('load-grunt-tasks')(grunt);
 
     grunt.registerTask('default', ['bower-install']);
-    grunt.registerTask('test', ['shell:syTests']);
+    grunt.registerTask('test', [
+        'shell:syTests:lib',
+        'shell:syTests:storage',
+        'shell:syTests:topLevel',
+    ]);
 
 };
