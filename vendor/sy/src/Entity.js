@@ -136,10 +136,7 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
     },
 
     /**
-     * Return a POJO, connection attributes will return the uuid of entities;
-     * dates will be formalized via the toJSON method.
-     *
-     * @return {object}
+     * @inheritDoc
      */
 
     getRaw: {

@@ -65,6 +65,17 @@ Sy.EntityInterface.prototype = Object.create(Object.prototype, {
 
     lock: {
         value: function (attributes) {}
+    },
+
+    /**
+     * Return a POJO, connection attributes will return the uuid of entities;
+     * dates will be formalized via the toJSON method.
+     *
+     * @return {object}
+     */
+
+    getRaw: {
+        value: function () {}
     }
 
 });
