@@ -131,6 +131,10 @@ Sy.Storage.RepositoryFactory.prototype = Object.create(Sy.FactoryInterface.proto
             var meta = this.meta.get(alias),
                 repo = new meta.repository();
 
+            if (!(repo instanceof Sy.Storage.RepositoryInterface)) {
+                throw new TypeError('Invalid repository "' + alias + '"');
+            }
+
             repo
                 .setName(alias)
                 .setEntityKey(meta.uuid)
