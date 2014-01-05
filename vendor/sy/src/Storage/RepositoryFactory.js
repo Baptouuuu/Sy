@@ -125,7 +125,7 @@ Sy.Storage.RepositoryFactory.prototype = Object.create(Sy.FactoryInterface.proto
             }
 
             if (!this.meta.has(alias)) {
-                throw new ReferenceError('Unkown repository "' + alias + '"');
+                throw new ReferenceError('Unknown repository "' + alias + '"');
             }
 
             var meta = this.meta.get(alias),
