@@ -73,15 +73,7 @@ describe('storage manager', function () {
 
         var m = new Sy.Storage.Manager();
 
-        m.setMapping([
-            {
-                name: 'Foo::Bar',
-                repository: function () {},
-                entity: function () {},
-                indexes: [],
-                uuid: 'uuid'
-            }
-        ]);
+        m.setMapping(['Foo::Bar']);
 
         expect(function () {
             m.getRepository('unknown');
