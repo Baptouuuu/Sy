@@ -2,7 +2,6 @@ Sy Javascript Framework
 =======================
 
 [![Build Status](https://travis-ci.org/Baptouuuu/Sy.png?branch=develop)](https://travis-ci.org/Baptouuuu/Sy)
-[![Analytics](https://ga-beacon.appspot.com/UA-36083455-2/sy/readme?pixel)](https://github.com/igrigorik/ga-beacon)
 
 ## Philosophy
 
