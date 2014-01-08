@@ -32,7 +32,7 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
 
             if (this.services[serviceName] === undefined && this.creators[serviceName]) {
 
-                this.services[serviceName] = this.creators[serviceName].fn.apply({}, this.creators[serviceName].args);
+                this.services[serviceName] = this.creators[serviceName].fn.apply(this, this.creators[serviceName].args);
                 delete this.creators[serviceName];
 
             } else if (this.services[serviceName] === undefined) {

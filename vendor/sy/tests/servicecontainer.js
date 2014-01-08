@@ -72,4 +72,15 @@ describe('service container', function () {
 
     });
 
+    it('should have the service container as service constructor function context', function () {
+
+        container.set('context', function () {
+            expect(this).toEqual(container);
+            return {};
+        });
+
+        container.get('context');
+
+    });
+
 });
