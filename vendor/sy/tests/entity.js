@@ -107,4 +107,23 @@ describe('entity', function () {
 
     });
 
+    it('should create a connection entity if set data as string', function () {
+
+        var e = new Sy.Entity();
+
+        namespace('App.Bundle.Foo.Entity');
+
+        App.Bundle.Foo.Entity.Baz = function () {
+            Sy.Entity.call(this);
+        };
+        App.Bundle.Foo.Entity.Baz.prototype = Object.create(Sy.Entity.prototype);
+
+        e.register('foobarbaz', 'Foo::Baz');
+        e.set('foobarbaz', 'foo');
+
+        expect(e.get('foobarbaz') instanceof App.Bundle.Foo.Entity.Baz).toBe(true);
+        expect(e.get('foobarbaz').get('uuid')).toEqual('foo');
+
+    });
+
 });

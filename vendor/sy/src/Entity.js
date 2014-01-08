@@ -62,6 +62,11 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
                 this.attributes[attr] = value;
             }
 
+            if (this.connections[attr] && typeof value === 'string') {
+                this.attributes[attr] = new this.connections[attr]();
+                this.attributes[attr].set(this.attributes[attr].UUID, value);
+            }
+
             return this;
 
         }
