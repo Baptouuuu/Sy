@@ -24,7 +24,7 @@ Sy.Configurator.prototype = Object.create(Sy.ConfiguratorInterface.prototype, {
     set: {
         value: function (key, value) {
 
-            if (key instanceof Object && !value) {
+            if (key instanceof Object && value === undefined) {
                 this.config = _.extend(this.config, key);
             } else {
                 objectSetter.call(this.config, key, value);
