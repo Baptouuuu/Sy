@@ -12,8 +12,8 @@ Sy.service.set('sy::core::mediator', function () {
 
     var m = new Sy.Lib.Mediator();
 
-    m.setGenerator(Sy.service.get('sy::core::generator::uuid'));
-    m.setLogger(Sy.service.get('sy::core::logger'));
+    m.setGenerator(this.get('sy::core::generator::uuid'));
+    m.setLogger(this.get('sy::core::logger'));
 
     return m;
 
@@ -42,7 +42,7 @@ Sy.service.set('sy::core::http', function () {
         manager = new Sy.HTTP.Manager();
 
     manager.setParser(parser);
-    manager.setGenerator(Sy.service.get('sy::core::generator::uuid'));
+    manager.setGenerator(this.get('sy::core::generator::uuid'));
 
     return manager;
 
@@ -52,7 +52,7 @@ Sy.service.set('sy::core::http::rest', function () {
 
     var rest = new Sy.HTTP.REST();
 
-    rest.setManager(Sy.service.get('sy::core::http'));
+    rest.setManager(this.get('sy::core::http'));
 
     return rest;
 
