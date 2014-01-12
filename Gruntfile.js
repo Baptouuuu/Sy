@@ -93,6 +93,15 @@ module.exports = function (grunt) {
                     stdout: true
                 }
             }
+        },
+        watch: {
+            js: {
+                files: ['vendor/sy/src/*.js'],
+                tasks: [],
+                options: {
+                    livereload: true
+                }
+            }
         }
     });
 
