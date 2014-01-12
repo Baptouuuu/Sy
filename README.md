@@ -26,6 +26,9 @@ Sy is still in development, but some libraries are already fully functional:
 
 Bare in mind that until the first release some methods of those libraries may change.
 
+## Documentation
+
+The framework documentation is available in the [wiki](https://github.com/Baptouuuu/Sy/wiki).
 
 ## Conventions
 
