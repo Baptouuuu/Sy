@@ -410,7 +410,11 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
     buildEntity: {
         value: function (object) {
 
-            return new this.entityConstructor(object);
+            var entity = new this.entityConstructor();
+
+            entity.set(object);
+
+            return entity;
 
         }
     }
