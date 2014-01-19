@@ -29,7 +29,7 @@ Sy.Lib.Logger.CoreLogger.prototype = Object.create(Sy.Lib.Logger.Interface.proto
     setName: {
         value: function (name) {
 
-            this.name = name;
+            this.name = name || 'null';
 
             return this;
 
@@ -69,7 +69,7 @@ Sy.Lib.Logger.CoreLogger.prototype = Object.create(Sy.Lib.Logger.Interface.proto
 
             if (this.handlers[level]) {
 
-                this.handlers[level].handle(level, message, data);
+                this.handlers[level].handle(this.name, level, message, data);
 
             }
 

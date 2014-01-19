@@ -18,6 +18,7 @@ Sy.Lib.Logger.Handler.Interface.prototype = Object.create(Object.prototype, {
      * Log the message into the dev tools alongside possible extra data (and the time of the log message).
      * Output the information only if the level is handled by this handler
      *
+     * @param {string} name Logger name
      * @param {string} level
      * @param {string} message
      * @param {mixed} data
@@ -26,7 +27,7 @@ Sy.Lib.Logger.Handler.Interface.prototype = Object.create(Object.prototype, {
      */
 
     handle: {
-        value: function (level, message, data) {}
+        value: function (name, level, message, data) {}
     },
 
     /**
