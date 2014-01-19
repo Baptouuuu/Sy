@@ -98,7 +98,7 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
 
                 if (entity !== undefined) {
 
-                    if(!regexp.test(entity)) {
+                    if (!regexp.test(entity)) {
                         throw new SyntaxError('Invalid entity name format');
                     }
 

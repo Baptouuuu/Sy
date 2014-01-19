@@ -41,7 +41,7 @@ Sy.Lib.Mediator.prototype = Object.create(Object.prototype, {
                 channel = new Sy.Lib.MediatorChannel(options.channel);
                 channel.setGenerator(this.generator);
 
-                if(this.logger) {
+                if (this.logger) {
                     channel.setLogger(this.logger);
                 }
 
@@ -245,7 +245,7 @@ Sy.Lib.Mediator.prototype = Object.create(Object.prototype, {
  * @param {string} name
  */
 
-Sy.Lib.MediatorChannel = function (name){
+Sy.Lib.MediatorChannel = function (name) {
 
     this.name = name || '';
     this.stopped = false;
@@ -331,7 +331,7 @@ Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
 
                 }
 
-                fns.sort(function(a, b) {
+                fns.sort(function (a, b) {
                     return a.priority - b.priority;
                 });
 

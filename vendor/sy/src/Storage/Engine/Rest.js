@@ -53,7 +53,7 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
      * @return {Sy.Storage.Engine.Rest}
      */
 
-    setManager:{
+    setManager: {
         value: function (manager) {
 
             if (!(manager instanceof Sy.HTTP.REST)) {
