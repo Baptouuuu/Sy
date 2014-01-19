@@ -102,6 +102,138 @@ module.exports = function (grunt) {
                     livereload: true
                 }
             }
+        },
+        jscs: {
+            src: 'vendor/sy/src/**/*.js',
+            options: {
+                requireCurlyBraces: [
+                    'if',
+                    'else',
+                    'for',
+                    'do',
+                    'while',
+                    'try',
+                    'catch',
+                ],
+                requireSpaceAfterKeywords: [
+                    'if',
+                    'else',
+                    'for',
+                    'do',
+                    'while',
+                    'switch',
+                    'try',
+                    'catch'
+                ],
+                requireParenthesesAroundIIFE: true,
+                requireSpacesInFunctionExpression: {
+                    beforeOpeningRoundBrace: true,
+                    beforeOpeningCurlyBrace: true
+                },
+                disallowSpacesInsideObjectBrackets: true,
+                disallowSpacesInsideArrayBrackets: true,
+                disallowSpacesInsideParentheses: true,
+                disallowQuotedKeysInObjects: true,
+                disallowSpaceAfterObjectKeys: true,
+                requireCommaBeforeLineBreak: true,
+                requireOperatorBeforeLineBreak: [
+                    '?',
+                    '+',
+                    '-',
+                    '/',
+                    '*',
+                    '=',
+                    '==',
+                    '===',
+                    '!=',
+                    '!==',
+                    '>',
+                    '>=',
+                    '<',
+                    '<='
+                ],
+                disallowLeftStickedOperators: [
+                    '?',
+                    '+',
+                    '-',
+                    '/',
+                    '*',
+                    '=',
+                    '==',
+                    '===',
+                    '!=',
+                    '!==',
+                    '>',
+                    '>=',
+                    '<',
+                    '<='
+                ],
+                requireRightStickedOperators: ['!'],
+                disallowRightStickedOperators: [
+                    '?',
+                    '+',
+                    '/',
+                    '*',
+                    ':',
+                    '=',
+                    '==',
+                    '===',
+                    '!=',
+                    '!==',
+                    '>',
+                    '>=',
+                    '<',
+                    '<='
+                ],
+                requireLeftStickedOperators: [','],
+                disallowSpaceAfterPrefixUnaryOperators: [
+                    '++',
+                    '--',
+                    '+',
+                    '-',
+                    '~',
+                    '!'
+                ],
+                disallowSpaceBeforePostfixUnaryOperators: [
+                    '++',
+                    '--'
+                ],
+                requireSpaceBeforeBinaryOperators: [
+                    '+',
+                    '-',
+                    '/',
+                    '*',
+                    '=',
+                    '==',
+                    '===',
+                    '!=',
+                    '!=='
+                ],
+                requireSpaceAfterBinaryOperators: [
+                    '+',
+                    '-',
+                    '/',
+                    '*',
+                    '=',
+                    '==',
+                    '===',
+                    '!=',
+                    '!=='
+                ],
+                requireCamelCaseOrUpperCaseIdentifiers: true,
+                disallowKeywords: ["with"],
+                disallowMultipleLineBreaks: true,
+                validateQuoteMarks: '\'',
+                disallowMixedSpacesAndTabs: true,
+                disallowTrailingWhitespace: true,
+                disallowKeywordsOnNewLine: ['else'],
+                requireDotNotation: true,
+                validateJSDoc: {
+                    checkParamNames: true,
+                    checkRedundantParams: true,
+                    requireParamTypes: true
+                }
+            }
         }
     });
 
@@ -109,9 +241,10 @@ module.exports = function (grunt) {
 
     grunt.registerTask('default', ['bower-install']);
     grunt.registerTask('test', [
+        'jscs',
         'shell:syTests:lib',
         'shell:syTests:storage',
-        'shell:syTests:topLevel',
+        'shell:syTests:topLevel'
     ]);
 
 };
