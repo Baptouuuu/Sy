@@ -103,6 +103,10 @@ Sy.service.set('sy::core::storage', function () {
 
 });
 
+Sy.service.set('sy::core::registry::factory', function () {
+    return new Sy.RegistryFactory();
+});
+
 Sy.config = new Sy.Configurator();
 
 Sy.config.set({
