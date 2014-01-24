@@ -9,10 +9,13 @@
 
 describe('core storage', function () {
 
+    var core = new Sy.Storage.Core();
+
+    core.setRegistry(new Sy.Registry());
+
     it('should register a new manager', function () {
 
-        var core = new Sy.Storage.Core(),
-            manager = new Sy.Storage.Manager();
+        var manager = new Sy.Storage.Manager();
 
         core.setManager('foo', manager);
 
@@ -22,16 +25,14 @@ describe('core storage', function () {
 
     it('should return itself', function () {
 
-        var core = new Sy.Storage.Core(),
-            manager = new Sy.Storage.Manager();
+        var manager = new Sy.Storage.Manager();
 
         expect(core.setManager('foo', manager)).toEqual(core);
+        expect(core.setRegistry(new Sy.Registry())).toEqual(core);
 
     });
 
     it('should throw if invalid manager', function () {
-
-        var core = new Sy.Storage.Core();
 
         expect(function () {
             core.setManager('foo', {});
@@ -41,8 +42,7 @@ describe('core storage', function () {
 
     it('should return manager without specifying name if it is main', function () {
 
-        var core = new Sy.Storage.Core(),
-            manager = new Sy.Storage.Manager();
+        var manager = new Sy.Storage.Manager();
 
         core.setManager('main', manager);
 
