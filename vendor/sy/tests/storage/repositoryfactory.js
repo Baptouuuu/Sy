@@ -4,9 +4,11 @@
  * @venus-include ../../src/FactoryInterface.js
  * @venus-include ../../src/RegistryInterface.js
  * @venus-include ../../src/Registry.js
+ * @venus-include ../../src/RegistryFactory.js
  * @venus-include ../../src/EntityInterface.js
  * @venus-include ../../src/QueueInterface.js
  * @venus-include ../../src/Queue.js
+ * @venus-include ../../src/QueueFactory.js
  * @venus-include ../../src/Lib/Generator/Interface.js
  * @venus-include ../../src/Storage/RepositoryInterface.js
  * @venus-include ../../src/Storage/Repository.js
@@ -15,7 +17,11 @@
 
 describe('storage repository factory', function () {
 
-    var fact = new Sy.Storage.RepositoryFactory();
+    var fact = new Sy.Storage.RepositoryFactory(),
+        registryFactory = new Sy.RegistryFactory(),
+        queueFactory = new Sy.QueueFactory();
+
+    queueFactory.setRegistryFactory(registryFactory);
 
     it('should return itself', function () {
 
@@ -23,6 +29,7 @@ describe('storage repository factory', function () {
         expect(fact.setRepoRegistry(new Sy.RegistryInterface())).toEqual(fact);
         expect(fact.setMeta([])).toEqual(fact);
         expect(fact.setGenerator(new Sy.Lib.Generator.Interface())).toEqual(fact);
+        expect(fact.setQueueFactory(queueFactory)).toEqual(fact);
 
     });
 

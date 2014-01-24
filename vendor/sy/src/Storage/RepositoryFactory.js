@@ -14,6 +14,7 @@ Sy.Storage.RepositoryFactory = function () {
     this.meta = null;
     this.loaded = null;
     this.generator = null;
+    this.queueFactory = null;
 
 };
 
@@ -114,6 +115,28 @@ Sy.Storage.RepositoryFactory.prototype = Object.create(Sy.FactoryInterface.proto
     },
 
     /**
+     * Set the queue factory
+     *
+     * @param {Sy.QueueFactory} factory
+     *
+     * @return {Sy.Storage.RepositoryFactory}
+     */
+
+    setQueueFactory: {
+        value: function (factory) {
+
+            if (!(factory instanceof Sy.QueueFactory)) {
+                throw new TypeError('Invalid factory');
+            }
+
+            this.queueFactory = factory;
+
+            return this;
+
+        }
+    },
+
+    /**
      * @inheritDoc
      */
 
@@ -140,7 +163,7 @@ Sy.Storage.RepositoryFactory.prototype = Object.create(Sy.FactoryInterface.proto
                 .setEntityKey(meta.uuid)
                 .setEntityConstructor(meta.entity)
                 .setIndexes(meta.indexes)
-                .setQueue(new Sy.Queue())
+                .setQueue(this.queueFactory.make())
                 .setGenerator(this.generator);
 
             return repo;
