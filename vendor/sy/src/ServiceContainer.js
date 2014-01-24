@@ -88,6 +88,22 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
      * @inheritDoc
      */
 
+    has: {
+        value: function (name) {
+
+            if (this.services[name] || this.creators[name]) {
+                return true;
+            }
+
+            return false;
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
     getName: {
 
         value: function () {

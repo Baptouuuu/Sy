@@ -67,6 +67,18 @@ Sy.ServiceContainerInterface.prototype = Object.create(Object.prototype, {
 
     get: {
         value: function (name) {}
+    },
+
+    /**
+     * Check if a service exist in the container
+     *
+     * @param {string} name
+     *
+     * @return {boolean}
+     */
+
+    has: {
+        value: function (name) {}
     }
 
 });

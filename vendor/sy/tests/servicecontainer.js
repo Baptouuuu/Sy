@@ -83,4 +83,22 @@ describe('service container', function () {
 
     });
 
+    it('should return that a service is set', function () {
+
+        container.set('some::service', function () {
+            return {};
+        });
+
+        expect(container.has('some::service')).toBe(true);
+        container.get('some::service');
+        expect(container.has('some::service')).toBe(true);
+
+    });
+
+    it('should return that a service does not exist', function () {
+
+        expect(container.has('unknown')).toBe(false);
+
+    });
+
 });
