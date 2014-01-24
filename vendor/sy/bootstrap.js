@@ -43,6 +43,7 @@ Sy.service.set('sy::core::http', function () {
 
     manager.setParser(parser);
     manager.setGenerator(this.get('sy::core::generator::uuid'));
+    manager.setRegistry(this.get('sy::core::registry::factory').make());
 
     return manager;
 

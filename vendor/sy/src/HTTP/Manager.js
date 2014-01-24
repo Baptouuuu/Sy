@@ -11,7 +11,7 @@ namespace('Sy.HTTP');
 
 Sy.HTTP.Manager = function () {
 
-    this.requests = new Sy.Registry();
+    this.requests = null;
     this.parser = null;
     this.generator = null;
 
@@ -53,6 +53,28 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
             }
 
             this.generator = generator;
+
+            return this;
+
+        }
+    },
+
+    /**
+     * Set a registry holding pending requests
+     *
+     * @param {Sy.Registry} registry
+     *
+     * @return {Sy.HTTP.Manager}
+     */
+
+    setRegistry: {
+        value: function (registry) {
+
+            if (!(registry instanceof Sy.Registry)) {
+                throw new TypeError('Invalid registry');
+            }
+
+            this.requests = registry;
 
             return this;
 
