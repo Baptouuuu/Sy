@@ -3,15 +3,21 @@
  * @venus-include ../src/functions.js
  * @venus-include ../src/RegistryInterface.js
  * @venus-include ../src/Registry.js
+ * @venus-include ../src/FactoryInterface.js
+ * @venus-include ../src/RegistryFactory.js
  * @venus-include ../src/QueueInterface.js
  * @venus-include ../src/Queue.js
  */
 
 describe('queue', function () {
 
+    var factory = new Sy.RegistryFactory();
+
     it('should set an element in a new state', function () {
 
         var q = new Sy.Queue();
+
+        q.setRegistryFactory(factory);
 
         q.set('foo', 'bar', 'baz');
 
@@ -23,6 +29,8 @@ describe('queue', function () {
 
         var q = new Sy.Queue();
 
+        q.setRegistryFactory(factory);
+
         expect(q.has('foo', 'bar')).toBe(false);
 
     });
@@ -31,6 +39,8 @@ describe('queue', function () {
 
         var q = new Sy.Queue();
 
+        q.setRegistryFactory(factory);
+
         expect(q.has('foo')).toBe(false);
 
     });
@@ -38,6 +48,8 @@ describe('queue', function () {
     it('should return the setted value', function () {
 
         var q = new Sy.Queue();
+
+        q.setRegistryFactory(factory);
 
         q.set('foo', 'bar', 'baz');
 
@@ -49,6 +61,8 @@ describe('queue', function () {
 
         var q = new Sy.Queue();
 
+        q.setRegistryFactory(factory);
+
         q.set('foo', 'bar', 'baz');
 
         expect(q.get('foo')).toEqual(['baz']);
@@ -58,6 +72,8 @@ describe('queue', function () {
     it('should return a list of arrays', function () {
 
         var q = new Sy.Queue();
+
+        q.setRegistryFactory(factory);
 
         q.set('foo', 'bar', 'baz');
 
@@ -69,6 +85,8 @@ describe('queue', function () {
 
         var q = new Sy.Queue();
 
+        q.setRegistryFactory(factory);
+
         q.set('foo', 'bar', 'baz');
 
         expect(q.state('bar')).toEqual('foo');
@@ -78,6 +96,8 @@ describe('queue', function () {
     it('should return the list of key\'s states', function () {
 
         var q = new Sy.Queue();
+
+        q.setRegistryFactory(factory);
 
         q.set('foo', 'bar', 'baz');
         q.set('foobar', 'bar', 'baz');
@@ -90,6 +110,8 @@ describe('queue', function () {
 
         var q = new Sy.Queue();
 
+        q.setRegistryFactory(factory);
+
         expect(q.state('bar')).toEqual(undefined);
 
     });
@@ -97,6 +119,8 @@ describe('queue', function () {
     it('should remove an element of a state', function () {
 
         var q = new Sy.Queue();
+
+        q.setRegistryFactory(factory);
 
         q.set('foo', 'foo', 'bar');
         q.remove('foo', 'foo');
@@ -109,6 +133,8 @@ describe('queue', function () {
 
         var q = new Sy.Queue();
 
+        q.setRegistryFactory(factory);
+
         q.set('foo', 'foo', 'bar');
         q.set('foo', 'bar', 'baz');
         q.remove('foo');
@@ -120,6 +146,8 @@ describe('queue', function () {
     it('should remove all elements', function () {
 
         var q = new Sy.Queue();
+
+        q.setRegistryFactory(factory);
 
         q.set('foo', 'foo', 'bar');
         q.set('bar', 'bar', 'baz');

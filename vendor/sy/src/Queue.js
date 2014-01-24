@@ -10,12 +10,36 @@ namespace('Sy');
 
 Sy.Queue = function () {
 
-    this.data = new Sy.Registry();
+    this.data = null;
     this.states = [];
+    this.registryFactory = null;
 
 };
 
 Sy.Queue.prototype = Object.create(Sy.QueueInterface.prototype, {
+
+    /**
+     * Set the registry factory
+     *
+     * @param {Sy.RegistryFactory} factory
+     *
+     * @return {Sy.Queue}
+     */
+
+    setRegistryFactory: {
+        value: function (factory) {
+
+            if (!(factory instanceof Sy.RegistryFactory)) {
+                throw new TypeError('Invalid factory');
+            }
+
+            this.registryFactory = factory;
+            this.data = factory.make();
+
+            return this;
+
+        }
+    },
 
     /**
      * @inheritDoc
@@ -26,7 +50,7 @@ Sy.Queue.prototype = Object.create(Sy.QueueInterface.prototype, {
 
             if (!this.has(state)) {
 
-                var r = new Sy.Registry();
+                var r = this.registryFactory.make();
 
                 this.data.set(state, r);
                 this.states.push(state);
