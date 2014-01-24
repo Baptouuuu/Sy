@@ -3,8 +3,11 @@
  * @venus-include ../../src/functions.js
  * @venus-include ../../src/RegistryInterface.js
  * @venus-include ../../src/Registry.js
+ * @venus-include ../../src/FactoryInterface.js
+ * @venus-include ../../src/RegistryFactory.js
  * @venus-include ../../src/QueueInterface.js
  * @venus-include ../../src/Queue.js
+ * @venus-include ../../src/QueueFactory.js
  * @venus-include ../../src/EntityInterface.js
  * @venus-include ../../src/Entity.js
  * @venus-include ../../src/Lib/Generator/Interface.js
@@ -28,7 +31,8 @@ describe('storage repository', function () {
         mockEntity = function (data) {
             Sy.Entity.call(this);
             this.set(data);
-        };
+        },
+        queueFactory = new Sy.QueueFactory();
     mockEngine.prototype = Object.create(Sy.Storage.EngineInterface.prototype, {
 
         read: {
@@ -68,6 +72,10 @@ describe('storage repository', function () {
     });
     mockEntity.prototype = Object.create(Sy.Entity.prototype);
 
+    queueFactory.setRegistryFactory(
+        new Sy.RegistryFactory()
+    );
+
     it('should return itself', function () {
 
         var repo = new Sy.Storage.Repository();
@@ -99,7 +107,7 @@ describe('storage repository', function () {
     it('should add the entity to the queue in create state', function () {
 
         var repo = new Sy.Storage.Repository(),
-            queue = new Sy.Queue(),
+            queue = queueFactory.make(),
             entity = new Sy.Entity();
 
         repo.setQueue(queue);
@@ -125,7 +133,7 @@ describe('storage repository', function () {
     it('should add the entity to the queue in update state', function () {
 
         var repo = new Sy.Storage.Repository(),
-            queue = new Sy.Queue(),
+            queue = queueFactory.make(),
             entity = new Sy.Entity();
 
         repo.setQueue(queue);
@@ -145,7 +153,7 @@ describe('storage repository', function () {
     it('should add the entity to the queue in remove state', function () {
 
         var repo = new Sy.Storage.Repository(),
-            queue = new Sy.Queue(),
+            queue = queueFactory.make(),
             entity = new Sy.Entity();
 
         repo.setQueue(queue);
@@ -180,7 +188,7 @@ describe('storage repository', function () {
                 eUpdate = new Sy.Entity(),
                 eRemove = new Sy.Entity();
 
-            this.queue = new Sy.Queue();
+            this.queue = queueFactory.make();
 
             repo.setQueue(this.queue);
             repo.setGenerator(new Sy.Lib.Generator.UUID());
@@ -211,7 +219,7 @@ describe('storage repository', function () {
     it('should return an entity by its uuid', function () {
 
         var repo = new Sy.Storage.Repository(),
-            queue = new Sy.Queue(),
+            queue = queueFactory.make(),
             self = this;
 
         repo.setQueue(queue);
@@ -234,7 +242,7 @@ describe('storage repository', function () {
     it('should return an entity by its index', function () {
 
         var repo = new Sy.Storage.Repository(),
-            queue = new Sy.Queue(),
+            queue = queueFactory.make(),
             self = this;
 
         repo.setQueue(queue);
@@ -258,7 +266,7 @@ describe('storage repository', function () {
     it('should return entities by index', function () {
 
         var repo = new Sy.Storage.Repository(),
-            queue = new Sy.Queue(),
+            queue = queueFactory.make(),
             self = this;
 
         repo.setQueue(queue);
