@@ -17,7 +17,7 @@ Sy.RegistryFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
 
     make: {
         value: function () {
-            return new Registry();
+            return new Sy.Registry();
         }
     }
 
