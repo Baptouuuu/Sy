@@ -74,11 +74,14 @@ Sy.service.set('sy::core::storage', function () {
         managerFact = new Sy.Storage.ManagerFactory(),
         repositoryFact = new Sy.Storage.RepositoryFactory(),
         engineFact = new Sy.Storage.EngineFactory(),
-        conf = Sy.config.get('storage');
+        conf = Sy.config.get('storage'),
+        registryFact = this.get('sy::core::registry::factory');
+
+    storage.setRegistry(registryFact.make());
 
     repositoryFact
-        .setMetaRegistry(new Sy.Registry())
-        .setRepoRegistry(new Sy.Registry())
+        .setMetaRegistry(registryFact.make())
+        .setRepoRegistry(registryFact.make())
         .setMeta(meta)
         .setGenerator(Sy.service.get('sy::core::generator::uuid'));
 

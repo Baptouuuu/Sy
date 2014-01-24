@@ -10,11 +10,33 @@ namespace('Sy.Storage');
 
 Sy.Storage.Core = function () {
 
-    this.managers = new Sy.Registry();
+    this.managers = null;
 
 };
 
 Sy.Storage.Core.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set a registry holding the managers
+     *
+     * @param {Sy.Registry} registry
+     *
+     * @return {Sy.Storage.Core}
+     */
+
+    setRegistry: {
+        value: function (registry) {
+
+            if (!(registry instanceof Sy.Registry)) {
+                throw new TypeError('Invalid registry');
+            }
+
+            this.managers = new Sy.Registry();
+
+            return this;
+
+        }
+    },
 
     /**
      * Set a new manager
