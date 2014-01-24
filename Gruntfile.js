@@ -82,6 +82,8 @@ module.exports = function (grunt) {
                                 'functions.js',
                                 'queue.js',
                                 'registry.js',
+                                'registryfactory.js',
+                                'queuefactory.js',
                                 'servicecontainer.js',
                             ].join(',vendor/sy/tests/');
                             break;
