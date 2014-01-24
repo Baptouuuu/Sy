@@ -111,6 +111,12 @@ Sy.service.set('sy::core::registry::factory', function () {
     return new Sy.RegistryFactory();
 });
 
+Sy.service.set('sy::core::queue::factory', function () {
+    var factory = new Sy.QueueFactory();
+    factory.setRegistryFactory(this.get('sy::core::registry::factory'));
+    return factory;
+});
+
 Sy.config = new Sy.Configurator();
 
 Sy.config.set({
