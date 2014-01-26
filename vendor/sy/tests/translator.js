@@ -47,4 +47,72 @@ describe('translator', function () {
 
     });
 
+    it('should register a new transation string', function () {
+
+        translator.registerTranslation('fr', 'domain', 'key', 'translation');
+
+        expect(translator.languages.get('fr').get('domain', 'key')).toEqual('translation');
+
+    });
+
+    it('should register a set of translations', function () {
+
+        translator.registerTranslations('fr', [
+            {
+                domain: 'domain',
+                key: 'foobar',
+                translation: 'baz'
+            }
+        ]);
+
+        expect(translator.languages.get('fr').get('domain', 'foobar')).toEqual('baz');
+
+    });
+
+    it('should register a translation with default domain root', function () {
+
+        translator.registerTranslations('fr', [
+            {
+                key: 'default domain',
+                translation: 'baz'
+            }
+        ]);
+
+        expect(translator.languages.get('fr').get('root', 'default domain')).toEqual('baz');
+
+    });
+
+    it('should return the key if no translation found', function () {
+
+        translator.setLanguage('en');
+
+        expect(translator.translate('unknown key')).toEqual('unknown key');
+        expect(translator.translate('unknown key', 'unknown domain')).toEqual('unknown key');
+        expect(translator.translate('unknown key', 'unknown domain', 'unknown language')).toEqual('unknown key');
+
+    });
+
+    it('should return translated string', function () {
+
+        translator.registerTranslations('fr', [
+            {
+                key: 'symphony',
+                translation: 'symphonie'
+            },
+            {
+                domain: 'specific domain',
+                key: 'framework',
+                translation: 'structure'
+            }
+        ]);
+        translator.registerTranslation('en', 'root', 'symphonie', 'symphony');
+
+        translator.setLanguage('fr');
+
+        expect(translator.translate('symphony')).toEqual('symphonie');
+        expect(translator.translate('framework', 'specific domain')).toEqual('structure');
+        expect(translator.translate('symphonie', null, 'en')).toEqual('symphony');
+
+    });
+
 });
