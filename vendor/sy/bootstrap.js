@@ -118,6 +118,14 @@ Sy.service.set('sy::core::queue::factory', function () {
     return factory;
 });
 
+Sy.service.set('sy::core::translator', function () {
+    var translator = new Sy.Translator();
+    translator
+        .setRegistry(this.get('sy::core::registry::factory').make())
+        .setQueueFactory(this.get('sy::core::queue::factory'));
+    return translator;
+});
+
 Sy.config = new Sy.Configurator();
 
 Sy.config.set({
