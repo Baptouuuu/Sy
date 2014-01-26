@@ -141,6 +141,34 @@ Sy.Translator.prototype = Object.create(Object.prototype, {
             return this;
 
         }
+    },
+
+    /**
+     * Translate a string
+     *
+     * @param {string} key
+     * @param {string} domain Optional (default to root)
+     * @param {string} language Enforce the translation language, optional
+     *
+     * @return {string}
+     */
+
+    translate: {
+        value: function (key, domain, language) {
+
+            var lang = language || this.currentLanguage;
+            domain = domain || 'root';
+
+            if (
+                !this.languages.has(lang) ||
+                !this.languages.get(lang).has(domain, key)
+            ) {
+                return key;
+            }
+
+            return this.languages.get(lang).get(domain, key);
+
+        }
     }
 
 });
