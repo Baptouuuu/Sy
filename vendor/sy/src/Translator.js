@@ -111,13 +111,13 @@ Sy.Translator.prototype = Object.create(Object.prototype, {
     /**
      * Register multiple translations at once
      *
-     * The translations array is composed of arrays like below:
+     * The translations array is composed of objects like below:
      * <code>
-     * [
+     * {
      *     'domain': 'domain of the translation', //optional (default to root)
      *     'key': 'key to access translation',
      *     'translation': 'translated string'
-     * ]
+     * }
      * </code>
      *
      * @param {string} language
