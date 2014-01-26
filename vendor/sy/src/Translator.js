@@ -103,6 +103,43 @@ Sy.Translator.prototype = Object.create(Object.prototype, {
                 translation
             );
 
+            return this;
+
+        }
+    },
+
+    /**
+     * Register multiple translations at once
+     *
+     * The translations array is composed of arrays like below:
+     * <code>
+     * [
+     *     'domain': 'domain of the translation', //optional (default to root)
+     *     'key': 'key to access translation',
+     *     'translation': 'translated string'
+     * ]
+     * </code>
+     *
+     * @param {string} language
+     * @param {Array} translations
+     *
+     * @return {Sy.Translator}
+     */
+
+    registerTranslations: {
+        value: function (language, translations) {
+
+            for (var i = 0, l = translations.length; i < l; i++) {
+                this.registerTranslation(
+                    language,
+                    translations[i].domain || 'root',
+                    translations[i].key,
+                    translations[i].translation
+                );
+            }
+
+            return this;
+
         }
     }
 
