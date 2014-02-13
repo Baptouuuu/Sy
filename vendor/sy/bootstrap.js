@@ -96,10 +96,8 @@ Sy.service
         'sy::core::mediator': {
             constructor: Sy.Lib.Mediator,
             calls: [
-                ['setGenerator', [
-                    '@sy::core::generator::uuid',
-                    '@sy::core::logger'
-                ]]
+                ['setGenerator', ['@sy::core::generator::uuid']],
+                ['setLogger', ['@sy::core::logger']]
             ]
         }
     });
