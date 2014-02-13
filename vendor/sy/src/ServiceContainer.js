@@ -15,12 +15,25 @@ Sy.ServiceContainer = function (name) {
     this.name = '';
     this.services = {};
     this.creators = {};
+    this.parameters = {};
 
     this.setName(name);
 
 };
 
 Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
+
+    setParameters: {
+        value: function (params) {
+            this.parameters = params;
+
+            return this;
+        }
+    },
 
     /**
      * @inheritDoc

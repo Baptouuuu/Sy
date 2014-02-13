@@ -1,6 +1,93 @@
 namespace('Sy');
 
+Sy.config = new Sy.Configurator();
+
+Sy.config.set({
+    env: 'prod',
+    parameters: {},
+    storage: {
+        engines: {
+            rest: function (version, entitiesMeta) {
+
+                var engine = new Sy.Storage.Engine.Rest(version);
+
+                engine.setManager(Sy.service.get('sy::core::http::rest'));
+                engine.setPattern('/api/{{version}}/{{path}}/{{key}}');
+
+                for (var i = 0, l = entitiesMeta.length; i < l; i++) {
+                    engine.setStore(
+                        entitiesMeta[i].name,
+                        entitiesMeta[i].name.toLowerCase().replace('::', '/'),
+                        entitiesMeta[i].uuid,
+                        entitiesMeta[i].indexes
+                    );
+                }
+
+                return engine;
+
+            },
+            indexeddb: function (version, entitiesMeta) {
+
+                var engine =  new Sy.Storage.Engine.IndexedDB(version);
+
+                for (var i = 0, l = entitiesMeta.length; i < l; i++) {
+                    engine.setStore(
+                        entitiesMeta[i].name,
+                        entitiesMeta[i].name.toLowerCase(),
+                        entitiesMeta[i].uuid,
+                        entitiesMeta[i].indexes.concat(entitiesMeta[i].uuid)
+                    );
+                }
+
+                engine
+                    .setConnection(
+                        window.indexedDB ||
+                        window.webkitIndexedDB ||
+                        window.mozIndexedDB ||
+                        window.msIndexedDB
+                    )
+                    .setTransaction(
+                        window.IDBTransaction ||
+                        window.webkitIDBTransaction
+                    )
+                    .setKeyRange(
+                        window.IDBKeyRange ||
+                        window.webkitIDBKeyRange
+                    )
+                    .setLogger(
+                        Sy.service.get('sy::core::logger')
+                    )
+                    .open();
+
+                return engine;
+
+            },
+            localstorage: function (version, entitiesMeta) {
+
+                var engine = new Sy.Storage.Engine.Localstorage(version);
+
+                for (var i = 0, l = entitiesMeta.length; i < l; i++) {
+                    engine.setStore(
+                        entitiesMeta[i].name,
+                        entitiesMeta[i].name.toLowerCase(),
+                        entitiesMeta[i].uuid,
+                        entitiesMeta[i].indexes
+                    );
+                }
+
+                engine.setStorage(window.localStorage);
+                engine.open();
+
+                return engine;
+
+            }
+        }
+    }
+});
+
 Sy.service = new Sy.ServiceContainer('sy::core');
+
+Sy.service.setParameters(Sy.config.get('parameters'));
 
 Sy.service.set('sy::core::generator::uuid', function () {
 
@@ -124,88 +211,4 @@ Sy.service.set('sy::core::translator', function () {
         .setRegistry(this.get('sy::core::registry::factory').make())
         .setQueueFactory(this.get('sy::core::queue::factory'));
     return translator;
-});
-
-Sy.config = new Sy.Configurator();
-
-Sy.config.set({
-    env: 'prod',
-    storage: {
-        engines: {
-            rest: function (version, entitiesMeta) {
-
-                var engine = new Sy.Storage.Engine.Rest(version);
-
-                engine.setManager(Sy.service.get('sy::core::http::rest'));
-                engine.setPattern('/api/{{version}}/{{path}}/{{key}}');
-
-                for (var i = 0, l = entitiesMeta.length; i < l; i++) {
-                    engine.setStore(
-                        entitiesMeta[i].name,
-                        entitiesMeta[i].name.toLowerCase().replace('::', '/'),
-                        entitiesMeta[i].uuid,
-                        entitiesMeta[i].indexes
-                    );
-                }
-
-                return engine;
-
-            },
-            indexeddb: function (version, entitiesMeta) {
-
-                var engine =  new Sy.Storage.Engine.IndexedDB(version);
-
-                for (var i = 0, l = entitiesMeta.length; i < l; i++) {
-                    engine.setStore(
-                        entitiesMeta[i].name,
-                        entitiesMeta[i].name.toLowerCase(),
-                        entitiesMeta[i].uuid,
-                        entitiesMeta[i].indexes.concat(entitiesMeta[i].uuid)
-                    );
-                }
-
-                engine
-                    .setConnection(
-                        window.indexedDB ||
-                        window.webkitIndexedDB ||
-                        window.mozIndexedDB ||
-                        window.msIndexedDB
-                    )
-                    .setTransaction(
-                        window.IDBTransaction ||
-                        window.webkitIDBTransaction
-                    )
-                    .setKeyRange(
-                        window.IDBKeyRange ||
-                        window.webkitIDBKeyRange
-                    )
-                    .setLogger(
-                        Sy.service.get('sy::core::logger')
-                    )
-                    .open();
-
-                return engine;
-
-            },
-            localstorage: function (version, entitiesMeta) {
-
-                var engine = new Sy.Storage.Engine.Localstorage(version);
-
-                for (var i = 0, l = entitiesMeta.length; i < l; i++) {
-                    engine.setStore(
-                        entitiesMeta[i].name,
-                        entitiesMeta[i].name.toLowerCase(),
-                        entitiesMeta[i].uuid,
-                        entitiesMeta[i].indexes
-                    );
-                }
-
-                engine.setStorage(window.localStorage);
-                engine.open();
-
-                return engine;
-
-            }
-        }
-    }
 });
