@@ -87,24 +87,22 @@ Sy.config.set({
 
 Sy.service = new Sy.ServiceContainer('sy::core');
 
-Sy.service.setParameters(Sy.config.get('parameters'));
-
-Sy.service.set('sy::core::generator::uuid', function () {
-
-    return new Sy.Lib.Generator.UUID();
-
-});
-
-Sy.service.set('sy::core::mediator', function () {
-
-    var m = new Sy.Lib.Mediator();
-
-    m.setGenerator(this.get('sy::core::generator::uuid'));
-    m.setLogger(this.get('sy::core::logger'));
-
-    return m;
-
-});
+Sy.service
+    .setParameters(Sy.config.get('parameters'))
+    .set({
+        'sy::core::generator::uuid': {
+            constructor: Sy.Lib.Generator.UUID
+        },
+        'sy::core::mediator': {
+            constructor: Sy.Lib.Mediator,
+            calls: [
+                ['setGenerator', [
+                    '@sy::core::generator::uuid',
+                    '@sy::core::logger'
+                ]]
+            ]
+        }
+    });
 
 Sy.service.set('sy::core::logger', function () {
 
