@@ -99,6 +99,21 @@ Sy.service
                 ['setGenerator', ['@sy::core::generator::uuid']],
                 ['setLogger', ['@sy::core::logger']]
             ]
+        },
+        'sy::core::http::rest': {
+            constructor: Sy.HTTP.REST,
+            calls: [
+                ['setManager', ['@sy::core::http']]
+            ]
+        },
+        'sy::core::registry::factory': {
+            constructor: Sy.RegistryFactory
+        },
+        'sy::core::queue::factory': {
+            constructor: Sy.QueueFactory,
+            calls: [
+                ['setRegistryFactory', ['@sy::core::registry::factory']]
+            ]
         }
     });
 
@@ -129,16 +144,6 @@ Sy.service.set('sy::core::http', function () {
     manager.setRegistry(this.get('sy::core::registry::factory').make());
 
     return manager;
-
-});
-
-Sy.service.set('sy::core::http::rest', function () {
-
-    var rest = new Sy.HTTP.REST();
-
-    rest.setManager(this.get('sy::core::http'));
-
-    return rest;
 
 });
 
@@ -189,16 +194,6 @@ Sy.service.set('sy::core::storage', function () {
 
     return storage;
 
-});
-
-Sy.service.set('sy::core::registry::factory', function () {
-    return new Sy.RegistryFactory();
-});
-
-Sy.service.set('sy::core::queue::factory', function () {
-    var factory = new Sy.QueueFactory();
-    factory.setRegistryFactory(this.get('sy::core::registry::factory'));
-    return factory;
 });
 
 Sy.service.set('sy::core::translator', function () {
