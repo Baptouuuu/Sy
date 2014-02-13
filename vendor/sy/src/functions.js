@@ -66,7 +66,7 @@ function objectSetter (ns, value) {
 /**
  * Retrieve the attribute in objects, where the chain of object is defined as a dotted string.
  * The last element of the string represent the attribute.
- * The root object can be changed by doing objectSetter.call(rootObject, nsString, value).
+ * The root object can be changed by doing objectSetter.call(rootObject, nsString).
  *
  * @param {string} ns
  *
