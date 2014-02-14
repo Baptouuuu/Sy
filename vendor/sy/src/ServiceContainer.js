@@ -52,9 +52,9 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
                     service = this.creators[serviceName].fn.apply(this, this.creators[serviceName].args);
                 } else if (opts.type === 'prototype') {
                     if (opts.arguments) {
-                        service = new opts.constructor(opts.arguments);
+                        service = new (objectGetter(opts.constructor))(opts.arguments);
                     } else {
-                        service = new opts.constructor();
+                        service = new (objectGetter(opts.constructor))();
                     }
 
                     if (opts.calls instanceof Array) {

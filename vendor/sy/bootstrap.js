@@ -91,26 +91,26 @@ Sy.service
     .setParameters(Sy.config.get('parameters'))
     .set({
         'sy::core::generator::uuid': {
-            constructor: Sy.Lib.Generator.UUID
+            constructor: 'Sy.Lib.Generator.UUID'
         },
         'sy::core::mediator': {
-            constructor: Sy.Lib.Mediator,
+            constructor: 'Sy.Lib.Mediator',
             calls: [
                 ['setGenerator', ['@sy::core::generator::uuid']],
                 ['setLogger', ['@sy::core::logger']]
             ]
         },
         'sy::core::http::rest': {
-            constructor: Sy.HTTP.REST,
+            constructor: 'Sy.HTTP.REST',
             calls: [
                 ['setManager', ['@sy::core::http']]
             ]
         },
         'sy::core::registry::factory': {
-            constructor: Sy.RegistryFactory
+            constructor: 'Sy.RegistryFactory'
         },
         'sy::core::queue::factory': {
-            constructor: Sy.QueueFactory,
+            constructor: 'Sy.QueueFactory',
             calls: [
                 ['setRegistryFactory', ['@sy::core::registry::factory']]
             ]
