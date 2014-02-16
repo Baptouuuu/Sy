@@ -101,4 +101,85 @@ describe('service container', function () {
 
     });
 
+    it('should throw that a service already exist', function () {
+
+        container.set('duplicate', function () {});
+
+        expect(function () {
+            container.set('duplicate', function () {});
+        }).toThrow();
+
+    });
+
+    it('should register a service definition', function () {
+
+        A = function A () {};
+
+        container.set({
+            'definition': {
+                constructor: 'A'
+            }
+        });
+
+        expect(container.get('definition') instanceof A).toBe(true);
+
+    });
+
+    it('should register a service definition with calls', function () {
+
+        B = function B () {
+            this.c = null;
+        };
+        C = function C () {};
+
+        B.prototype = {
+            setter: function (c) {
+                this.c = c;
+            }
+        };
+
+        container.set({
+            'c': {
+                constructor: 'C'
+            },
+            'b': {
+                constructor: 'B',
+                calls: [
+                    ['setter', ['@c']]
+                ]
+            }
+        });
+
+        expect(container.get('b').c instanceof C).toBe(true);
+
+    });
+
+    it('should register a service definition with parameter as call argument', function () {
+
+        D = function D () {
+            this.val = null;
+        };
+        D.prototype = {
+            setter: function (val) {
+                this.val = val;
+            }
+        };
+
+        container
+            .setParameters({
+                paramName: 42
+            })
+            .set({
+                'args': {
+                    constructor: 'D',
+                    calls: [
+                        ['setter', ['%paramName%']]
+                    ]
+                }
+            });
+
+        expect(container.get('args').val).toEqual(42);
+
+    });
+
 });
