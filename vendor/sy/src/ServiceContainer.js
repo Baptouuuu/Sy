@@ -51,30 +51,7 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
                 if (opts.type === 'creator') {
                     service = this.buildServiceByCreator(serviceName);
                 } else if (opts.type === 'prototype') {
-                    if (opts.arguments) {
-                        service = new (objectGetter(opts.constructor))(opts.arguments);
-                    } else {
-                        service = new (objectGetter(opts.constructor))();
-                    }
-
-                    if (opts.calls instanceof Array) {
-                        for (var i = 0, l = opts.calls.length; i < l; i++) {
-                            var args = opts.calls[i][1];
-
-                            for (var a = 0, al = args.length; a < al; a++) {
-                                if (typeof args[a] === 'string' && args[a].substring(0, 1) === '@') {
-                                    args[a] = this.get(args[a].substr(1));
-                                } else if (typeof args[a] === 'string' && new RegExp(/^%.*%$/i).test(args[a])) {
-                                    args[a] = objectGetter.call(
-                                        this.parameters,
-                                        args[a].substring(1, args[a].length - 1)
-                                    );
-                                }
-                            }
-
-                            service[opts.calls[i][0]].apply(service, args);
-                        }
-                    }
+                    service = this.buildServiceByDefinition(serviceName);
                 }
 
                 this.services[serviceName] = service;
@@ -97,13 +74,60 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
      *
      * @private
      * @param {string} name
+     *
+     * @return {Object}
      */
 
-     buildServiceByCreator: {
+    buildServiceByCreator: {
         value: function (name) {
             return this.definitions[name].fn.apply(this, this.definitions[name].args);
         }
-     },
+    },
+
+    /**
+     * Build a service based on its definition
+     *
+     * @private
+     * @param {string} name
+     *
+     * @return {Object}
+     */
+
+    buildServiceByDefinition: {
+        value: function (name) {
+
+            var opts = this.definitions[name],
+                service;
+
+            if (opts.arguments) {
+                service = new (objectGetter(opts.constructor))(opts.arguments);
+            } else {
+                service = new (objectGetter(opts.constructor))();
+            }
+
+            if (opts.calls instanceof Array) {
+                for (var i = 0, l = opts.calls.length; i < l; i++) {
+                    var args = opts.calls[i][1];
+
+                    for (var a = 0, al = args.length; a < al; a++) {
+                        if (typeof args[a] === 'string' && args[a].substring(0, 1) === '@') {
+                            args[a] = this.get(args[a].substr(1));
+                        } else if (typeof args[a] === 'string' && new RegExp(/^%.*%$/i).test(args[a])) {
+                            args[a] = objectGetter.call(
+                                this.parameters,
+                                args[a].substring(1, args[a].length - 1)
+                            );
+                        }
+                    }
+
+                    service[opts.calls[i][0]].apply(service, args);
+                }
+            }
+
+            return service;
+
+        }
+    },
 
     /**
      * @inheritDoc
