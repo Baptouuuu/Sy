@@ -49,7 +49,7 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
                     service;
 
                 if (opts.type === 'creator') {
-                    service = this.definitions[serviceName].fn.apply(this, this.definitions[serviceName].args);
+                    service = this.buildServiceByCreator(serviceName);
                 } else if (opts.type === 'prototype') {
                     if (opts.arguments) {
                         service = new (objectGetter(opts.constructor))(opts.arguments);
@@ -91,6 +91,19 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
         }
 
     },
+
+    /**
+     * Build a service via its creator function
+     *
+     * @private
+     * @param {string} name
+     */
+
+     buildServiceByCreator: {
+        value: function (name) {
+            return this.definitions[name].fn.apply(this, this.definitions[name].args);
+        }
+     },
 
     /**
      * @inheritDoc
