@@ -182,4 +182,19 @@ describe('service container', function () {
 
     });
 
+    it('should throw that the service name does not comply with the convention', function () {
+
+        expect(function () {
+            container.set('foo-bar', function () {});
+        }).toThrow();
+        expect(function () {
+            container.set({
+                'foo-baz': {
+                    constructor: 'A'
+                }
+            });
+        }).toThrow();
+
+    });
+
 });
