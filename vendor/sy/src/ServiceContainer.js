@@ -23,6 +23,12 @@ Sy.ServiceContainer = function (name) {
 
 Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.prototype, {
 
+    PATTERN: {
+        value: '^([a-z]+::|[a-z]+)+$',
+        writable: false,
+        configurable: false
+    },
+
     /**
      * @inheritDoc
      */
@@ -161,6 +167,12 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
     setCreator: {
         value: function (serviceName, creator, args) {
 
+            var regex = new RegExp(this.PATTERN, 'gi');
+
+            if (!regex.test(serviceName)) {
+                throw new SyntaxError('Service name "' + serviceName + '" does not follow pattern convention');
+            }
+
             if (typeof creator !== 'function'){
                 throw new TypeError('Invalid creator type');
             }
@@ -194,6 +206,12 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
 
             for (var name in definitions) {
                     if (definitions.hasOwnProperty(name)) {
+
+                        var regex = new RegExp(this.PATTERN, 'gi');
+
+                        if (!regex.test(name)) {
+                            throw new SyntaxError('Service name "' + name + '" does not follow pattern convention');
+                        }
 
                         if (this.has(name)) {
                             throw new TypeError('Service name "' + name + '" already used');
