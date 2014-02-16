@@ -14,7 +14,7 @@ Sy.ServiceContainer = function (name) {
 
     this.name = '';
     this.services = {};
-    this.creators = {};
+    this.definitions = {};
     this.parameters = {};
 
     this.setName(name);
@@ -43,13 +43,13 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
 
         value: function (serviceName) {
 
-            if (this.services[serviceName] === undefined && this.creators[serviceName]) {
+            if (this.services[serviceName] === undefined && this.definitions[serviceName]) {
 
-                var opts = this.creators[serviceName],
+                var opts = this.definitions[serviceName],
                     service;
 
                 if (opts.type === 'creator') {
-                    service = this.creators[serviceName].fn.apply(this, this.creators[serviceName].args);
+                    service = this.definitions[serviceName].fn.apply(this, this.definitions[serviceName].args);
                 } else if (opts.type === 'prototype') {
                     if (opts.arguments) {
                         service = new (objectGetter(opts.constructor))(opts.arguments);
@@ -78,7 +78,7 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
                 }
 
                 this.services[serviceName] = service;
-                delete this.creators[serviceName];
+                delete this.definitions[serviceName];
 
             } else if (this.services[serviceName] === undefined) {
 
@@ -136,7 +136,7 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
                 throw new TypeError('Service name "' + serviceName + '" already used');
             }
 
-            this.creators[serviceName] = {
+            this.definitions[serviceName] = {
                 fn: creator,
                 args: args,
                 type: 'creator'
@@ -162,8 +162,8 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
                             throw new TypeError('Service name "' + name + '" already used');
                         }
 
-                        this.creators[name] = definitions[name];
-                        this.creators[name].type = 'prototype';
+                        this.definitions[name] = definitions[name];
+                        this.definitions[name].type = 'prototype';
                     }
                 }
 
@@ -177,7 +177,7 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
     has: {
         value: function (name) {
 
-            if (this.services[name] || this.creators[name]) {
+            if (this.services[name] || this.definitions[name]) {
                 return true;
             }
 
