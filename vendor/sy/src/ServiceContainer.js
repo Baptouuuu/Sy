@@ -100,47 +100,74 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
 
         value: function (serviceName, creator, args) {
 
-            var regexp = new RegExp(/^((\w+::)|(\w+))+$/gi);
-
             if (serviceName instanceof Object) {
-
-                for (var name in serviceName) {
-                    if (serviceName.hasOwnProperty(name)) {
-                        this.creators[name] = serviceName[name];
-                        this.creators[name].type = 'prototype';
-                    }
-                }
-
+                this.setPrototypes(serviceName);
             } else {
-
-                if (!regexp.test(serviceName)) {
-                    throw new SyntaxError('Service name "' + serviceName + '" does not follow pattern convention');
-                }
-
-                if (typeof creator != 'function'){
-                    throw new TypeError('Invalid creator type');
-                }
-
-                if (args && !(args instanceof Array)) {
-                    throw new TypeError('Invalid args type (must be an array)');
-                }
-
-                if (this.creators[serviceName] !== undefined || this.services[serviceName] !== undefined) {
-                    throw new TypeError('Service name already used');
-                }
-
-                this.creators[serviceName] = {
-                    fn: creator,
-                    args: args,
-                    type: 'creator'
-                };
-
+                this.setCreator(serviceName, creator, args);
             }
 
             return this;
 
         }
 
+    },
+
+    /**
+     * Register a new service creator definition
+     *
+     * @private
+     * @param {string} serviceName
+     * @param {funtcion} creator
+     * @param {Array} args
+     */
+
+    setCreator: {
+        value: function (serviceName, creator, args) {
+
+            if (typeof creator !== 'function'){
+                throw new TypeError('Invalid creator type');
+            }
+
+            if (args && !(args instanceof Array)) {
+                throw new TypeError('Invalid args type (must be an array)');
+            }
+
+            if (this.has(serviceName)) {
+                throw new TypeError('Service name "' + serviceName + '" already used');
+            }
+
+            this.creators[serviceName] = {
+                fn: creator,
+                args: args,
+                type: 'creator'
+            };
+
+        }
+    },
+
+    /**
+     * Register new services prototype definitions
+     *
+     * @private
+     * @param {Object} definitions
+     */
+
+    setPrototypes: {
+        value: function (definitions) {
+
+            for (var name in definitions) {
+                    if (definitions.hasOwnProperty(name)) {
+
+                        if (this.has(name)) {
+                            throw new TypeError('Service name "' + name + '" already used');
+                        }
+
+                        this.creators[name] = definitions[name];
+                        this.creators[name].type = 'prototype';
+                    }
+                }
+
+        }
     },
 
     /**
