@@ -1,135 +1,10 @@
 namespace('Sy');
 
-Sy.service = new Sy.ServiceContainer('sy::core');
-
-Sy.service.set('sy::core::generator::uuid', function () {
-
-    return new Sy.Lib.Generator.UUID();
-
-});
-
-Sy.service.set('sy::core::mediator', function () {
-
-    var m = new Sy.Lib.Mediator();
-
-    m.setGenerator(this.get('sy::core::generator::uuid'));
-    m.setLogger(this.get('sy::core::logger'));
-
-    return m;
-
-});
-
-Sy.service.set('sy::core::logger', function () {
-
-    var logger = new Sy.Lib.Logger.CoreLogger('core'),
-        info = new Sy.Lib.Logger.Handler.Console(logger.INFO),
-        debug = new Sy.Lib.Logger.Handler.Console(logger.DEBUG),
-        error = new Sy.Lib.Logger.Handler.Console(logger.ERROR),
-        log = new Sy.Lib.Logger.Handler.Console(logger.LOG);
-
-    logger.setHandler(info, logger.INFO);
-    logger.setHandler(debug, logger.DEBUG);
-    logger.setHandler(error, logger.ERROR);
-    logger.setHandler(log, logger.LOG);
-
-    return logger;
-
-});
-
-Sy.service.set('sy::core::http', function () {
-
-    var parser = new Sy.HTTP.HeaderParser(),
-        manager = new Sy.HTTP.Manager();
-
-    manager.setParser(parser);
-    manager.setGenerator(this.get('sy::core::generator::uuid'));
-    manager.setRegistry(this.get('sy::core::registry::factory').make());
-
-    return manager;
-
-});
-
-Sy.service.set('sy::core::http::rest', function () {
-
-    var rest = new Sy.HTTP.REST();
-
-    rest.setManager(this.get('sy::core::http'));
-
-    return rest;
-
-});
-
-Sy.service.set('sy::core::storage', function () {
-
-    var meta = [
-            {
-                name: 'DefaultBundle::Todo',
-                repository: Sy.Storage.Repository,
-                entity: App.Bundle.DefaultBundle.Entity.Todo,
-                indexes: [],
-                uuid: 'uuid'
-            }
-        ],
-        storage = new Sy.Storage.Core(),
-        managerFact = new Sy.Storage.ManagerFactory(),
-        repositoryFact = new Sy.Storage.RepositoryFactory(),
-        engineFact = new Sy.Storage.EngineFactory(),
-        conf = Sy.config.get('storage'),
-        registryFact = this.get('sy::core::registry::factory');
-
-    storage.setRegistry(registryFact.make());
-
-    repositoryFact
-        .setMetaRegistry(registryFact.make())
-        .setRepoRegistry(registryFact.make())
-        .setQueueFactory(this.get('sy::core::queue::factory'))
-        .setMeta(meta)
-        .setGenerator(Sy.service.get('sy::core::generator::uuid'));
-
-    for (var engineName in conf.engines) {
-        if (conf.engines.hasOwnProperty(engineName)) {
-            engineFact.setEngine(engineName, conf.engines[engineName]);
-        }
-    }
-
-    managerFact
-        .setEngineFactory(engineFact)
-        .setRepositoryFactory(repositoryFact);
-
-    for (var name in conf.managers) {
-        if (conf.managers.hasOwnProperty(name)) {
-            var manager = managerFact.make(name, conf.managers[name], meta);
-
-            storage.setManager(name, manager);
-        }
-    }
-
-    return storage;
-
-});
-
-Sy.service.set('sy::core::registry::factory', function () {
-    return new Sy.RegistryFactory();
-});
-
-Sy.service.set('sy::core::queue::factory', function () {
-    var factory = new Sy.QueueFactory();
-    factory.setRegistryFactory(this.get('sy::core::registry::factory'));
-    return factory;
-});
-
-Sy.service.set('sy::core::translator', function () {
-    var translator = new Sy.Translator();
-    translator
-        .setRegistry(this.get('sy::core::registry::factory').make())
-        .setQueueFactory(this.get('sy::core::queue::factory'));
-    return translator;
-});
-
 Sy.config = new Sy.Configurator();
 
 Sy.config.set({
     env: 'prod',
+    parameters: {},
     storage: {
         engines: {
             rest: function (version, entitiesMeta) {
@@ -208,4 +83,123 @@ Sy.config.set({
             }
         }
     }
+});
+
+Sy.service = new Sy.ServiceContainer('sy::core');
+
+Sy.service
+    .setParameters(Sy.config.get('parameters'))
+    .set({
+        'sy::core::generator::uuid': {
+            constructor: 'Sy.Lib.Generator.UUID'
+        },
+        'sy::core::mediator': {
+            constructor: 'Sy.Lib.Mediator',
+            calls: [
+                ['setGenerator', ['@sy::core::generator::uuid']],
+                ['setLogger', ['@sy::core::logger']]
+            ]
+        },
+        'sy::core::http::rest': {
+            constructor: 'Sy.HTTP.REST',
+            calls: [
+                ['setManager', ['@sy::core::http']]
+            ]
+        },
+        'sy::core::registry::factory': {
+            constructor: 'Sy.RegistryFactory'
+        },
+        'sy::core::queue::factory': {
+            constructor: 'Sy.QueueFactory',
+            calls: [
+                ['setRegistryFactory', ['@sy::core::registry::factory']]
+            ]
+        }
+    });
+
+Sy.service.set('sy::core::logger', function () {
+
+    var logger = new Sy.Lib.Logger.CoreLogger('core'),
+        info = new Sy.Lib.Logger.Handler.Console(logger.INFO),
+        debug = new Sy.Lib.Logger.Handler.Console(logger.DEBUG),
+        error = new Sy.Lib.Logger.Handler.Console(logger.ERROR),
+        log = new Sy.Lib.Logger.Handler.Console(logger.LOG);
+
+    logger.setHandler(info, logger.INFO);
+    logger.setHandler(debug, logger.DEBUG);
+    logger.setHandler(error, logger.ERROR);
+    logger.setHandler(log, logger.LOG);
+
+    return logger;
+
+});
+
+Sy.service.set('sy::core::http', function () {
+
+    var parser = new Sy.HTTP.HeaderParser(),
+        manager = new Sy.HTTP.Manager();
+
+    manager.setParser(parser);
+    manager.setGenerator(this.get('sy::core::generator::uuid'));
+    manager.setRegistry(this.get('sy::core::registry::factory').make());
+
+    return manager;
+
+});
+
+Sy.service.set('sy::core::storage', function () {
+
+    var meta = [
+            {
+                name: 'DefaultBundle::Todo',
+                repository: Sy.Storage.Repository,
+                entity: App.Bundle.DefaultBundle.Entity.Todo,
+                indexes: [],
+                uuid: 'uuid'
+            }
+        ],
+        storage = new Sy.Storage.Core(),
+        managerFact = new Sy.Storage.ManagerFactory(),
+        repositoryFact = new Sy.Storage.RepositoryFactory(),
+        engineFact = new Sy.Storage.EngineFactory(),
+        conf = Sy.config.get('storage'),
+        registryFact = this.get('sy::core::registry::factory');
+
+    storage.setRegistry(registryFact.make());
+
+    repositoryFact
+        .setMetaRegistry(registryFact.make())
+        .setRepoRegistry(registryFact.make())
+        .setQueueFactory(this.get('sy::core::queue::factory'))
+        .setMeta(meta)
+        .setGenerator(Sy.service.get('sy::core::generator::uuid'));
+
+    for (var engineName in conf.engines) {
+        if (conf.engines.hasOwnProperty(engineName)) {
+            engineFact.setEngine(engineName, conf.engines[engineName]);
+        }
+    }
+
+    managerFact
+        .setEngineFactory(engineFact)
+        .setRepositoryFactory(repositoryFact);
+
+    for (var name in conf.managers) {
+        if (conf.managers.hasOwnProperty(name)) {
+            var manager = managerFact.make(name, conf.managers[name], meta);
+
+            storage.setManager(name, manager);
+        }
+    }
+
+    return storage;
+
+});
+
+Sy.service.set('sy::core::translator', function () {
+    var translator = new Sy.Translator();
+    translator
+        .setRegistry(this.get('sy::core::registry::factory').make())
+        .setQueueFactory(this.get('sy::core::queue::factory'));
+    return translator;
 });
