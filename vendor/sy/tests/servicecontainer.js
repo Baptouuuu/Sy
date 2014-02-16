@@ -197,4 +197,16 @@ describe('service container', function () {
 
     });
 
+    it('should return a parameter', function () {
+
+        container.setParameters({
+            foo: {
+                bar: 42
+            }
+        });
+
+        expect(container.getParameter('foo.bar')).toEqual(42);
+
+    });
+
 });

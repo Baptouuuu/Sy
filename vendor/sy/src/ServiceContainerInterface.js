@@ -28,6 +28,18 @@ Sy.ServiceContainerInterface.prototype = Object.create(Object.prototype, {
     },
 
     /**
+     * Return the parameter value based on its path string
+     *
+     * @param {string} path
+     *
+     * @return {mixed}
+     */
+
+    getParameter: {
+        value: function (path) {}
+    },
+
+    /**
      * Container name setter
      *
      * @param {string} name

@@ -45,6 +45,18 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
      * @inheritDoc
      */
 
+    getParameter: {
+        value: function (path) {
+
+            return objectGetter.call(this.parameters, path);
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
     get: {
 
         value: function (serviceName) {
@@ -119,9 +131,11 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
                         if (typeof args[a] === 'string' && args[a].substring(0, 1) === '@') {
                             args[a] = this.get(args[a].substr(1));
                         } else if (typeof args[a] === 'string' && new RegExp(/^%.*%$/i).test(args[a])) {
-                            args[a] = objectGetter.call(
-                                this.parameters,
-                                args[a].substring(1, args[a].length - 1)
+                            args[a] = this.getParameter(
+                                args[a].substring(
+                                    1,
+                                    args[a].length - 1
+                                )
                             );
                         }
                     }
