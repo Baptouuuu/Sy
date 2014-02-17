@@ -115,12 +115,17 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
         value: function (name) {
 
             var opts = this.definitions[name],
+                constructor = objectGetter(opts.constructor),
                 service;
 
+            if (typeof constructor !== 'function') {
+                throw new TypeError('Invalid constructor');
+            }
+
             if (opts.arguments) {
-                service = new (objectGetter(opts.constructor))(opts.arguments);
+                service = new costructor(opts.arguments);
             } else {
-                service = new (objectGetter(opts.constructor))();
+                service = new constructor();
             }
 
             if (opts.calls instanceof Array) {
