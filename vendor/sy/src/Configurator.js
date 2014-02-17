@@ -44,7 +44,9 @@ Sy.Configurator.prototype = Object.create(Sy.ConfiguratorInterface.prototype, {
 
             var value;
 
-            if (this.has(key)) {
+            if (key === undefined) {
+                value = this.config;
+            } else if (this.has(key)) {
                 value = objectGetter.call(this.config, key);
             }
 

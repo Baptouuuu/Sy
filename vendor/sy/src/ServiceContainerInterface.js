@@ -14,6 +14,32 @@ Sy.ServiceContainerInterface = function () {
 Sy.ServiceContainerInterface.prototype = Object.create(Object.prototype, {
 
     /**
+     * Inject the parameters object from the global config
+     *
+     * @param {Object} params
+     *
+     * @return {Sy.ServiceContainerInterface}
+     */
+
+    setParameters: {
+        value: function (params) {
+            return this;
+        }
+    },
+
+    /**
+     * Return the parameter value based on its path string
+     *
+     * @param {string} path
+     *
+     * @return {mixed}
+     */
+
+    getParameter: {
+        value: function (path) {}
+    },
+
+    /**
      * Container name setter
      *
      * @param {string} name
