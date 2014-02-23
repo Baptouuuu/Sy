@@ -114,6 +114,9 @@ Sy.service
             calls: [
                 ['setRegistryFactory', ['@sy::core::registry::factory']]
             ]
+        },
+        'sy::core::view::template::engine': {
+            constructor: 'Sy.View.TemplateEngine'
         }
     });
 
@@ -203,3 +206,41 @@ Sy.service.set('sy::core::translator', function () {
         .setQueueFactory(this.get('sy::core::queue::factory'));
     return translator;
 });
+
+Sy.service
+    .set('sy::core::viewport', function () {
+
+        var viewport = new Sy.View.ViewPort();
+
+        return viewport
+            .setNode(
+                document.querySelector('.viewport')
+            )
+            .setViewManager(
+                this.get('sy::core::view::manager')
+            );
+
+    })
+    .set('sy::core::view::manager', function () {
+
+        var manager = new Sy.View.Manager(),
+            viewScreenFactory = new Sy.View.ViewScreenFactory(),
+            layoutFactory = new Sy.View.LayoutFactory();
+
+        viewScreenFactory
+            .setParser(new Sy.View.Parser())
+            .setTemplateEngine(
+                this.get('sy::core::view::template::engine')
+            )
+            .setRegistryFactory(
+                this.get('sy::core::registry::factory')
+            )
+            .setLayoutFactory(layoutFactory);
+
+        return manager
+            .setViewsRegistry(
+                this.get('sy::core::registry::factory').make()
+            )
+            .setViewScreenFactory(factory);
+
+    });
