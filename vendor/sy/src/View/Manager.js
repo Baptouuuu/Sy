@@ -74,7 +74,7 @@ Sy.View.Manager.prototype = Object.create(Object.prototype, {
 
             var name = node.dataset.syView;
 
-            if(!name && name.trim() === '') {
+            if (!name && name.trim() === '') {
                 throw new SyntaxError('Attribute "data-sy-view" is expected');
             }
 
