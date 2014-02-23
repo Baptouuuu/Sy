@@ -68,6 +68,24 @@ Sy.View.NodeWrapper.prototype = Object.create(Object.prototype, {
         value: function () {
             return this.node;
         }
+    },
+
+    /**
+     * Render the node with the specified data
+     *
+     * @param {Object} data
+     *
+     * @return {Sy.View.NodeWrapper}
+     */
+
+    render: {
+        value: function (data) {
+
+            this.engine.render(this.node, data);
+
+            return this;
+
+        }
     }
 
 });
