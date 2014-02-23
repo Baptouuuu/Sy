@@ -21,7 +21,7 @@ Sy.View.Manager.prototype = Object.create(Object.prototype, {
      * @return {Sy.View.Manager}
      */
 
-    setViewsregistry: {
+    setViewsRegistry: {
         value: function (registry) {
 
             if (!(registry instanceof Sy.RegistryInterface)) {
