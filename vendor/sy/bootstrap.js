@@ -250,14 +250,21 @@ Sy.service
     })
     .set('sy::core::view::manager', function () {
 
-        var manager = new Sy.View.Manager();
+        var manager = new Sy.View.Manager(),
+            viewscreens = this.get('sy::core::view::parser').getViewScreens();
 
-        return manager
+        manager
             .setViewsRegistry(
                 this.get('sy::core::registry::factory').make()
             )
             .setViewScreenFactory(
                 this.get('sy::core::view::factory::viewscreen')
             );
+
+        for (var i = 0, l = viewscreens.length; i < l; i++) {
+            manager.setViewScreen(viewscreens[i]);
+        }
+
+        return manager;
 
     });
