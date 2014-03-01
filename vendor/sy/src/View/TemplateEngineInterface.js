@@ -16,7 +16,7 @@ Sy.View.TemplateEngineInterface.prototype = Object.create(Object.prototype, {
      */
 
     PATTERN: {
-        value: new RegExp(/{{\s?([\w.]+)\s?}}/i),
+        value: new RegExp(/{{\s?([\w.]+)\s?}}/ig),
         writable: false,
         configurable: false
     },
