@@ -14,6 +14,7 @@ Sy.View.Layout = function () {
     this.name = null;
     this.lists = null;
     this.parser = null;
+    this.listFactory = null;
 };
 Sy.View.Layout.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
