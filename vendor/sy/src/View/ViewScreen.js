@@ -28,19 +28,19 @@ Sy.View.ViewScreen.prototype = Object.create(Sy.View.ViewScreen.prototype, {
             var layouts,
                 wrapper;
 
-            Sy.View.ViewScreen.prototype.setNode.call(this, node);
+            Sy.View.NodeWrapper.prototype.setNode.call(this, node);
 
             this.name = node.dataset.syView;
             layouts = this.parser.getlayouts(node);
 
             for (var i = 0, l = layouts.length; i < l; i++) {
                 wrapper = this.layoutFactory.make(layouts[i]);
-            }
 
-            this.layouts.set(
-                wrapper.getName(),
-                wrapper
-            );
+                this.layouts.set(
+                    wrapper.getName(),
+                    wrapper
+                );
+            }
 
             return this;
 
