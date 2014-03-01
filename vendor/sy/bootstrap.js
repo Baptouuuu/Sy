@@ -117,6 +117,33 @@ Sy.service
         },
         'sy::core::view::template::engine': {
             constructor: 'Sy.View.TemplateEngine'
+        },
+        'sy::core::view::parser': {
+            constructor: 'Sy.View.Parser'
+        },
+        'sy::core::view::factory::list': {
+            constructor: 'Sy.View.ListFactory',
+            calls: [
+                ['setTemplateEngine', ['@sy::core::view::template::engine']]
+            ]
+        },
+        'sy::core::view::factory::layout': {
+            constructor: 'Sy.View.LayoutFactory',
+            calls: [
+                ['setParser', ['@sy::core::view::parser']],
+                ['setTemplateEngine', ['@sy::core::view::template::engine']],
+                ['setRegistryFactory', ['@sy::core::registry::factory']],
+                ['setListFactory', ['@sy::core::view::factory::list']]
+            ]
+        },
+        'sy::core::view::factory::viewscreen': {
+            constructor: 'Sy.View.ViewScreenFactory',
+            calls: [
+                ['setParser', ['@sy::core::view::parser']],
+                ['setTemplateEngine', ['@sy::core::view::template::engine']],
+                ['setRegistryFactory', ['@sy::core::registry::factory']],
+                ['setLayoutFactory', ['@sy::core::view::factory::layout']]
+            ]
         }
     });
 
@@ -223,24 +250,14 @@ Sy.service
     })
     .set('sy::core::view::manager', function () {
 
-        var manager = new Sy.View.Manager(),
-            viewScreenFactory = new Sy.View.ViewScreenFactory(),
-            layoutFactory = new Sy.View.LayoutFactory();
-
-        viewScreenFactory
-            .setParser(new Sy.View.Parser())
-            .setTemplateEngine(
-                this.get('sy::core::view::template::engine')
-            )
-            .setRegistryFactory(
-                this.get('sy::core::registry::factory')
-            )
-            .setLayoutFactory(layoutFactory);
+        var manager = new Sy.View.Manager();
 
         return manager
             .setViewsRegistry(
                 this.get('sy::core::registry::factory').make()
             )
-            .setViewScreenFactory(factory);
+            .setViewScreenFactory(
+                this.get('sy::core::view::factory::viewscreen')
+            );
 
     });
