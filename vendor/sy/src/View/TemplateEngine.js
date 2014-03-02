@@ -67,14 +67,16 @@ Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface
     render: {
         value: function (node, data) {
 
-            if (!node.dataset.syUuid && node.childElementCount === 0) {
+            if (!node.dataset.syUuid) {
                 this.register(node);
             }
 
             if (node.dataset.syUuid && this.registry.has(node.dataset.syUuid)) {
                 this.renderAllAttributes(node, data);
                 this.renderContent(node, data);
-            } else if (node.childElementCount > 0) {
+            }
+
+            if (node.childElementCount > 0) {
                 for (var i = 0, l = node.childElementCount; i < l; i++) {
                     this.render(node.children[i], data);
                 }
@@ -207,6 +209,10 @@ Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface
 
     renderContent: {
         value: function (node, data) {
+
+            if (node.childElementCount > 0) {
+                return node;
+            }
 
             var uuid = node.dataset.syUuid,
                 originalContent = this.registry.get(uuid).textContent,
