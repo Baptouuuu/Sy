@@ -12,7 +12,7 @@ Sy.View.ViewPort = function () {
     this.node = null;
     this.manager = null;
 };
-Sy.View.ViewPort.prototype = Object.create(Object.prototype, {
+Sy.View.ViewPort.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
     /**
      * Set the view port node
