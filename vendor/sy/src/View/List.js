@@ -150,8 +150,8 @@ Sy.View.List.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
                 d,
                 type;
 
-            for (var i = 0, l = node.children.length; i < l; i++) {
-                node.removeChild(node.children[i]);
+            while (node.firstElementChild) {
+                node.removeChild(node.firstElementChild);
             }
 
             for (var j = 0, jl = data.length; j < jl; j++) {
