@@ -93,7 +93,7 @@ module.exports = function (grunt) {
                             break;
                     }
 
-                    return 'venus run -t vendor/sy/tests/' + path + ' -n';
+                    return 'venus run -t vendor/sy/tests/' + path + ' -n --singleton';
                 },
                 options: {
                     stdout: true
