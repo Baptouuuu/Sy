@@ -135,6 +135,20 @@ Sy.View.Layout.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
         value: function () {
             return this.lists.get();
         }
+    },
+
+    /**
+     * Return the specified list wrapper
+     *
+     * @param {String} name
+     *
+     * @return {Sy.View.List}
+     */
+
+    getList: {
+        value: function (name) {
+            return this.lists.get(name);
+        }
     }
 
 });

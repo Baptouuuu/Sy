@@ -135,6 +135,20 @@ Sy.View.ViewScreen.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
         value: function () {
             return this.layouts.get();
         }
+    },
+
+    /**
+     * Return the specified layout wrapper
+     *
+     * @param {String} name
+     *
+     * @return {Sy.View.Layout}
+     */
+
+    getLayout: {
+        value: function (name) {
+            return this.layouts.get(name);
+        }
     }
 
 });
