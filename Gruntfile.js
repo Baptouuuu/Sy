@@ -76,6 +76,9 @@ module.exports = function (grunt) {
                         case 'storage':
                             path = 'storage/';
                             break;
+                        case 'view':
+                            path = 'view/';
+                            break;
                         case 'topLevel':
                             path = [
                                 'entity.js',
@@ -90,7 +93,7 @@ module.exports = function (grunt) {
                             break;
                     }
 
-                    return 'venus run -t vendor/sy/tests/' + path + ' -n';
+                    return 'venus run -t vendor/sy/tests/' + path + ' -n --singleton';
                 },
                 options: {
                     stdout: true
@@ -247,6 +250,7 @@ module.exports = function (grunt) {
         'jscs',
         'shell:syTests:lib',
         'shell:syTests:storage',
+        'shell:syTests:view',
         'shell:syTests:topLevel'
     ]);
 

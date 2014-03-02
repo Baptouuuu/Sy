@@ -114,6 +114,33 @@ Sy.service
             calls: [
                 ['setRegistryFactory', ['@sy::core::registry::factory']]
             ]
+        },
+        'sy::core::view::parser': {
+            constructor: 'Sy.View.Parser'
+        },
+        'sy::core::view::factory::list': {
+            constructor: 'Sy.View.ListFactory',
+            calls: [
+                ['setTemplateEngine', ['@sy::core::view::template::engine']]
+            ]
+        },
+        'sy::core::view::factory::layout': {
+            constructor: 'Sy.View.LayoutFactory',
+            calls: [
+                ['setParser', ['@sy::core::view::parser']],
+                ['setTemplateEngine', ['@sy::core::view::template::engine']],
+                ['setRegistryFactory', ['@sy::core::registry::factory']],
+                ['setListFactory', ['@sy::core::view::factory::list']]
+            ]
+        },
+        'sy::core::view::factory::viewscreen': {
+            constructor: 'Sy.View.ViewScreenFactory',
+            calls: [
+                ['setParser', ['@sy::core::view::parser']],
+                ['setTemplateEngine', ['@sy::core::view::template::engine']],
+                ['setRegistryFactory', ['@sy::core::registry::factory']],
+                ['setLayoutFactory', ['@sy::core::view::factory::layout']]
+            ]
         }
     });
 
@@ -203,3 +230,53 @@ Sy.service.set('sy::core::translator', function () {
         .setQueueFactory(this.get('sy::core::queue::factory'));
     return translator;
 });
+
+Sy.service
+    .set('sy::core::view::template::engine', function () {
+        var engine = new Sy.View.TemplateEngine();
+
+        return engine
+            .setRegistry(
+                this.get('sy::core::registry::factory').make()
+            )
+            .setGenerator(
+                this.get('sy::core::generator::uuid')
+            );
+    })
+    .set('sy::core::viewport', function () {
+
+        var viewport = new Sy.View.ViewPort();
+
+        return viewport
+            .setNode(
+                document.querySelector('.viewport')
+            )
+            .setViewManager(
+                this.get('sy::core::view::manager')
+            );
+
+    })
+    .set('sy::core::view::manager', function () {
+
+        var manager = new Sy.View.Manager(),
+            viewscreens = this.get('sy::core::view::parser').getViewScreens();
+
+        manager
+            .setViewsRegistry(
+                this.get('sy::core::registry::factory').make()
+            )
+            .setViewScreenFactory(
+                this.get('sy::core::view::factory::viewscreen')
+            );
+
+        for (var i = 0, l = viewscreens.length; i < l; i++) {
+            manager.setViewScreen(viewscreens[i]);
+
+            if (!DOM(viewscreens[i]).isChildOf('.viewport')){
+                viewscreens[i].parentNode.removeChild(viewscreens[i]);
+            }
+        }
+
+        return manager;
+
+    });

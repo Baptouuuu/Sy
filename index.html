@@ -5,6 +5,26 @@
     </head>
     <body>
 
+        <section class="viewport">
+            <section class="main" data-sy-view="main">
+                <h1>{{ header }}</h1>
+                <section data-sy-layout="list">
+                    <ul data-sy-list="elements">
+                        <li>
+                            {{ value }}
+                        </li>
+                    </ul>
+                </section>
+                <section data-sy-layout="content">
+
+                </section>
+            </section>
+        </section>
+
+        <section data-sy-view="detail">
+            <h1>{{ element.title }}</h1>
+        </section>
+
         <!-- deps -->
         <!-- bower:js -->
         <script src="vendor/underscore/underscore.js"></script>
@@ -13,6 +33,7 @@
 
         <!-- sy files -->
         <script src="vendor/sy/src/functions.js"></script>
+        <script src="vendor/sy/src/DOM.js"></script>
 
             <!-- interfaces first -->
             <script src="vendor/sy/src/Lib/Generator/Interface.js"></script>
@@ -28,6 +49,10 @@
             <script src="vendor/sy/src/HTTP/RequestInterface.js"></script>
             <script src="vendor/sy/src/HTTP/ResponseInterface.js"></script>
             <script src="vendor/sy/src/FactoryInterface.js"></script>
+            <script src="vendor/sy/src/View/LayoutFactoryInterface.js"></script>
+            <script src="vendor/sy/src/View/ListFactoryInterface.js"></script>
+            <script src="vendor/sy/src/View/TemplateEngineInterface.js"></script>
+            <script src="vendor/sy/src/View/ViewScreenFactoryInterface.js"></script>
 
             <!-- libs -->
             <script src="vendor/sy/src/Lib/Mediator.js"></script>
@@ -59,6 +84,19 @@
             <script src="vendor/sy/src/Storage/Engine/Localstorage.js"></script>
             <script src="vendor/sy/src/Storage/Engine/IndexedDB.js"></script>
 
+            <!-- view -->
+            <script src="vendor/sy/src/View/Parser.js"></script>
+            <script src="vendor/sy/src/View/TemplateEngine.js"></script>
+            <script src="vendor/sy/src/View/NodeWrapper.js"></script>
+            <script src="vendor/sy/src/View/List.js"></script>
+            <script src="vendor/sy/src/View/ListFactory.js"></script>
+            <script src="vendor/sy/src/View/Layout.js"></script>
+            <script src="vendor/sy/src/View/LayoutFactory.js"></script>
+            <script src="vendor/sy/src/View/ViewScreen.js"></script>
+            <script src="vendor/sy/src/View/ViewScreenFactory.js"></script>
+            <script src="vendor/sy/src/View/Manager.js"></script>
+            <script src="vendor/sy/src/View/ViewPort.js"></script>
+
             <!-- top objects -->
             <script src="vendor/sy/src/ServiceContainer.js"></script>
             <script src="vendor/sy/src/Configurator.js"></script>
@@ -69,6 +107,7 @@
             <script src="vendor/sy/src/Queue.js"></script>
             <script src="vendor/sy/src/QueueFactory.js"></script>
             <script src="vendor/sy/src/Translator.js"></script>
+            <script src="vendor/sy/src/DOM.js"></script>
         <script src="vendor/sy/bootstrap.js"></script>
 
         <!-- app files -->
