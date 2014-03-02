@@ -115,9 +115,6 @@ Sy.service
                 ['setRegistryFactory', ['@sy::core::registry::factory']]
             ]
         },
-        'sy::core::view::template::engine': {
-            constructor: 'Sy.View.TemplateEngine'
-        },
         'sy::core::view::parser': {
             constructor: 'Sy.View.Parser'
         },
@@ -235,6 +232,17 @@ Sy.service.set('sy::core::translator', function () {
 });
 
 Sy.service
+    .set('sy::core::view::template::engine', function () {
+        var engine = new Sy.View.TemplateEngine();
+
+        return engine
+            .setRegistry(
+                this.get('sy::core::registry::factory').make()
+            )
+            .setGenerator(
+                this.get('sy::core::generator::uuid')
+            );
+    })
     .set('sy::core::viewport', function () {
 
         var viewport = new Sy.View.ViewPort();
