@@ -83,7 +83,10 @@ Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface
                 !(node instanceof HTMLInputElement) &&
                 (
                     node.textContent.match(this.PATTERN) ||
-                    node.dataset.originalContent.match(this.PATTERN)
+                    (
+                        node.dataset.originalContent &&
+                        node.dataset.originalContent.match(this.PATTERN)
+                    )
                 )
             ) {
                 if (!node.dataset.originalContent) {
