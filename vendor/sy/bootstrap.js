@@ -271,6 +271,10 @@ Sy.service
 
         for (var i = 0, l = viewscreens.length; i < l; i++) {
             manager.setViewScreen(viewscreens[i]);
+
+            if (!DOM(viewscreens[i]).isChildOf('.viewport')){
+                viewscreens[i].parentNode.removeChild(viewscreens[i]);
+            }
         }
 
         return manager;
