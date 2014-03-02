@@ -17,24 +17,24 @@ Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface
      */
 
     render: {
-        value: function (dom, data) {
+        value: function (node, data) {
 
-            this.replaceDataset(dom, data);
+            this.replaceDataset(node, data);
 
-            if (dom.childElementCount === 0) {
-                this.replaceContent(dom, data);
+            if (node.childElementCount === 0) {
+                this.replaceContent(node, data);
 
-                if (dom instanceof HTMLInputElement) {
-                    this.replaceElementValue(dom, data);
+                if (node instanceof HTMLInputElement) {
+                    this.replaceElementValue(node, data);
                 }
 
             } else {
-                for (var i = 0, l = dom.childElementCount; i < l; i++) {
-                    this.render(d.children[i], data);
+                for (var i = 0, l = node.childElementCount; i < l; i++) {
+                    this.render(node.children[i], data);
                 }
             }
 
-            return dom;
+            return node;
 
         }
     },
