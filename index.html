@@ -5,6 +5,26 @@
     </head>
     <body>
 
+        <section class="viewport">
+            <section class="main" data-sy-view="main">
+                <h1>{{ header }}</h1>
+                <section data-sy-layout="list">
+                    <ul data-sy-list="elements">
+                        <li>
+                            {{ value }}
+                        </li>
+                    </ul>
+                </section>
+                <section data-sy-layout="content">
+
+                </section>
+            </section>
+        </section>
+
+        <section data-sy-view="detail">
+            <h1>{{ element.title }}</h1>
+        </section>
+
         <!-- deps -->
         <!-- bower:js -->
         <script src="vendor/underscore/underscore.js"></script>
