@@ -157,7 +157,6 @@ Sy.View.List.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
             for (var j = 0, jl = data.length; j < jl; j++) {
                 d = data[j];
                 type = d._type;
-                delete d._type;
 
                 this.append(d, type);
             }
