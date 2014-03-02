@@ -1,7 +1,9 @@
 /**
  * @venus-library jasmine
  * @venus-include ../../src/functions.js
+ * @venus-include ../../src/View/Manager.js
  * @venus-include ../../src/View/NodeWrapper.js
+ * @venus-include ../../src/View/ViewScreen.js
  * @venus-include ../../src/View/ViewPort.js
  */
 
@@ -23,11 +25,7 @@ describe('viewport', function () {
 
     it('should set the view manager', function () {
 
-        var manager = new Sy.View.Manager(),
-            node = document.createElement('section');
-
-        node.dataset.syViewScreen = 'name';
-        manager.setViewScreen(node);
+        var manager = new Sy.View.Manager();
 
         viewport.setViewManager(manager);
 
@@ -39,20 +37,35 @@ describe('viewport', function () {
 
         expect(function () {
             viewport.setViewManager({});
-        }).toThrow('Invalid view manager');
+        }).toThrow('Invalid manager');
 
     });
 
     it('should add a viewscreen to the viewport if not one injected yet', function () {
 
-        var viewportNode = viewport.getNode();
+        var viewportNode = viewport.getNode(),
+            viewscreen = new Sy.View.ViewScreen(),
+            node = document.createElement('section');
+
+        node.dataset.syView = 'name';
+        viewscreen.node = node;
+
+        Sy.View.Manager.prototype = Object.create(Sy.View.Manager.prototype, {
+            getViewScreen: {
+                value: function () {
+                    return viewscreen;
+                }
+            }
+        });
+
+        viewport.setViewManager(new Sy.View.Manager());
 
         expect(viewportNode.childElementCount).toEqual(0);
 
         viewport.display('name');
 
         expect(viewportNode.childElementCount).toEqual(1);
-        expect(viewportNode.children[0]).toEqual(viewport.getViewManager().getViewScreen('name'));
+        expect(viewportNode.children[0]).toEqual(viewport.getViewManager().getViewScreen('name').getNode());
 
     });
 
