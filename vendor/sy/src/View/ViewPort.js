@@ -59,6 +59,18 @@ Sy.View.ViewPort.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
     },
 
     /**
+     * Return the view manager
+     *
+     * @return {Sy.View.Manager}
+     */
+
+    getViewManager: {
+        value: function () {
+            return this.manager;
+        }
+    },
+
+    /**
      * Set the specified view screen name as the current one in the view port
      *
      * @param {string} name ViewScreen name
