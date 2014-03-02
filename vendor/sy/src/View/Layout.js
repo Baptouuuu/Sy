@@ -28,7 +28,7 @@ Sy.View.Layout.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
             var lists,
                 wrapper;
 
-            Sy.View.NodeWrapper.prototype.call(this, node);
+            Sy.View.NodeWrapper.prototype.setNode.call(this, node);
 
             this.name = node.dataset.syLayout;
             lists = this.parser.getLists(node);
