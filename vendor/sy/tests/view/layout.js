@@ -32,6 +32,24 @@ describe('view layout', function () {
         layout.setNode(node);
     });
 
+    it('should throw if invalid parser', function () {
+        expect(function () {
+            layout.setParser({});
+        }).toThrow('Invalid parser');
+    });
+
+    it('should throw if invalid registry', function () {
+        expect(function () {
+            layout.setListsRegistry({});
+        }).toThrow('Invalid registry');
+    });
+
+    it('should throw if invalid list factory', function () {
+        expect(function () {
+            layout.setListFactory({});
+        }).toThrow('Invalid list factory');
+    });
+
     it('should return the layout name', function () {
         expect(layout.getName()).toEqual('layoutName');
     });

@@ -28,6 +28,30 @@ describe('view layout factory', function () {
     factory.setRegistryFactory(new Sy.RegistryFactory());
     factory.setListFactory(new MockListFactory());
 
+    it('should throw if invalid parser', function () {
+        expect(function () {
+            factory.setParser({});
+        }).toThrow('Invalid parser');
+    });
+
+    it('should throw if invalid template engine', function () {
+        expect(function () {
+            factory.setTemplateEngine({});
+        }).toThrow('Invalid template engine');
+    });
+
+    it('should throw if invalid registry factory', function () {
+        expect(function () {
+            factory.setRegistryFactory({});
+        }).toThrow('Invalid registry factory');
+    });
+
+    it('should throw if invalid list factory', function () {
+        expect(function () {
+            factory.setListFactory({});
+        }).toThrow('Invalid list factory');
+    });
+
     it('should make a layout wrapper', function () {
         var node = document.createElement('section'),
             wrapper;

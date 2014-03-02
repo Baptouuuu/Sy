@@ -31,6 +31,18 @@ describe('view manager', function () {
     manager.setViewsRegistry(new Sy.Registry());
     manager.setViewScreenFactory(viewscreenFactory);
 
+    it('should throw if invalid registry', function () {
+        expect(function () {
+            manager.setViewsRegistry({});
+        }).toThrow('Invalid registry');
+    });
+
+    it('should throw if invalid viewscreen factory', function () {
+        expect(function () {
+            manager.setViewScreenFactory({});
+        }).toThrow('Invalid factory');
+    });
+
     it('should register a new view screen', function () {
 
         var node = document.createElement('section');

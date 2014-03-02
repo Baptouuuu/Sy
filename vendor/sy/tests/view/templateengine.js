@@ -17,6 +17,18 @@ describe('view template engine', function () {
     engine.setRegistry(new Sy.Registry());
     engine.setGenerator(new Sy.Lib.Generator.UUID());
 
+    it('should throw if invalid registry', function () {
+        expect(function () {
+            engine.setRegistry({});
+        }).toThrow('Invalid registry');
+    });
+
+    it('should throw if invalid generator', function () {
+        expect(function () {
+            engine.setGenerator({});
+        }).toThrow('Invalid generator');
+    });
+
     it('should render a nested node', function () {
         var node = document.querySelector('.render-nested-node');
 

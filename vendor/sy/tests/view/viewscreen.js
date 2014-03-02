@@ -32,6 +32,24 @@ describe('viewscreen', function () {
     viewscreen.setLayoutFactory(factory);
     viewscreen.setNode(node);
 
+    it('should throw if invalid parser', function () {
+        expect(function () {
+            viewscreen.setParser({});
+        }).toThrow('Invalid parser');
+    });
+
+    it('should throw if invalid registry', function () {
+        expect(function () {
+            viewscreen.setLayoutsRegistry({});
+        }).toThrow('Invalid registry');
+    });
+
+    it('should throw if invalid factory', function () {
+        expect(function () {
+            viewscreen.setLayoutFactory({});
+        }).toThrow('Invalid layout factory');
+    });
+
     it('should return the name', function () {
 
         expect(viewscreen.getName()).toEqual('viewScreenName');

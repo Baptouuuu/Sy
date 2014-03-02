@@ -18,6 +18,12 @@ describe('view list factory', function () {
 
     factory.setTemplateEngine(new MockEngine());
 
+    it('should throw if invalid template engine', function () {
+        expect(function () {
+            factory.setTemplateEngine({});
+        }).toThrow('Invalid template engine');
+    });
+
     it('should return a new list wrapper', function () {
         var node = document.createElement('ul'),
             wrapper;
