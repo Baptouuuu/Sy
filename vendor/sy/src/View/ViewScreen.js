@@ -16,7 +16,7 @@ Sy.View.ViewScreen = function () {
     this.layouts = null;
     this.layoutFactory = null;
 };
-Sy.View.ViewScreen.prototype = Object.create(Sy.View.ViewScreen.prototype, {
+Sy.View.ViewScreen.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
     /**
      * @inheritDoc
@@ -31,7 +31,7 @@ Sy.View.ViewScreen.prototype = Object.create(Sy.View.ViewScreen.prototype, {
             Sy.View.NodeWrapper.prototype.setNode.call(this, node);
 
             this.name = node.dataset.syView;
-            layouts = this.parser.getlayouts(node);
+            layouts = this.parser.getLayouts(node);
 
             for (var i = 0, l = layouts.length; i < l; i++) {
                 wrapper = this.layoutFactory.make(layouts[i]);
@@ -131,7 +131,7 @@ Sy.View.ViewScreen.prototype = Object.create(Sy.View.ViewScreen.prototype, {
      * @return {Array}
      */
 
-    getlayouts: {
+    getLayouts: {
         value: function () {
             return this.layouts.get();
         }
