@@ -26,12 +26,12 @@ Sy.View.List.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
             var child;
 
-            Sy.View.NodeWrapper.prototype.call(this, node);
+            Sy.View.NodeWrapper.prototype.setNode.call(this, node);
 
             this.name = node.dataset.syList;
 
             for (var i = 0, l = node.childElementCount; i < l; i++) {
-                child = node.children[i];
+                child = node.firstElementChild;
                 this.elements.push(child);
                 node.removeChild(child);
 
