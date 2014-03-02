@@ -35,7 +35,7 @@ Sy.View.List.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
                 this.elements.push(child);
                 node.removeChild(child);
 
-                if (this.elements.length >= 1 && child.dataset.type === undefined) {
+                if (this.elements.length > 1 && child.dataset.type === undefined) {
                     throw new SyntaxError('Multiple list elements require a type to be set');
                 }
 
