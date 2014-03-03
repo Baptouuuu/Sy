@@ -8,52 +8,52 @@ module.exports = function (grunt) {
             },
             build: {
                 files: {
-                    'vendor/sy/framework.min.js': [
-                        'vendor/sy/src/functions.js',
-                        'vendor/sy/src/Lib/Generator/Interface.js',
-                        'vendor/sy/src/Lib/Generator/UUID.js',
-                        'vendor/sy/src/Lib/Logger/Handler/Interface.js',
-                        'vendor/sy/src/Lib/Logger/Handler/Console.js',
-                        'vendor/sy/src/Lib/Logger/Interface.js',
-                        'vendor/sy/src/Lib/Logger/CoreLogger.js',
-                        'vendor/sy/src/Lib/Mediator.js',
-                        'vendor/sy/src/HTTP/RequestInterface.js',
-                        'vendor/sy/src/HTTP/Request.js',
-                        'vendor/sy/src/HTTP/HTMLRequest.js',
-                        'vendor/sy/src/HTTP/JSONRequest.js',
-                        'vendor/sy/src/HTTP/ResponseInterface.js',
-                        'vendor/sy/src/HTTP/Response.js',
-                        'vendor/sy/src/HTTP/HTMLResponse.js',
-                        'vendor/sy/src/HTTP/JSONResponse.js',
-                        'vendor/sy/src/HTTP/HeaderParser.js',
-                        'vendor/sy/src/HTTP/Manager.js',
-                        'vendor/sy/src/HTTP/REST.js',
-                        'vendor/sy/src/Storage/Core.js',
-                        'vendor/sy/src/Storage/EngineInterface.js',
-                        'vendor/sy/src/Storage/EngineFactory.js',
-                        'vendor/sy/src/Storage/Engine/IndexedDB.js',
-                        'vendor/sy/src/Storage/Engine/Localstorage.js',
-                        'vendor/sy/src/Storage/Engine/Rest.js',
-                        'vendor/sy/src/Storage/Manager.js',
-                        'vendor/sy/src/Storage/ManagerFactory.js',
-                        'vendor/sy/src/Storage/RepositoryInterface.js',
-                        'vendor/sy/src/Storage/Repository.js',
-                        'vendor/sy/src/Storage/RepositoryFactory.js',
-                        'vendor/sy/src/ConfiguratorInterface.js',
-                        'vendor/sy/src/Configurator.js',
-                        'vendor/sy/src/ControllerInterface.js',
-                        'vendor/sy/src/Controller.js',
-                        'vendor/sy/src/EntityInterface.js',
-                        'vendor/sy/src/Entity.js',
-                        'vendor/sy/src/FactoryInterface.js',
-                        'vendor/sy/src/QueueInterface.js',
-                        'vendor/sy/src/Queue.js',
-                        'vendor/sy/src/RegistryInterface.js',
-                        'vendor/sy/src/Registry.js',
-                        'vendor/sy/src/ServiceContainerInterface.js',
-                        'vendor/sy/src/ServiceContainer.js',
-                        'vendor/sy/src/ServiceInterface.js',
-                        'vendor/sy/bootstrap.js'
+                    'framework.min.js': [
+                        'src/functions.js',
+                        'src/Lib/Generator/Interface.js',
+                        'src/Lib/Generator/UUID.js',
+                        'src/Lib/Logger/Handler/Interface.js',
+                        'src/Lib/Logger/Handler/Console.js',
+                        'src/Lib/Logger/Interface.js',
+                        'src/Lib/Logger/CoreLogger.js',
+                        'src/Lib/Mediator.js',
+                        'src/HTTP/RequestInterface.js',
+                        'src/HTTP/Request.js',
+                        'src/HTTP/HTMLRequest.js',
+                        'src/HTTP/JSONRequest.js',
+                        'src/HTTP/ResponseInterface.js',
+                        'src/HTTP/Response.js',
+                        'src/HTTP/HTMLResponse.js',
+                        'src/HTTP/JSONResponse.js',
+                        'src/HTTP/HeaderParser.js',
+                        'src/HTTP/Manager.js',
+                        'src/HTTP/REST.js',
+                        'src/Storage/Core.js',
+                        'src/Storage/EngineInterface.js',
+                        'src/Storage/EngineFactory.js',
+                        'src/Storage/Engine/IndexedDB.js',
+                        'src/Storage/Engine/Localstorage.js',
+                        'src/Storage/Engine/Rest.js',
+                        'src/Storage/Manager.js',
+                        'src/Storage/ManagerFactory.js',
+                        'src/Storage/RepositoryInterface.js',
+                        'src/Storage/Repository.js',
+                        'src/Storage/RepositoryFactory.js',
+                        'src/ConfiguratorInterface.js',
+                        'src/Configurator.js',
+                        'src/ControllerInterface.js',
+                        'src/Controller.js',
+                        'src/EntityInterface.js',
+                        'src/Entity.js',
+                        'src/FactoryInterface.js',
+                        'src/QueueInterface.js',
+                        'src/Queue.js',
+                        'src/RegistryInterface.js',
+                        'src/Registry.js',
+                        'src/ServiceContainerInterface.js',
+                        'src/ServiceContainer.js',
+                        'src/ServiceInterface.js',
+                        'bootstrap.js'
                     ]
                 }
             }
@@ -89,11 +89,11 @@ module.exports = function (grunt) {
                                 'queuefactory.js',
                                 'servicecontainer.js',
                                 'translator.js',
-                            ].join(',vendor/sy/tests/');
+                            ].join(',tests/');
                             break;
                     }
 
-                    return 'venus run -t vendor/sy/tests/' + path + ' -n --singleton';
+                    return 'venus run -t tests/' + path + ' -n --singleton';
                 },
                 options: {
                     stdout: true
@@ -102,7 +102,7 @@ module.exports = function (grunt) {
         },
         watch: {
             js: {
-                files: ['vendor/sy/src/*.js'],
+                files: ['src/*.js'],
                 tasks: [],
                 options: {
                     livereload: true
@@ -110,7 +110,7 @@ module.exports = function (grunt) {
             }
         },
         jscs: {
-            src: 'vendor/sy/src/**/*.js',
+            src: 'src/**/*.js',
             options: {
                 requireCurlyBraces: [
                     'if',
