@@ -1,5 +1,4 @@
 vendor/*
-!vendor/sy
 node_modules/*
 coverage.csv
 
