@@ -1,8 +1,8 @@
 # HTTP Library
 
-Sy abstract the construction of http request (ajax) via a set of objects. If you're looking to consume a REST api, I suggest to read the documentation of the [REST](REST) object (based on this library).
+Sy abstract the construction of http request (ajax) via a set of objects. If you're looking to consume a REST api, I suggest to read the documentation of the [REST](REST.md) object (based on this library).
 
-The framework expose this library through the `sy::core::http` [service](Service-Container).
+The framework expose this library through the `sy::core::http` [service](Service-container.md).
 
 The library is composed of 3 types of objects:
 
@@ -21,7 +21,7 @@ Not using the request object to directly send the request allows you to reuse th
 
 ## Request
 
-This object wraps the creation of a http request; it must implement `Sy.HTTP.RequestInterface`. It is a representation of a request, so by itself the object does nothing, got to the [`Manager`](HTTP-Library#manager) to see how to use them.
+This object wraps the creation of a http request; it must implement `Sy.HTTP.RequestInterface`. It is a representation of a request, so by itself the object does nothing, got to the [`Manager`](#manager) to see how to use them.
 
 ### Creation
 
@@ -91,7 +91,7 @@ The library come with two typed requests: `Sy.HTTP.HTMLRequest` and `Sy.HTTP.JSO
 
 ## Response
 
-In normal workflow you will never have to construct this kind of object. You should encounter this kind of object inside a [request listener](HTTP-Library#callback). it will always implement `Sy.HTTP.ResponseInterface`.
+In normal workflow you will never have to construct this kind of object. You should encounter this kind of object inside a [request listener](#callback). it will always implement `Sy.HTTP.ResponseInterface`.
 
 ### Status code
 

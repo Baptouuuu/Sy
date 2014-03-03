@@ -27,7 +27,7 @@ A manager holds a set of entities repositories around a specific engine.
 
 ### Configuration
 
-You configure your managers with the [configurator](Configurator) `Sy.config` with the key `storage.managers`:
+You configure your managers with the [configurator](Configurator.md) `Sy.config` with the key `storage.managers`:
 ```js
 Sy.config.set('storage.managers', {
   main: {

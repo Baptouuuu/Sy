@@ -1,6 +1,6 @@
 # REST
 
-This object sits on top of the [HTTP Manager](HTTP-Library#manager) and allows you to remove some steps to make REST calls.
+This object sits on top of the [HTTP Manager](HTTP-Library.md#manager) and allows you to remove some steps to make REST calls.
 
 ## Creation
 
@@ -10,7 +10,7 @@ If you use the whole framework you can access the rest object through the `sy::c
 var rest = new Sy.HTTP.REST();
 rest.setManager(manager);
 ```
-In order to work you need to inject an instance of [`Sy.HTTP.Manager`](HTTP-Library#manager).
+In order to work you need to inject an instance of [`Sy.HTTP.Manager`](HTTP-Library.md#manager).
 
 ## GET
 
