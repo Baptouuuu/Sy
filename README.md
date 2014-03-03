@@ -28,7 +28,7 @@ Bare in mind that until the first release some methods of those libraries may ch
 
 ## Documentation
 
-The framework documentation is available in the [wiki](https://github.com/Baptouuuu/Sy/wiki).
+The framework documentation is available in the folder [docs](docs).
 
 ## Conventions
 
