@@ -2,13 +2,13 @@
   "name": "sy",
   "version": "1.0.0",
   "devDependencies": {
-    "grunt": "~0.4.1",
-    "grunt-contrib-uglify": "~0.2.7",
-    "grunt-bower-install": "~0.6.1",
-    "load-grunt-tasks": "~0.2.0",
+    "grunt": "~0.4.2",
+    "grunt-contrib-uglify": "~0.4.0",
+    "grunt-bower-install": "~1.0.0",
+    "load-grunt-tasks": "~0.4.0",
     "venus": "~2.3.1",
     "grunt-shell": "~0.6.1",
     "grunt-contrib-watch": "~0.5.3",
-    "grunt-jscs-checker": "~0.3.2"
+    "grunt-jscs-checker": "~0.4.0"
   }
 }
