@@ -15,7 +15,8 @@ Sy.ServiceContainer = function (name) {
     this.name = '';
     this.services = {};
     this.definitions = {};
-    this.parameters = {};
+    this.proxy = new Sy.ParamProxy();
+    this.proxy.setServiceContainer(this);
 
     this.setName(name);
 
@@ -35,7 +36,7 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
 
     setParameters: {
         value: function (params) {
-            this.parameters = params;
+            this.proxy.setParameters(params);
 
             return this;
         }
@@ -48,7 +49,7 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
     getParameter: {
         value: function (path) {
 
-            return objectGetter.call(this.parameters, path);
+            return this.proxy.getParameter('%' + path + '%');
 
         }
     },
@@ -133,15 +134,8 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
                     var args = opts.calls[i][1];
 
                     for (var a = 0, al = args.length; a < al; a++) {
-                        if (typeof args[a] === 'string' && args[a].substring(0, 1) === '@') {
-                            args[a] = this.get(args[a].substr(1));
-                        } else if (typeof args[a] === 'string' && new RegExp(/^%.*%$/i).test(args[a])) {
-                            args[a] = this.getParameter(
-                                args[a].substring(
-                                    1,
-                                    args[a].length - 1
-                                )
-                            );
+                        if (this.proxy.isDependency(args[a])) {
+                            args[a] = this.proxy.getDependency(args[a]);
                         }
                     }
 
