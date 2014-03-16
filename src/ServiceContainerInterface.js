@@ -70,13 +70,12 @@ Sy.ServiceContainerInterface.prototype = Object.create(Object.prototype, {
      *
      * @param {string} name Name of the service (must follow the pattern: "/(\w+::)|(\w+)/i")
      * @param {function} constructor Function that must return the object that will act as a service
-     * @param {Array} data List of variables that will be transmitted to the service constructor function
      *
      * @return {Sy.ServiceContainerInterface}
      */
 
     set: {
-        value: function (name, constructor, data) {
+        value: function (name, constructor) {
 
             return this;
 

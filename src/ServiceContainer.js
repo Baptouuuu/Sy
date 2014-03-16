@@ -99,7 +99,7 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
 
     buildServiceByCreator: {
         value: function (name) {
-            return this.definitions[name].fn.apply(this, this.definitions[name].args);
+            return this.definitions[name].fn.apply(this);
         }
     },
 
@@ -154,12 +154,12 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
 
     set: {
 
-        value: function (serviceName, creator, args) {
+        value: function (serviceName, creator) {
 
             if (serviceName instanceof Object) {
                 this.setPrototypes(serviceName);
             } else {
-                this.setCreator(serviceName, creator, args);
+                this.setCreator(serviceName, creator);
             }
 
             return this;
@@ -174,11 +174,10 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
      * @private
      * @param {string} serviceName
      * @param {funtcion} creator
-     * @param {Array} args
      */
 
     setCreator: {
-        value: function (serviceName, creator, args) {
+        value: function (serviceName, creator) {
 
             var regex = new RegExp(this.PATTERN, 'gi');
 
@@ -190,17 +189,12 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
                 throw new TypeError('Invalid creator type');
             }
 
-            if (args && !(args instanceof Array)) {
-                throw new TypeError('Invalid args type (must be an array)');
-            }
-
             if (this.has(serviceName)) {
                 throw new TypeError('Service name "' + serviceName + '" already used');
             }
 
             this.definitions[serviceName] = {
                 fn: creator,
-                args: args,
                 type: 'creator'
             };
 
