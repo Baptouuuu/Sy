@@ -182,7 +182,7 @@ Sy.kernel.getServiceContainer()
             managerFact = new Sy.Storage.ManagerFactory(),
             repositoryFact = new Sy.Storage.RepositoryFactory(),
             engineFact = new Sy.Storage.EngineFactory(),
-            conf = Sy.config.get('storage'),
+            conf = Sy.kernel.getConfig().get('storage'),
             registryFact = this.get('sy::core::registry::factory');
 
         storage.setRegistry(registryFact.make());
@@ -192,7 +192,7 @@ Sy.kernel.getServiceContainer()
             .setRepoRegistry(registryFact.make())
             .setQueueFactory(this.get('sy::core::queue::factory'))
             .setMeta(meta)
-            .setGenerator(Sy.service.get('sy::core::generator::uuid'));
+            .setGenerator(this.get('sy::core::generator::uuid'));
 
         for (var engineName in conf.engines) {
             if (conf.engines.hasOwnProperty(engineName)) {
