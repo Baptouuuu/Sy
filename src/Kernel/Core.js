@@ -79,13 +79,12 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                         services[i].creator
                     );
                 } else if (typeof services[i].constructor === 'string') {
-                    var name = services[i].name;
+                    var def = {},
+                        name = services[i].name;
                     delete services[i].name;
 
-                    this.container.set(
-                        name,
-                        services[i]
-                    );
+                    def[name] = services[i];
+                    this.container.set(def);
                 }
             }
 
