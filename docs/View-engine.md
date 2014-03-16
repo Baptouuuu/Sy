@@ -214,7 +214,7 @@ For example the first placeholder below won't be replaced, but the last will:
 ```html
 <div>
   {{ wont.be.replaced }}
-  <span>to bad for you but {{ I.will }</span>
+  <span>too bad for you but {{ I.will }</span>
 </div>
 ```
 This restriction is due that `textContent` on the div will contains the span `textContent` and so replacing the textContent on the first one may mess up the text layout.
