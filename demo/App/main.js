@@ -10,3 +10,5 @@ Sy.kernel.getConfig()
             ]
         }
     });
+
+Sy.kernel.init();
