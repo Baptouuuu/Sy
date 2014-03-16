@@ -253,6 +253,9 @@ Sy.service
             )
             .setViewManager(
                 this.get('sy::core::view::manager')
+            )
+            .setMediator(
+                this.get('sy::core::mediator')
             );
 
     })

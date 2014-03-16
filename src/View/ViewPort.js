@@ -11,8 +11,31 @@ namespace('Sy.View');
 Sy.View.ViewPort = function () {
     this.node = null;
     this.manager = null;
+    this.mediator = null;
 };
 Sy.View.ViewPort.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
+
+    /**
+     * Set the mediator to dispatch event when viewscreen is changed
+     *
+     * @param {Sy.Lib.Mediator} mediator
+     *
+     * @return {Sy.View.ViewPort}
+     */
+
+    setMediator: {
+        value: function (mediator) {
+
+            if (!(mediator instanceof Sy.Lib.Mediator)) {
+                throw new TypeError('Invalid mediator');
+            }
+
+            this.mediator = mediator;
+
+            return this;
+
+        }
+    },
 
     /**
      * Set the view port node
@@ -81,7 +104,12 @@ Sy.View.ViewPort.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
     display: {
         value: function (name) {
 
-            var node = this.manager.getViewScreen(name).getNode();
+            var viewscreen = this.manager.getViewScreen(name),
+                node = viewscreen.getNode();
+
+            if (this.mediator) {
+                this.mediator.publish('view::on::pre::display', viewscreen);
+            }
 
             switch (this.node.childElementCount) {
                 case 0:
@@ -92,6 +120,10 @@ Sy.View.ViewPort.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
                     break;
                 default:
                     throw new Error('Viewport in weird state (more than 1 child)');
+            }
+
+            if (this.mediator) {
+                this.mediator.publish('view::on::post::display', viewscreen);
             }
 
             return this;
