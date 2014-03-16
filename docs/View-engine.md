@@ -238,6 +238,15 @@ renderer.render(node, {
 ```
 The placeholder above will be replaced with the dom node specified in the data object. And if you try to re-render the `div` it will first remove the child and re-append the node from the data object.
 
+## Events
+
+The engine can inform you when the viewport changes (meaning a viewscreen is displayed) via 2 [mediator](Mediator.md) channels:
+
+* `view::on::pre::display`
+* `view::on::post::display`
+
+Those events are published with one argument which is the `ViewScreen` wrapper for the node being displayed.
+
 ## Extra
 
 The mechanism described in this page has been designed to be used in a preventive way. Meaning render first then display the node.
