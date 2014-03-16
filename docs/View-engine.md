@@ -54,6 +54,21 @@ As it must exist only one ViewScreen in the viewport, if there's more than one, 
 
 If there's no ViewScreen already set in the viewport, it's no problem.
 
+### Custom wrappers
+
+You can create your own `ViewScreen` wrapper by creating a class inheriting from the default one and then register it in the appropriate factory.
+Sample:
+```js
+var factory = Sy.service.get('sy::core::view::factory::viewscreen'),
+    Wrapper = function () {
+      Sy.View.ViewScreen.call(this);
+    };
+Wrapper.prototype = Object.create(Sy.View.ViewScreen.prototype);
+factory.setViewScreenWrapper('name', Wrapper);
+```
+
+With this code when the engine will create a wrapper for a viewscreen node, if the defined name on the node matches the one you registered, the factory will instanciate `Wrapper` instead of `Sy.View.ViewScreen`. So you can add your custom methods to a wrapper.
+
 ## Layout
 
 It's a sub-section of a ViewScreen, think of it like a wrapper for something like an aside list, the main content area, etc...

@@ -65,4 +65,16 @@ describe('viewscreen factory', function () {
         expect(wrapper instanceof Sy.View.ViewScreen).toBe(true);
     });
 
+    it('should register a new viewscreen wrapper', function () {
+        var node = document.querySelector('[data-sy-view="customWrapper"]'),
+            Mock = function () {
+                Sy.View.ViewScreen.call(this);
+            };
+        Mock.prototype = Object.create(Sy.View.ViewScreen.prototype);
+
+        factory.setViewScreenWrapper('customWrapper', Mock);
+
+        expect(factory.make(node) instanceof Mock).toBe(true);
+    });
+
 });

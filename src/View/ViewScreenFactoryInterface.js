@@ -58,6 +58,19 @@ Sy.View.ViewScreenFactoryInterface.prototype = Object.create(Sy.FactoryInterface
 
     setLayoutFactory: {
         value: function (factory) {}
+    },
+
+    /**
+     * Set viewscreen wrapper constructor
+     *
+     * @param {String} name Viewscreen name it's attached to
+     * @param {Function} viewscreenConstructor
+     *
+     * @return {Sy.View.ViewScreenFactoryInterface}
+     */
+
+    setViewScreenWrapper: {
+        value: function (name, viewscreenConstructor) {}
     }
 
 });

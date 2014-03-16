@@ -14,6 +14,7 @@ Sy.View.ViewScreenFactory = function () {
     this.engine = null;
     this.registryFactory = null;
     this.layoutFactory = null;
+    this.viewscreens = null;
 };
 Sy.View.ViewScreenFactory.prototype = Object.create(Sy.View.ViewScreenFactoryInterface.prototype, {
 
@@ -65,6 +66,7 @@ Sy.View.ViewScreenFactory.prototype = Object.create(Sy.View.ViewScreenFactoryInt
             }
 
             this.registryFactory = factory;
+            this.viewscreens = factory.make();
 
             return this;
 
@@ -93,10 +95,39 @@ Sy.View.ViewScreenFactory.prototype = Object.create(Sy.View.ViewScreenFactoryInt
      * @inheritDoc
      */
 
+    setViewScreenWrapper: {
+        value: function (name, viewscreenConstructor) {
+
+            if (this.viewscreens.has(name)) {
+                throw new ReferenceError('A viewscreen wrapper is already defined with the name "' + name + '"');
+            }
+
+            this.viewscreens.set(name, viewscreenConstructor);
+
+            return this;
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
     make: {
         value: function (node) {
 
-            var wrapper = new Sy.View.ViewScreen();
+            var name = node.dataset.syView,
+                wrapper;
+
+            if (this.viewscreens.has(name)) {
+                wrapper = new (this.viewscreens.get(name))();
+            } else {
+                wrapper = new Sy.View.ViewScreen();
+            }
+
+            if (!(wrapper instanceof Sy.View.ViewScreen)) {
+                throw new TypeError('Invalid viewscreen wrapper');
+            }
 
             return wrapper
                 .setParser(this.parser)
