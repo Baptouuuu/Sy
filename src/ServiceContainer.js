@@ -123,7 +123,7 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
             }
 
             if (opts.arguments) {
-                service = new costructor(opts.arguments);
+                service = new constructor(opts.arguments);
             } else {
                 service = new constructor();
             }
