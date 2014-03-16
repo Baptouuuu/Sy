@@ -15,7 +15,7 @@ App.Bundle.DefaultBundle.Config.Service.prototype = Object.create(Object.prototy
                     ]
                 },
                 {
-                    name    : 'App.Bundle.DefaultBundle.Service.Another',
+                    name    : 'another',
                     creator : function () {
                         return {};
                     }
