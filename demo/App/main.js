@@ -1,4 +1,4 @@
-Sy.config
+Sy.kernel.getConfig()
     .set('env', 'dev')
     .set('name', 'My App Name')
     .set('storage.managers', {
