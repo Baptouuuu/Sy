@@ -177,15 +177,7 @@ Sy.kernel.getServiceContainer()
     })
     .set('sy::core::storage', function () {
 
-        var meta = [
-                {
-                    name: 'DefaultBundle::Todo',
-                    repository: Sy.Storage.Repository,
-                    entity: App.Bundle.DefaultBundle.Entity.Todo,
-                    indexes: [],
-                    uuid: 'uuid'
-                }
-            ],
+        var meta = this.getParameter('app.meta.entities'),
             storage = new Sy.Storage.Core(),
             managerFact = new Sy.Storage.ManagerFactory(),
             repositoryFact = new Sy.Storage.RepositoryFactory(),
