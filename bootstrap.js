@@ -4,7 +4,13 @@ Sy.config = new Sy.Configurator();
 
 Sy.config.set({
     env: 'prod',
-    parameters: {},
+    parameters: {
+        app: {
+            meta: {
+                viewscreens: [] //array of objects containing `name` and `creator` attributes
+            }
+        }
+    },
     storage: {
         engines: {
             rest: function (version, entitiesMeta) {
@@ -139,7 +145,8 @@ Sy.service
                 ['setParser', ['@sy::core::view::parser']],
                 ['setTemplateEngine', ['@sy::core::view::template::engine']],
                 ['setRegistryFactory', ['@sy::core::registry::factory']],
-                ['setLayoutFactory', ['@sy::core::view::factory::layout']]
+                ['setLayoutFactory', ['@sy::core::view::factory::layout']],
+                ['setDefinedWrappers', ['%app.meta.view.viewscreens%']]
             ]
         }
     });

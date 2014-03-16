@@ -110,6 +110,29 @@ Sy.View.ViewScreenFactory.prototype = Object.create(Sy.View.ViewScreenFactoryInt
     },
 
     /**
+     * Pass the array of wrappers found in the project
+     *
+     * @param {Array} wrappers
+     *
+     * @return {Sy.View.ViewScreenFactory}
+     */
+
+    setDefinedWrappers: {
+        value: function (wrappers) {
+
+            for (var i = 0, l = wrappers.length; i < l; i++) {
+                this.setViewScreenWrapper(
+                    wrappers[i].name,
+                    wrappers[i].creator
+                );
+            }
+
+            return this;
+
+        }
+    },
+
+    /**
      * @inheritDoc
      */
 
