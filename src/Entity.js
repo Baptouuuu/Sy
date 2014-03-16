@@ -28,17 +28,6 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
         enumerable: false
     },
 
-    locked: {
-        value: false,
-        enumerable: false,
-        writable: true
-    },
-
-    lockedAttributes: {
-        value: [],
-        enumerable: false
-    },
-
     UUID: {
         value: 'uuid'
     },
@@ -56,9 +45,7 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
                         this.set(p, attr[p]);
                     }
                 }
-            } else if (this.locked && this.lockedAttributes.indexOf(attr) !== -1) {
-                this.attributes[attr] = value;
-            } else if (!this.locked && attr !== undefined) {
+            } else {
                 this.attributes[attr] = value;
             }
 
@@ -125,15 +112,15 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
                 throw new SyntaxError();
             }
 
-            this.locked = true;
-
-            this.lockedAttributes.push(this.UUID);
+            if (Object.isSealed(this.attributes)) {
+                return;
+            }
 
             for (var i = 0, l = attributes.length; i < l; i++) {
-                if (this.lockedAttributes.indexOf(attributes[i]) === -1) {
-                    this.lockedAttributes.push(attributes[i]);
-                }
+                this.attributes[attributes[i]] = null;
             }
+
+            Object.seal(this.attributes);
 
             return this;
 
