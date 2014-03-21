@@ -27,4 +27,22 @@ describe('functions', function () {
 
     });
 
+    it('should return nested value', function () {
+        var obj = {
+            foo: {
+                bar: 'baz'
+            }
+        };
+
+        expect(objectGetter.call(obj, 'foo.bar')).toEqual('baz');
+    });
+
+    it('should set a nested value', function () {
+        var obj = {};
+
+        objectSetter.call(obj, 'foo.bar', 'baz');
+
+        expect(obj.foo.bar).toEqual('baz');
+    });
+
 });
