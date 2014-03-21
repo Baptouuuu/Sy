@@ -23,7 +23,7 @@ Sy.Storage.EngineFactory.IndexedDBFactory.prototype = Object.create(Sy.Storage.E
         value: function (name, version, stores) {
 
             name = name || 'app::storage';
-            version = version || 1;
+            version = version || 1;
             stores = stores || [];
 
             var engine = new Sy.Storage.Engine.IndexedDB(version);
