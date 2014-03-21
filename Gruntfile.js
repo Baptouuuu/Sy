@@ -65,7 +65,7 @@ module.exports = function (grunt) {
             }
         },
         shell: {
-            syTests: {
+            test: {
                 command: function (pkg) {
                     var path;
 
@@ -99,9 +99,6 @@ module.exports = function (grunt) {
                 options: {
                     stdout: true
                 }
-            },
-            travis: {
-                command: 'venus run -t tests/ -n --singleton'
             }
         },
         watch: {
@@ -252,10 +249,10 @@ module.exports = function (grunt) {
     grunt.registerTask('default', ['bower-install']);
     grunt.registerTask('test', [
         'jscs',
-        'shell:syTests:lib',
-        'shell:syTests:storage',
-        'shell:syTests:view',
-        'shell:syTests:topLevel'
+        'shell:test:lib',
+        'shell:test:storage',
+        'shell:test:view',
+        'shell:test:topLevel'
     ]);
 
 };

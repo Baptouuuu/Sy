@@ -4,7 +4,11 @@ node_js:
 before_script:
     - npm install -g yo
     - bower install
-script: 'grunt shell:travis'
+script:
+    - 'grunt shell:test:lib'
+    - 'grunt shell:test:storage'
+    - 'grunt shell:test:view'
+    - 'grunt shell:test:topLevel'
 notifications:
   webhooks:
     urls:
