@@ -81,7 +81,7 @@ Sy.Storage.ManagerFactory.prototype = Object.create(Sy.FactoryInterface.prototyp
                 }
             }
 
-            engine = this.engineFact.make(args.type, args.version, meta);
+            engine = this.engineFact.make(args, meta);
 
             manager
                 .setRepositoryFactory(this.repositoryFact)
