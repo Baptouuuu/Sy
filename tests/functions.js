@@ -30,19 +30,27 @@ describe('functions', function () {
     it('should return nested value', function () {
         var obj = {
             foo: {
-                bar: 'baz'
+                bar: {
+                    baz: 'foobar'
+                }
             }
         };
 
-        expect(objectGetter.call(obj, 'foo.bar')).toEqual('baz');
+        expect(objectGetter.call(obj, 'foo.bar.baz')).toEqual('foobar');
+    });
+
+    it('should return undefined in case of unknown path', function () {
+        var obj = {};
+
+        expect(objectGetter.call(obj, 'foo.bar')).toEqual(undefined);
     });
 
     it('should set a nested value', function () {
         var obj = {};
 
-        objectSetter.call(obj, 'foo.bar', 'baz');
+        objectSetter.call(obj, 'foo.bar.baz', 'foobar');
 
-        expect(obj.foo.bar).toEqual('baz');
+        expect(obj.foo.bar.baz).toEqual('foobar');
     });
 
 });
