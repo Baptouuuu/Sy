@@ -6,7 +6,7 @@
  * @venus-include ../../src/View/NodeWrapper.js
  * @venus-include ../../src/View/List.js
  * @venus-include ../../src/View/ListFactoryInterface.js
- * @venus-include ../../src/View/ListFactory.js
+ * @venus-code ../../src/View/ListFactory.js
  */
 
 describe('view list factory', function () {

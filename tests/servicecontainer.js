@@ -3,7 +3,7 @@
  * @venus-include ../src/functions.js
  * @venus-include ../src/ParamProxy.js
  * @venus-include ../src/ServiceContainerInterface.js
- * @venus-include ../src/ServiceContainer.js
+ * @venus-code ../src/ServiceContainer.js
  */
 
 describe('service container', function () {

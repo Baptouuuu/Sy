@@ -11,7 +11,7 @@
  * @venus-include ../../src/View/NodeWrapper.js
  * @venus-include ../../src/View/Layout.js
  * @venus-include ../../src/View/LayoutFactoryInterface.js
- * @venus-include ../../src/View/LayoutFactory.js
+ * @venus-code ../../src/View/LayoutFactory.js
  */
 
 describe('view layout factory', function () {

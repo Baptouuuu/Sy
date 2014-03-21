@@ -4,7 +4,7 @@
  * @venus-include ../../../../src/functions.js
  * @venus-include ../../../../src/Lib/Logger/Handler/Interface.js
  * @venus-include ../../../../src/Lib/Logger/Interface.js
- * @venus-include ../../../../src/Lib/Logger/Handler/Console.js
+ * @venus-code ../../../../src/Lib/Logger/Handler/Console.js
  */
 
 describe('console logger handler', function () {

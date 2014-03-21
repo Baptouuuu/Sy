@@ -1,7 +1,7 @@
 /**
  * @venus-library jasmine
  * @venus-include ../../src/functions.js
- * @venus-include ../../src/View/Parser.js
+ * @venus-code ../../src/View/Parser.js
  * @venus-fixture ../../fixtures/view/parser.html
  */
 

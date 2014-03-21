@@ -2,7 +2,7 @@
  * @venus-library jasmine
  * @venus-include ../src/functions.js
  * @venus-include ../src/EntityInterface.js
- * @venus-include ../src/Entity.js
+ * @venus-code ../src/Entity.js
  */
 
 describe('entity', function () {

@@ -4,7 +4,7 @@
  * @venus-include ../src/FactoryInterface.js
  * @venus-include ../src/RegistryInterface.js
  * @venus-include ../src/Registry.js
- * @venus-include ../src/RegistryFactory.js
+ * @venus-code ../src/RegistryFactory.js
  */
 
 describe('registry factory', function () {

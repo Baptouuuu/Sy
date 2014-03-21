@@ -4,7 +4,7 @@
  * @venus-include ../../src/View/Manager.js
  * @venus-include ../../src/View/NodeWrapper.js
  * @venus-include ../../src/View/ViewScreen.js
- * @venus-include ../../src/View/ViewPort.js
+ * @venus-code ../../src/View/ViewPort.js
  */
 
 describe('viewport', function () {

@@ -14,7 +14,7 @@
  * @venus-include ../../src/View/ViewScreen.js
  * @venus-include ../../src/View/ViewScreenFactoryInterface.js
  * @venus-include ../../src/View/ViewScreenFactory.js
- * @venus-include ../../src/View/Manager.js
+ * @venus-code ../../src/View/Manager.js
  */
 
 describe('view manager', function () {
