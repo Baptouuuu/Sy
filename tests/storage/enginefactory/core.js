@@ -7,7 +7,7 @@
  * @venus-include ../../../src/Storage/EngineInterface.js
  * @venus-include ../../../src/Storage/StoreMapperInterface.js
  * @venus-include ../../../src/Storage/EngineFactory/AbstractFactory.js
- * @venus-include ../../../src/Storage/EngineFactory/Core.js
+ * @venus-code ../../../src/Storage/EngineFactory/Core.js
  */
 
 describe('storage engine factory', function () {

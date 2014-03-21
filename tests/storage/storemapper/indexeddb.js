@@ -2,7 +2,7 @@
  * @venus-library jasmine
  * @venus-include ../../../src/functions.js
  * @venus-include ../../../src/Storage/StoreMapperInterface.js
- * @venus-include ../../../src/Storage/StoreMapper/IndexedDBMapper.js
+ * @venus-code ../../../src/Storage/StoreMapper/IndexedDBMapper.js
  */
 
 describe('storage store mapper indexeddb', function () {

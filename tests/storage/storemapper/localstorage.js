@@ -2,7 +2,7 @@
  * @venus-library jasmine
  * @venus-include ../../../src/functions.js
  * @venus-include ../../../src/Storage/StoreMapperInterface.js
- * @venus-include ../../../src/Storage/StoreMapper/LocalstorageMapper.js
+ * @venus-code ../../../src/Storage/StoreMapper/LocalstorageMapper.js
  */
 
 describe('storage store mapper localstorage', function () {
