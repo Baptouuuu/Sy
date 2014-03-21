@@ -5,10 +5,14 @@ before_script:
     - npm install -g yo
     - bower install
 script:
-    - 'grunt shell:test:lib'
-    - 'grunt shell:test:storage'
-    - 'grunt shell:test:view'
-    - 'grunt shell:test:topLevel'
+    - grunt shell:test:lib
+    - cat coverage.csv
+    - grunt shell:test:storage
+    - cat coverage.csv
+    - grunt shell:test:view
+    - cat coverage.csv
+    - grunt shell:test:topLevel
+    - cat coverage.csv
 notifications:
   webhooks:
     urls:
