@@ -98,6 +98,9 @@ module.exports = function (grunt) {
                 options: {
                     stdout: true
                 }
+            },
+            travis: {
+                command: 'venus run -t tests/ -n --singleton'
             }
         },
         watch: {
