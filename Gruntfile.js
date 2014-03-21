@@ -84,6 +84,7 @@ module.exports = function (grunt) {
                                 'entity.js',
                                 'functions.js',
                                 'queue.js',
+                                'queuefactory.js',
                                 'registry.js',
                                 'registryfactory.js',
                                 'queuefactory.js',
