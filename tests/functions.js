@@ -1,6 +1,6 @@
 /**
  * @venus-library jasmine
- * @venus-include ../src/functions.js
+ * @venus-code ../src/functions.js
  */
 
 describe('functions', function () {

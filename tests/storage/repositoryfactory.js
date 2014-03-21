@@ -12,7 +12,7 @@
  * @venus-include ../../src/Lib/Generator/Interface.js
  * @venus-include ../../src/Storage/RepositoryInterface.js
  * @venus-include ../../src/Storage/Repository.js
- * @venus-include ../../src/Storage/RepositoryFactory.js
+ * @venus-code ../../src/Storage/RepositoryFactory.js
  */
 
 describe('storage repository factory', function () {

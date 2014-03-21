@@ -7,7 +7,7 @@
  * @venus-include ../../src/Storage/RepositoryFactory.js
  * @venus-include ../../src/Storage/Repository.js
  * @venus-include ../../src/Storage/Manager.js
- * @venus-include ../../src/Storage/ManagerFactory.js
+ * @venus-code ../../src/Storage/ManagerFactory.js
  */
 
 describe('storage manager factory', function () {

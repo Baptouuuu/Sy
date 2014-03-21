@@ -2,7 +2,7 @@
  * @venus-library jasmine
  * @venus-include ../../../src/functions.js
  * @venus-include ../../../src/Lib/Generator/Interface.js
- * @venus-include ../../../src/Lib/Generator/UUID.js
+ * @venus-code ../../../src/Lib/Generator/UUID.js
  */
 
 describe('uuid generator', function () {

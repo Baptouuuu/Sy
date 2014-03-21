@@ -7,7 +7,7 @@
  * @venus-include ../src/RegistryFactory.js
  * @venus-include ../src/QueueInterface.js
  * @venus-include ../src/Queue.js
- * @venus-include ../src/QueueFactory.js
+ * @venus-code ../src/QueueFactory.js
  */
 
 describe('queue factory', function () {

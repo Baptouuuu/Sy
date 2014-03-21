@@ -14,7 +14,7 @@
  * @venus-include ../../src/Lib/Generator/UUID.js
  * @venus-include ../../src/Storage/EngineInterface.js
  * @venus-include ../../src/Storage/RepositoryInterface.js
- * @venus-include ../../src/Storage/Repository.js
+ * @venus-code ../../src/Storage/Repository.js
  */
 
 describe('storage repository', function () {
