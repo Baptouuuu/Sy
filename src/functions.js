@@ -78,11 +78,7 @@ function objectGetter (ns) {
     var namespaces = null,
         referer = this;
 
-    if (referer === undefined) {
-
-        throw new ReferenceError('Undefined object');
-
-    } else if (typeof ns === 'string') {
+    if (typeof ns === 'string') {
         namespaces = ns.split('.');
 
         if (namespaces.length === 1) {
