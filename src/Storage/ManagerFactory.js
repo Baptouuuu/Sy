@@ -21,7 +21,7 @@ Sy.Storage.ManagerFactory.prototype = Object.create(Sy.FactoryInterface.prototyp
     /**
      * Set the engine factory
      *
-     * @param {Sy.Storage.EngineFactory} factory
+     * @param {Sy.Storage.EngineFactory.Core} factory
      *
      * @return {Sy.Storage.ManagerFactory}
      */
@@ -29,7 +29,7 @@ Sy.Storage.ManagerFactory.prototype = Object.create(Sy.FactoryInterface.prototyp
     setEngineFactory: {
         value: function (factory) {
 
-            if (!(factory instanceof Sy.Storage.EngineFactory)) {
+            if (!(factory instanceof Sy.Storage.EngineFactory.Core)) {
                 throw new TypeError('Invalid engine factory');
             }
 

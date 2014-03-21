@@ -195,7 +195,7 @@ Sy.service.set('sy::core::storage', function () {
         storage = new Sy.Storage.Core(),
         managerFact = new Sy.Storage.ManagerFactory(),
         repositoryFact = new Sy.Storage.RepositoryFactory(),
-        engineFact = new Sy.Storage.EngineFactory(),
+        engineFact = this.get('sy::core::storage::factory::engine::core'),
         conf = Sy.config.get('storage'),
         registryFact = this.get('sy::core::registry::factory');
 
