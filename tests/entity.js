@@ -55,7 +55,9 @@ describe('entity', function () {
 
     it('should lock the entity properties', function () {
 
-        var f = function () {},
+        var f = function () {
+                Sy.Entity.call(this);
+            },
             e;
 
         f.prototype = Object.create(Sy.Entity.prototype);
@@ -64,7 +66,7 @@ describe('entity', function () {
 
         e.lock(['foo', 'bar']);
 
-        expect(e.lockedAttributes).toEqual(['uuid', 'foo', 'bar']);
+        expect(Object.isSealed(e.attributes)).toBe(true);
 
     });
 

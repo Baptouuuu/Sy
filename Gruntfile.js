@@ -84,6 +84,7 @@ module.exports = function (grunt) {
                                 'entity.js',
                                 'functions.js',
                                 'queue.js',
+                                'queuefactory.js',
                                 'registry.js',
                                 'registryfactory.js',
                                 'queuefactory.js',
@@ -98,6 +99,9 @@ module.exports = function (grunt) {
                 options: {
                     stdout: true
                 }
+            },
+            travis: {
+                command: 'venus run -t tests/ -n --singleton'
             }
         },
         watch: {

@@ -1,6 +1,7 @@
 /**
  * @venus-library jasmine
  * @venus-include ../src/functions.js
+ * @venus-include ../src/ParamProxy.js
  * @venus-include ../src/ServiceContainerInterface.js
  * @venus-include ../src/ServiceContainer.js
  */
