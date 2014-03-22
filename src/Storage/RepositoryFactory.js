@@ -10,12 +10,9 @@ namespace('Sy.Storage');
  */
 
 Sy.Storage.RepositoryFactory = function () {
-
     this.meta = null;
     this.loaded = null;
-    this.generator = null;
-    this.queueFactory = null;
-
+    this.uowFactory = null;
 };
 
 Sy.Storage.RepositoryFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
@@ -93,43 +90,21 @@ Sy.Storage.RepositoryFactory.prototype = Object.create(Sy.FactoryInterface.proto
     },
 
     /**
-     * Set the identifier generator
+     * Set the UnitOfWork factory
      *
-     * @param {Sy.Lib.Generator.Interface} generator
+     * @param {Sy.Storage.UnitOfWorkFactory} factory
      *
      * @return {Sy.Storage.RepositoryInterface}
      */
 
-    setGenerator: {
-        value: function (generator) {
-
-            if (!(generator instanceof Sy.Lib.Generator.Interface)) {
-                throw new TypeError('Invalid generator');
-            }
-
-            this.generator = generator;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the queue factory
-     *
-     * @param {Sy.QueueFactory} factory
-     *
-     * @return {Sy.Storage.RepositoryFactory}
-     */
-
-    setQueueFactory: {
+    setUOWFactory: {
         value: function (factory) {
 
-            if (!(factory instanceof Sy.QueueFactory)) {
+            if (!(factory instanceof Sy.Storage.UnitOfWorkFactory)) {
                 throw new TypeError('Invalid factory');
             }
 
-            this.queueFactory = factory;
+            this.uowFactory = factory;
 
             return this;
 
@@ -152,7 +127,8 @@ Sy.Storage.RepositoryFactory.prototype = Object.create(Sy.FactoryInterface.proto
             }
 
             var meta = this.meta.get(alias),
-                repo = new meta.repository();
+                repo = new meta.repository(),
+                uow = this.uowFactory.make(alias, meta.uuid);
 
             if (!(repo instanceof Sy.Storage.RepositoryInterface)) {
                 throw new TypeError('Invalid repository "' + alias + '"');
@@ -163,8 +139,7 @@ Sy.Storage.RepositoryFactory.prototype = Object.create(Sy.FactoryInterface.proto
                 .setEntityKey(meta.uuid)
                 .setEntityConstructor(meta.entity)
                 .setIndexes(meta.indexes)
-                .setQueue(this.queueFactory.make())
-                .setGenerator(this.generator);
+                .setUnitOfWork(uow);
 
             return repo;
 

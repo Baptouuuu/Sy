@@ -204,9 +204,8 @@ Sy.service.set('sy::core::storage', function () {
     repositoryFact
         .setMetaRegistry(registryFact.make())
         .setRepoRegistry(registryFact.make())
-        .setQueueFactory(this.get('sy::core::queue::factory'))
-        .setMeta(meta)
-        .setGenerator(Sy.service.get('sy::core::generator::uuid'));
+        .setUOWFactory(this.get('sy::core::storage::unitofwork::factory'))
+        .setMeta(meta);
 
     managerFact
         .setEngineFactory(engineFact)
