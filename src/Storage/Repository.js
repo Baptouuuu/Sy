@@ -77,6 +77,7 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
             }
 
             this.engine = engine;
+            this.uow.setEngine(engine);
 
             return this;
 
