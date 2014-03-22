@@ -200,13 +200,19 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                     this.SCHEDULED_FOR_UPDATE,
                     entity.get(this.entityKey)
                 );
-            }
 
-            this.queue.set(
-                this.SCHEDULED_FOR_REMOVAL,
-                entity.get(this.entityKey),
-                entity
-            );
+                this.queue.set(
+                    this.SCHEDULED_FOR_REMOVAL,
+                    entity.get(this.entityKey),
+                    entity
+                );
+            } else {
+                this.queue.set(
+                    this.SCHEDULED_FOR_REMOVAL,
+                    entity.get(this.entityKey),
+                    entity
+                );
+            }
 
         }
     },
