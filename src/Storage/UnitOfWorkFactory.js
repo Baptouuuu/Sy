@@ -24,7 +24,17 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
      */
 
     setGenerator: {
-        value: function (generator) {}
+        value: function (generator) {
+
+            if (!(generator instanceof Sy.Lib.Generator.Interface)) {
+                throw new TypeError('Invalid generator');
+            }
+
+            this.generator = generator;
+
+            return this;
+
+        }
     },
 
     /**
@@ -36,7 +46,17 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
      */
 
     setQueueFactory: {
-        value: function (factory) {}
+        value: function (factory) {
+
+            if (!(factory instanceof Sy.QueueFactory)) {
+                throw new TypeError('Invalid queue generator');
+            }
+
+            this.queueFactory = factory;
+
+            return this;
+
+        }
     },
 
     /**
@@ -44,7 +64,19 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
      */
 
     make: {
-        value: function (engine, entityKey) {}
+        value: function (engine, entityKey) {
+
+            var uot = new Sy.Storage.UnitOfWork();
+
+            uot
+                .setQueue(this.queueFactory.make())
+                .setEngine(engine)
+                .setGenerator(this.generator)
+                .setEntityKey(entityKey);
+
+            return uot;
+
+        }
     }
 
 });

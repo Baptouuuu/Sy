@@ -120,6 +120,13 @@ Sy.service
         },
         'sy::core::storage::storemapper::rest': {
             constructor: 'Sy.Storage.StoreMapper.RestMapper'
+        },
+        'sy::core::storage::unitofwork::factory': {
+            constructor: 'Sy.Storage.UnitOfWorkFactory',
+            calls: [
+                ['setGenerator', ['@sy::core::generator::uuid']],
+                ['setQueueFactory', ['@sy::core::queue::factory']]
+            ]
         }
     });
 
