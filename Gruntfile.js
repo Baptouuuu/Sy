@@ -95,9 +95,6 @@ module.exports = function (grunt) {
                     }
 
                     return 'venus run -t tests/' + path + ' -c -n --singleton';
-                },
-                options: {
-                    stdout: true
                 }
             }
         },
