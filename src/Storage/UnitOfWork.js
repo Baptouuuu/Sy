@@ -295,7 +295,126 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
      */
 
     flush: {
-        value: function () {}
+        value: function () {
+
+            var toRemove = this.queue.has(this.SCHEDULED_FOR_REMOVAL) ? this.queue.get(this.SCHEDULED_FOR_REMOVAL) : [],
+                toUpdate = this.queue.has(this.SCHEDULED_FOR_UPDATE) ? this.queue.get(this.SCHEDULED_FOR_UPDATE) : [],
+                toCreate = this.queue.has(this.SCHEDULED_FOR_CREATION) ? this.queue.get(this.SCHEDULED_FOR_CREATION) : [];
+
+            for (var i = 0, l = toRemove.length; i < l; i++) {
+                this.engine.remove(
+                    this.name,
+                    toRemove[i].get(this.entityKey),
+                    this.removalListener.bind(this)
+                );
+            }
+
+            for (i = 0, l = toUpdate.length; i < l; i++) {
+                this.engine.update(
+                    this.name,
+                    toUpdate[i].get(this.entityKey),
+                    this.getEntityData(toUpdate[i]),
+                    this.updateListener.bind(this)
+                );
+            }
+
+            for (i = 0, l = toCreate.length; i < l; i++) {
+                this.engine.create(
+                    this.name,
+                    this.getEntityData(toCreate[i]),
+                    this.createListener.bind(this)
+                );
+            }
+
+            return this;
+
+        }
+    },
+
+    /**
+     * Return the raw representation of the entity
+     *
+     * @private
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Object}
+     */
+
+    getEntityData: {
+        value: function (entity) {
+
+            var raw = {},
+                keys = Object.keys(entity.attributes),
+                refl = new ReflectionObject(entity),
+                getter;
+
+            for (var i = 0, l = keys.length; i < l; i++) {
+                getter = 'get' + keys[i].substr(0, 1).toUpperCase() + keys[i].substr(1);
+                if (refl.hasMethod(getter)) {
+                    raw[keys[i]] = refl.getMethod(getter).call();
+                } else {
+                    raw[keys[i]] = entity.get(keys[i]);
+                }
+
+                if (raw[keys[i]] instanceof Sy.EntityInterface) {
+                    raw[keys[i]] = raw[keys[i]].get(raw[keys[i]].UUID);
+                }
+            }
+
+            return raw;
+
+        }
+    },
+
+    /**
+     * Engine removal listener callback
+     *
+     * @private
+     * @param {String} identifier
+     *
+     * @return {void}
+     */
+
+    removalListener: {
+        value: function (identifier) {
+
+            this.queue.remove('remove', identifier);
+
+        }
+    },
+
+    /**
+     * Engine update listener callback
+     *
+     * @private
+     * @param {object} object
+     *
+     * @return {void}
+     */
+
+    updateListener: {
+        value: function (object) {
+
+            this.queue.remove('update', object[this.entityKey]);
+
+        }
+    },
+
+    /**
+     * Engine create listener callback
+     *
+     * @private
+     * @param {String} identifier
+     *
+     * @return {void}
+     */
+
+    createListener: {
+        value: function (identifier) {
+
+            this.queue.remove('create', identifier);
+
+        }
     }
 
 });
