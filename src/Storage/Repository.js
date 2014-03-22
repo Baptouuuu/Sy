@@ -141,7 +141,11 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
     persist: {
         value: function (entity) {
 
-           this.uow.handle(entity);
+            if (!(entity instanceof this.entityConstructor)) {
+                throw new TypeError('Entity not handled by the repository');
+            }
+
+            this.uow.handle(entity);
 
             return this;
 
