@@ -67,6 +67,7 @@ describe('storage UnitOfWork', function () {
         uow.handle(e);
 
         expect(uow.isScheduledForCreation(e)).toBe(true);
+        expect(!!e.get('uuid')).toBe(true);
     });
 
     it('should schedule an entity for update', function () {
