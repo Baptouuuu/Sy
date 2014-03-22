@@ -64,7 +64,7 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
      */
 
     make: {
-        value: function (engine, entityKey) {
+        value: function (name, engine, entityKey) {
 
             var uot = new Sy.Storage.UnitOfWork();
 
@@ -72,6 +72,7 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
                 .setQueue(this.queueFactory.make())
                 .setEngine(engine)
                 .setGenerator(this.generator)
+                .setName(name)
                 .setEntityKey(entityKey);
 
             return uot;

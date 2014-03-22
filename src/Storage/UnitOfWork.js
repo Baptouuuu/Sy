@@ -12,6 +12,7 @@ Sy.Storage.UnitOfWork = function () {
     this.queue = null;
     this.engine = null;
     this.generator = null;
+    this.name = null;
     this.entityKey = null;
 };
 Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
@@ -91,6 +92,24 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
             }
 
             this.generator = generator;
+
+            return this;
+
+        }
+    },
+
+    /**
+     * Set the store name this uot depends on
+     *
+     * @param {String} name Store name
+     *
+     * @return {Sy.Storage.UnitOfWork}
+     */
+
+    setName: {
+        value: function (name) {
+
+            this.name = name;
 
             return this;
 
