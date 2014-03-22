@@ -49,7 +49,7 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
         value: function (factory) {
 
             if (!(factory instanceof Sy.QueueFactory)) {
-                throw new TypeError('Invalid queue generator');
+                throw new TypeError('Invalid queue factory');
             }
 
             this.queueFactory = factory;
