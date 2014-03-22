@@ -40,7 +40,17 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
      */
 
     setQueue: {
-        value: function (queue) {}
+        value: function (queue) {
+
+            if (!(queue instanceof Sy.QueueInterface)) {
+                throw new TypeError('Invalid queue');
+            }
+
+            this.queue = queue;
+
+            return this;
+
+        }
     },
 
     /**
@@ -52,7 +62,17 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
      */
 
     setEngine: {
-        value: function (engine) {}
+        value: function (engine) {
+
+            if (!(engine instanceof Sy.Storage.EngineInterface)) {
+                throw new TypeError('Invalid engine');
+            }
+
+            this.engine = engine;
+
+            return this;
+
+        }
     },
 
     /**
@@ -64,7 +84,17 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
      */
 
     setGenerator: {
-        value: function (generator) {}
+        value: function (generator) {
+
+            if (!(generator instanceof Sy.Lib.Generator.Interface)) {
+                throw new TypeError('Invalid generator');
+            }
+
+            this.generator = generator;
+
+            return this;
+
+        }
     },
 
     /**
@@ -76,7 +106,13 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
      */
 
     setEntityKey: {
-        value: function (key) {}
+        value: function (key) {
+
+            this.entityKey = key;
+
+            return this;
+
+        }
     },
 
     /**
@@ -88,7 +124,39 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
      */
 
     handle: {
-        value: function (entity) {}
+        value: function (entity) {
+
+            if (!(entity instanceof Sy.EntityInterface)) {
+                throw new TypeError('Invalid entity');
+            }
+
+            if (!entity.get(this.entityKey)) {
+                entity.set(
+                    this.entityKey,
+                    this.generator.generate()
+                );
+                this.queue.set(
+                    this.SCHEDULED_FOR_CREATION,
+                    entity.get(this.entityKey),
+                    entity
+                );
+            } else if (this.isScheduledForCreation(entity)) {
+                this.queue.set(
+                    this.SCHEDULED_FOR_CREATION,
+                    entity.get(this.entityKey),
+                    entity
+                );
+            } else {
+                this.queue.set(
+                    this.SCHEDULED_FOR_UPDATE,
+                    entity.get(this.entityKey),
+                    entity
+                );
+            }
+
+            return this;
+
+        }
     },
 
     /**
@@ -101,7 +169,27 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
      */
 
     remove: {
-        value: function (entity) {}
+        value: function (entity) {
+
+            if (this.isScheduledForCreation(entity)) {
+                this.queue.remove(
+                    this.SCHEDULED_FOR_CREATION,
+                    entity.get(this.entityKey)
+                );
+            } else if (this.isScheduledForUpdate(entity)) {
+                this.queue.remove(
+                    this.SCHEDULED_FOR_UPDATE,
+                    entity.get(this.entityKey)
+                );
+            }
+
+            this.queue.set(
+                this.SCHEDULED_FOR_REMOVAL,
+                entity.get(this.entityKey),
+                entity
+            );
+
+        }
     },
 
     /**
@@ -114,7 +202,14 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
      */
 
     isScheduledFor: {
-        value: function (event, entity) {}
+        value: function (event, entity) {
+
+            return this.queue.has(
+                event,
+                entity.get(this.entityKey)
+            );
+
+        }
     },
 
     /**
@@ -126,7 +221,14 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
      */
 
     isScheduledForCreation: {
-        value: function (entity) {}
+        value: function (entity) {
+
+            return this.isScheduledFor(
+                this.SCHEDULED_FOR_CREATION,
+                entity
+            );
+
+        }
     },
 
     /**
@@ -138,7 +240,14 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
      */
 
     isScheduledForUpdate: {
-        value: function (entity) {}
+        value: function (entity) {
+
+            return this.isScheduledFor(
+                this.SCHEDULED_FOR_UPDATE,
+                entity
+            );
+
+        }
     },
 
     /**
@@ -150,7 +259,14 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
      */
 
     isScheduledForRemoval: {
-        value: function (entity) {}
+        value: function (entity) {
+
+            return this.isScheduledFor(
+                this.SCHEDULED_FOR_REMOVAL,
+                entity
+            );
+
+        }
     },
 
     /**
