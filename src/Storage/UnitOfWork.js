@@ -99,7 +99,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Set the store name this uot depends on
+     * Set the store name this uow depends on
      *
      * @param {String} name Store name
      *
