@@ -125,40 +125,6 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
             return this;
 
         }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    getRaw: {
-        value: function () {
-
-            var pojo = {};
-
-            for (var attr in this.attributes) {
-                if (this.attributes.hasOwnProperty(attr)) {
-
-                    if (this.locked && this.lockedAttributes.indexOf(attr) === -1) {
-                        continue;
-                    }
-
-                    pojo[attr] = this.attributes[attr];
-
-                    if (this.connections[attr]) {
-                        pojo[attr] = pojo[attr].get(pojo[attr].UUID);
-                    }
-
-                    if (pojo[attr] instanceof Date) {
-                        pojo[attr] = pojo[attr].toJSON();
-                    }
-
-                }
-            }
-
-            return pojo;
-
-        }
     }
 
 });
