@@ -46,7 +46,7 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
      */
 
     getUnitOfWork: {
-        value : function () {
+        value: function () {
             return this.uow;
         }
     },
