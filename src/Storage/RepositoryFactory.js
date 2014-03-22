@@ -141,6 +141,8 @@ Sy.Storage.RepositoryFactory.prototype = Object.create(Sy.FactoryInterface.proto
                 .setIndexes(meta.indexes)
                 .setUnitOfWork(uow);
 
+            this.loaded.set(alias, repo);
+
             return repo;
 
         }
