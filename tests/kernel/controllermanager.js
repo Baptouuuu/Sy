@@ -12,7 +12,7 @@
  * @venus-include ../../src/ServiceContainer.js
  * @venus-include ../../src/View/NodeWrapper.js
  * @venus-include ../../src/View/ViewScreen.js
- * @venus-code ../../src/Kernel/ActionBinder.js
+ * @venus-include ../../src/Kernel/ActionBinder.js
  * @venus-code ../../src/Kernel/ControllerManager.js
  */
 
