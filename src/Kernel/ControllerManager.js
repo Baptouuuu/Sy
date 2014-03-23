@@ -14,6 +14,9 @@ Sy.Kernel.ControllerManager = function () {
     this.mediator = null;
     this.container = null;
     this.current = null;
+    this.cache = null;
+    this.cacheLength = null;
+    this.cacheOrder = [];
 };
 Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
 
@@ -127,6 +130,44 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
     },
 
     /**
+     * Set if the manager must keep a reference of each instanciated controllers
+     * or rebuild them each time a viewscreen referencing it is loaded
+     *
+     * @param {Boolean} cache
+     *
+     * @return {Sy.Kernel.ControllerManager}
+     */
+
+    setCache: {
+        value: function (cache) {
+
+            this.cache = !!cache;
+
+            return this;
+
+        }
+    },
+
+    /**
+     * Set the cache length
+     * If null or undefined is passed, no controller will be destroyed
+     *
+     * @param {mixed} length
+     *
+     * @return {Sy.Kernel.ControllerManager}
+     */
+
+    setCacheLength: {
+        value: function (length) {
+
+            this.cacheLength = length;
+
+            return this;
+
+        }
+    },
+
+    /**
      * Listener to on viewscreen display
      * Used to load appropriate controller
      *
@@ -144,9 +185,11 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
 
             if (this.loaded.has(ctrl)) {
 
-                this.loaded.get(this.current).sleep();
-                this.loaded.get(ctrl).wakeup();
-                this.current = ctrl;
+                if (this.current !== ctrl) {
+                    this.loaded.get(this.current).sleep();
+                    this.loaded.get(ctrl).wakeup();
+                    this.current = ctrl;
+                }
 
             } else if (this.meta.has(ctrl)) {
 
@@ -158,7 +201,8 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
                     .setMediator(this.mediator)
                     .setServiceContainer(this.container);
 
-                this.loaded.set(ctrl, instance);
+                this.cacheController(ctrl, instance);
+
                 this.current = ctrl;
 
             } else {
@@ -166,6 +210,40 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
                 throw new ReferenceError('The controller with the alias "' + ctrl + '" is undefined');
 
             }
+
+        }
+    },
+
+    /**
+     * Determine how (even if) a controller must be cached
+     *
+     * @private
+     * @param {String} alias
+     * @param {Sy.ControllerInterface} instance
+     *
+     * @return {Sy.Kernel.ControllerManager}
+     */
+
+    cacheController: {
+        value: function (alias, instance) {
+
+            if (this.cache === false) {
+                return this;
+            }
+
+            this.loaded.set(alias, instance);
+
+            if (typeof this.cacheLength === 'number') {
+                this.cacheOrder.push(alias);
+
+                if (this.loaded.length() > this.cacheLength) {
+                    this.loaded.get(this.cacheOrder[0]).destroy();
+                    this.loaded.remove(this.cacheOrder[0]);
+                    this.cacheOrder.splice(0, 1);
+                }
+            }
+
+            return this;
 
         }
     },

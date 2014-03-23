@@ -28,6 +28,9 @@ Sy.kernel.getConfig().set({
                 }
             ]
         }
+    },
+    controllers: {
+        cache: true
     }
 });
 
