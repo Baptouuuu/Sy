@@ -12,6 +12,7 @@ namespace('Sy');
 Sy.Registry = function () {
 
     this.data = {};
+    this.registryLength = 0;
 
 };
 
@@ -27,6 +28,7 @@ Sy.Registry.prototype = Object.create(Sy.RegistryInterface.prototype, {
             if (typeof key === 'string') {
 
                 this.data[key] = value;
+                this.registryLength++;
 
             }
 
@@ -125,11 +127,22 @@ Sy.Registry.prototype = Object.create(Sy.RegistryInterface.prototype, {
             } else if (typeof keys === 'string' && this.has(keys)) {
 
                 delete this.data[keys];
+                this.registryLength--;
 
             }
 
             return this;
 
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    length: {
+        value: function () {
+            return this.registryLength;
         }
     }
 

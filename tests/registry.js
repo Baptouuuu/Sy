@@ -87,4 +87,18 @@ describe('registry', function () {
 
     });
 
+    it('should return the length of the registry', function () {
+        var r = new Sy.Registry();
+
+        expect(r.length()).toEqual(0);
+
+        r.set('foo', 'bar');
+
+        expect(r.length()).toEqual(1);
+
+        r.remove('foo');
+
+        expect(r.length()).toEqual(0);
+    });
+
 });
