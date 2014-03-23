@@ -4,11 +4,7 @@ node_js:
 before_script:
     - npm install -g yo
     - bower install
-script:
-    - grunt shell:test:lib
-    - grunt shell:test:storage
-    - grunt shell:test:view
-    - grunt shell:test:topLevel
+script: ./test.sh
 notifications:
   webhooks:
     urls:

@@ -64,9 +64,9 @@ module.exports = function (grunt) {
                 jsPattern: '<script src="{{filePath}}"></script>'
             }
         },
-        shell: {
+        exec: {
             test: {
-                command: function (pkg) {
+                cmd: function (pkg) {
                     var path;
 
                     switch (pkg) {
@@ -94,10 +94,7 @@ module.exports = function (grunt) {
                             break;
                     }
 
-                    return 'venus run -t tests/' + path + ' -c -n --singleton';
-                },
-                options: {
-                    stdout: true
+                    return './node_modules/venus/bin/venus run -t tests/' + path + ' -c -n --singleton';
                 }
             }
         },
@@ -249,10 +246,10 @@ module.exports = function (grunt) {
     grunt.registerTask('default', ['bower-install']);
     grunt.registerTask('test', [
         'jscs',
-        'shell:test:lib',
-        'shell:test:storage',
-        'shell:test:view',
-        'shell:test:topLevel'
+        'exec:test:lib',
+        'exec:test:storage',
+        'exec:test:view',
+        'exec:test:topLevel'
     ]);
 
 };

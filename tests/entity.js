@@ -88,17 +88,6 @@ describe('entity', function () {
 
     });
 
-    it('should return a plain object of entity data', function () {
-
-        var e = new Sy.Entity();
-
-        e.set('uuid', 'foo');
-        e.set('foo', 'bar');
-
-        expect(e.getRaw()).toEqual({uuid: 'foo', foo: 'bar'});
-
-    });
-
     it('should return itself', function () {
 
         var e = new Sy.Entity();

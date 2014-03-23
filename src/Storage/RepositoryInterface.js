@@ -14,6 +14,18 @@ Sy.Storage.RepositoryInterface = function () {};
 Sy.Storage.RepositoryInterface.prototype = Object.create(Object.prototype, {
 
     /**
+     * Set a unit of work to handle modifications of entities
+     *
+     * @param {Sy.Storage.UnitOfWork} uow
+     *
+     * @return {Sy.Storage.Repository}
+     */
+
+    setUnitOfWork: {
+        value: function (uow) {}
+    },
+
+    /**
      * Set the alias name of entities handled by the repository
      *
      * @param {string} name
