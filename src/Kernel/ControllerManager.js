@@ -13,6 +13,7 @@ Sy.Kernel.ControllerManager = function () {
     this.loaded = null;
     this.mediator = null;
     this.container = null;
+    this.current = null;
 };
 Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
 
@@ -25,7 +26,17 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
      */
 
     setMetaRegistry: {
-        value: function (registry) {}
+        value: function (registry) {
+
+            if (!(registry instanceof Sy.RegistryInterface)) {
+                throw new TypeError('Invalid registry');
+            }
+
+            this.meta = registry;
+
+            return this;
+
+        }
     },
 
     /**
@@ -37,7 +48,40 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
      */
 
     setLoadedControllersRegistry: {
-        value: function (registry) {}
+        value: function (registry) {
+
+            if (!(registry instanceof Sy.RegistryInterface)) {
+                throw new TypeError('Invalid registry');
+            }
+
+            this.loaded = registry;
+
+            return this;
+
+        }
+    },
+
+    /**
+     * Register a new controller
+     *
+     * @param {String} alias
+     * @param {Function} constructor
+     *
+     * @return {Sy.Kernel.ControllerManager}
+     */
+
+    registerController: {
+        value: function (alias, constructor) {
+
+            if (!(constructor.prototype instanceof Sy.ControllerInterface)) {
+                throw new TypeError('Invalid controller constructor');
+            }
+
+            this.meta.set(alias, constructor);
+
+            return this;
+
+        }
     },
 
     /**
@@ -49,7 +93,15 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
      */
 
     setMediator: {
-        value: function (mediator) {}
+        value: function (mediator) {
+
+            if (!(mediator instanceof Sy.Lib.Mediator)) {
+                throw new TypeError('Invalid mediator');
+            }
+
+            this.mediator = mediator;
+
+        }
     },
 
     /**
@@ -61,7 +113,17 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
      */
 
     setServiceContainer: {
-        value: function (container) {}
+        value: function (container) {
+
+            if (!(container instanceof Sy.ServiceContainerInterface)) {
+                throw new TypeError('Invalid service container');
+            }
+
+            this.container = container;
+
+            return this;
+
+        }
     },
 
     /**
@@ -74,7 +136,38 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
      */
 
     onDisplayListener: {
-        value: function (viewscreen) {}
+        value: function (viewscreen) {
+
+            var ctrl = viewscreen.getNode().dataset.syController,
+                instance,
+                bundleName;
+
+            if (this.loaded.has(ctrl)) {
+
+                this.loaded.get(this.current).sleep();
+                this.loaded.get(ctrl).wakeup();
+                this.current = ctrl;
+
+            } else if (this.meta.has(ctrl)) {
+
+                bundleName = ctrl.split('::')[0];
+
+                instance = new (this.meta.get(ctrl))();
+                instance
+                    .setBundle(bundleName)
+                    .setMediator(this.mediator)
+                    .setServiceContainer(this.container);
+
+                this.loaded.set(ctrl, instance);
+                this.current = ctrl;
+
+            } else {
+
+                throw new ReferenceError('The controller with the alias "' + ctrl + '" is undefined');
+
+            }
+
+        }
     },
 
     /**
@@ -84,7 +177,15 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
      */
 
     boot: {
-        value: function () {}
+        value: function () {
+
+            this.mediator.subscribe({
+                channel: 'view::on::pre::display',
+                fn: this.onDisplayListener,
+                context: this
+            });
+
+        }
     }
 
 });
