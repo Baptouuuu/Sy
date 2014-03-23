@@ -85,7 +85,7 @@ Sy.Kernel.FeatureTester.prototype = Object.create(Object.prototype, {
                 throw new ReferenceError('Element dataset not supported');
             }
 
-            if(!(document.body.attributes instanceof NamedNodeMap)) {
+            if (!(document.body.attributes instanceof NamedNodeMap)) {
                 throw new ReferenceError('Element.attributes not defined');
             }
 
