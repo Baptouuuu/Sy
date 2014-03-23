@@ -73,6 +73,16 @@ Sy.RegistryInterface.prototype = Object.create(Object.prototype, {
 
     remove: {
         value: function (keys) {}
+    },
+
+    /**
+     * Return the number of elements held by the registry
+     *
+     * @return {int}
+     */
+
+    length: {
+        value: function () {}
     }
 
 });
