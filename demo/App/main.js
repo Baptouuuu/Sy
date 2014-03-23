@@ -11,4 +11,4 @@ Sy.kernel.getConfig()
         }
     });
 
-Sy.kernel.init();
+Sy.kernel.boot();

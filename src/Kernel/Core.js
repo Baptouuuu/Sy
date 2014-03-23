@@ -44,7 +44,7 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
      * @return {Sy.Kernel.Core}
      */
 
-    init: {
+    boot: {
         value: function () {
 
             var parser = new Sy.Kernel.AppParser();
