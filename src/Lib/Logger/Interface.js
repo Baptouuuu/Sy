@@ -149,6 +149,30 @@ Sy.Lib.Logger.Interface.prototype = Object.create(Object.prototype, {
             return this;
 
         }
+    },
+
+    /**
+     * Check if the logger as a handler for the specific level
+     *
+     * @param {String} level
+     *
+     * @return {Boolean}
+     */
+
+    isHandlingLevel: {
+        value: function (level) {}
+    },
+
+    /**
+     * Remove a handler for the specified level
+     *
+     * @param {String} level
+     *
+     * @return {Sy.Lib.Logger.Interface}
+     */
+
+    removeHandler: {
+        value: function (level) {}
     }
 
 });

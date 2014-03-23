@@ -55,6 +55,34 @@ Sy.Lib.Logger.CoreLogger.prototype = Object.create(Sy.Lib.Logger.Interface.proto
     },
 
     /**
+     * @inheritDoc
+     */
+
+    isHandlingLevel: {
+        value: function (level) {
+
+            return !!this.handlers[level];
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    removeHandler: {
+        value: function (level) {
+
+            if (this.isHandlingLevel(level)) {
+                delete this.handlers[level];
+            }
+
+            return this;
+
+        }
+    },
+
+    /**
      * Transfer the log information to the appropriate handler depending on the level wished
      *
      * @param {string} level
