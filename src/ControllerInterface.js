@@ -61,7 +61,18 @@ Sy.ControllerInterface.prototype = Object.create(Object.prototype, {
      * @return {void}
      */
 
-    idle: {
+    sleep: {
+        value: function () {}
+    },
+
+    /**
+     * Method called when the controller is reloaded by the framework,
+     * happens if a previous viewscreen is displayed back in the viewport
+     *
+     * @return {void}
+     */
+
+    wakeup: {
         value: function () {}
     },
 
@@ -72,6 +83,30 @@ Sy.ControllerInterface.prototype = Object.create(Object.prototype, {
      */
     destroy: {
         value: function () {}
+    },
+
+    /**
+     * Set the mediator
+     *
+     * @param {Sy.Lib.Mediator} mediator
+     *
+     * @return {Sy.ControllerInterface}
+     */
+
+    setMediator: {
+        value: function (mediator) {}
+    },
+
+    /**
+     * Set the service container
+     *
+     * @param {Sy.ServiceContainerInterface} container
+     *
+     * @return {Sy.ControllerInterface}
+     */
+
+    setServiceContainer: {
+        value: function (container) {}
     }
 
 });
