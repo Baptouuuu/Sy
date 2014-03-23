@@ -71,7 +71,7 @@ Sy.Kernel.ActionBinder.prototype = Object.create(Object.prototype, {
                     throw new ReferenceError('Undefined method "' + action + '"');
                 }
 
-                actionNode.dataset.syControllerIndex(this.controllers.push(controller));
+                actionNode.dataset.syControllerIndex = (this.controllers.push(controller) - 1);
                 actionNode.dataset.syActionName = action;
                 events = actionNode.dataset.syAction.split('|');
                 events.splice(0, 1);
