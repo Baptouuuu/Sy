@@ -2,7 +2,7 @@
  * @venus-library jasmine
  * @venus-include ../src/functions.js
  * @venus-include ../src/EntityInterface.js
- * @venus-include ../src/Entity.js
+ * @venus-code ../src/Entity.js
  */
 
 describe('entity', function () {
@@ -55,7 +55,9 @@ describe('entity', function () {
 
     it('should lock the entity properties', function () {
 
-        var f = function () {},
+        var f = function () {
+                Sy.Entity.call(this);
+            },
             e;
 
         f.prototype = Object.create(Sy.Entity.prototype);
@@ -64,7 +66,7 @@ describe('entity', function () {
 
         e.lock(['foo', 'bar']);
 
-        expect(e.lockedAttributes).toEqual(['uuid', 'foo', 'bar']);
+        expect(Object.isSealed(e.attributes)).toBe(true);
 
     });
 
@@ -83,17 +85,6 @@ describe('entity', function () {
         e.set('baz', 'baz');
 
         expect(e.get('baz')).toEqual(undefined);
-
-    });
-
-    it('should return a plain object of entity data', function () {
-
-        var e = new Sy.Entity();
-
-        e.set('uuid', 'foo');
-        e.set('foo', 'bar');
-
-        expect(e.getRaw()).toEqual({uuid: 'foo', foo: 'bar'});
 
     });
 

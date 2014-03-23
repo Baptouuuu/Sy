@@ -2,12 +2,12 @@
  * @venus-library jasmine
  * @venus-include ../../src/functions.js
  * @venus-include ../../src/FactoryInterface.js
- * @venus-include ../../src/Storage/EngineFactory.js
+ * @venus-include ../../src/Storage/EngineFactory/Core.js
  * @venus-include ../../src/Storage/EngineInterface.js
  * @venus-include ../../src/Storage/RepositoryFactory.js
  * @venus-include ../../src/Storage/Repository.js
  * @venus-include ../../src/Storage/Manager.js
- * @venus-include ../../src/Storage/ManagerFactory.js
+ * @venus-code ../../src/Storage/ManagerFactory.js
  */
 
 describe('storage manager factory', function () {
@@ -25,7 +25,7 @@ describe('storage manager factory', function () {
     it('should set engine factory', function () {
 
         var mf = new Sy.Storage.ManagerFactory(),
-            ef = new Sy.Storage.EngineFactory();
+            ef = new Sy.Storage.EngineFactory.Core();
 
         expect(mf.setEngineFactory(ef)).toEqual(mf);
         expect(mf.engineFact).toEqual(ef);
@@ -59,7 +59,7 @@ describe('storage manager factory', function () {
             mockRF = function () {},
             m;
 
-        mockEF.prototype = Object.create(Sy.Storage.EngineFactory.prototype, {
+        mockEF.prototype = Object.create(Sy.Storage.EngineFactory.Core.prototype, {
 
             make: {
                 value: function () {

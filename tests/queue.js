@@ -6,7 +6,7 @@
  * @venus-include ../src/FactoryInterface.js
  * @venus-include ../src/RegistryFactory.js
  * @venus-include ../src/QueueInterface.js
- * @venus-include ../src/Queue.js
+ * @venus-code ../src/Queue.js
  */
 
 describe('queue', function () {

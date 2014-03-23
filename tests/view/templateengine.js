@@ -6,7 +6,7 @@
  * @venus-include ../../src/Lib/Generator/Interface.js
  * @venus-include ../../src/Lib/Generator/UUID.js
  * @venus-include ../../src/View/TemplateEngineInterface.js
- * @venus-include ../../src/View/TemplateEngine.js
+ * @venus-code ../../src/View/TemplateEngine.js
  * @venus-fixture ../../fixtures/view/templateengine.html
  */
 

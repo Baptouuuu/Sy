@@ -14,7 +14,7 @@
  * @venus-include ../../src/View/LayoutFactory.js
  * @venus-include ../../src/View/ViewScreen.js
  * @venus-include ../../src/View/ViewScreenFactoryInterface.js
- * @venus-include ../../src/View/ViewScreenFactory.js
+ * @venus-code ../../src/View/ViewScreenFactory.js
  * @venus-fixture ../../fixtures/view/viewscreen.html
  */
 

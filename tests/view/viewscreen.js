@@ -12,7 +12,7 @@
  * @venus-include ../../src/View/ListFactoryInterface.js
  * @venus-include ../../src/View/LayoutFactoryInterface.js
  * @venus-include ../../src/View/LayoutFactory.js
- * @venus-include ../../src/View/ViewScreen.js
+ * @venus-code ../../src/View/ViewScreen.js
  * @venus-fixture ../../fixtures/view/viewscreen.html
  */
 

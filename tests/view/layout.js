@@ -9,7 +9,7 @@
  * @venus-include ../../src/View/List.js
  * @venus-include ../../src/View/ListFactoryInterface.js
  * @venus-include ../../src/View/ListFactory.js
- * @venus-include ../../src/View/Layout.js
+ * @venus-code ../../src/View/Layout.js
  * @venus-fixture ../../fixtures/view/layout.html
  */
 

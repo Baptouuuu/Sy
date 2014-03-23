@@ -2,7 +2,7 @@
  * @venus-library jasmine
  * @venus-include ../../src/functions.js
  * @venus-include ../../src/FactoryInterface.js
- * @venus-include ../../src/Storage/Manager.js
+ * @venus-code ../../src/Storage/Manager.js
  * @venus-include ../../src/Storage/RepositoryFactory.js
  * @venus-include ../../src/Storage/EngineInterface.js
  * @venus-include ../../src/Storage/RepositoryInterface.js

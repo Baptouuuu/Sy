@@ -32,6 +32,7 @@ You configure your managers with the [configurator](Configurator.md) `Sy.config`
 Sy.config.set('storage.managers', {
   main: {
     type: 'engine type', //available types: "rest", "indexeddb", "localstorage"
+    storageName: 'app::storage',  //used by indexeddb and localstorage as key for the storage (optional)
     version: 1, //version number of the engine (especially used for indexeddb)
     mapping: [
       'repositoryName'
@@ -163,16 +164,15 @@ entity.getRaw();
 
 An engine is an interface between the repository and the actual storage engine api. Sy comes by default with 3 engines: `rest`, `indexeddb` and `localstorage`. Each one implements the `Sy.Storage.EngineInterface` interface.
 
-You can create your own engine by defining in the configurator a function under the name `storage.engines`:
+You can create your own engine by creating a factory (must implement `Sy.FactoryInterface`) generating it and then registering it by adding an object to the array defined in the configurator under `parameters.storage.engines`:
 ```js
-Sy.config.set('storage.engines', {
-  engineName: function (version, entitiesMeta) {
-    //initiate here your engine object
-    return myEngine;
-  }
+Sy.config.get('parameters.storage.engines').push({
+  name: 'your engine name',
+  factory: 'engine::factory::name', //the factory is retrieved via a service
+  mapper: 'storemapper::service'
 });
 ```
-The entitiesMeta in an array of objects containing various informations about entities. A meta object looks like this:
+The `mapper` defined above must be an object implementing `Sy.Storage.StoreMapperInterface`. It's used to transform entities metadata into store metada. take for example the entity metadata below:
 ```js
 {
   name: 'BundleName::EntityName',
@@ -182,11 +182,19 @@ The entitiesMeta in an array of objects containing various informations about en
   indexes: ['indexes registered in the entity']
 }
 ```
-The only informations useful to the engines here are the `name`, `uuid` and the `indexes`.
+The `rest` store mapper would transform it to an object like so:
+```js
+{
+  alias: 'BundleName::EntityName',
+  name: 'bundlename/entityname',
+  indexes: ['indexes registered in the entity'],
+  identifier: 'identifier key'
+}
+```
 
 In a normal situation you won't have to deal with this level of the storage. But if you want to know how it works, you can look at the file `src/Storage/EngineInterface.js`.
 
-**Important**: the three engines have been design to be independent from the rest of the storage mechanism, so you could use them as standalone in your projects. To understand how they are bootstraped you can look at the end of the file `bootstrap.js`.
+**Important**: the three engines have been design to be independent from the rest of the storage mechanism, so you could use them as standalone in your projects. To understand how they are bootstraped you can look at there respective factories.
 
 ### Store
 

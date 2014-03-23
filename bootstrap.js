@@ -8,84 +8,25 @@ Sy.kernel.getConfig().set({
             meta: {
                 viewscreens: [] //array of objects containing `name` and `creator` attributes
             }
-        }
-    },
-    storage: {
-        engines: {
-            rest: function (version, entitiesMeta) {
-
-                var engine = new Sy.Storage.Engine.Rest(version);
-
-                engine.setManager(Sy.kernel.getServiceContainer().get('sy::core::http::rest'));
-                engine.setPattern('/api/{{version}}/{{path}}/{{key}}');
-
-                for (var i = 0, l = entitiesMeta.length; i < l; i++) {
-                    engine.setStore(
-                        entitiesMeta[i].name,
-                        entitiesMeta[i].name.toLowerCase().replace('::', '/'),
-                        entitiesMeta[i].uuid,
-                        entitiesMeta[i].indexes
-                    );
+        },
+        storage: {
+            engines: [
+                {
+                    name: 'indexeddb',
+                    factory: 'sy::core::storage::factory::engine::indexeddb',
+                    mapper: 'sy::core::storage::storemapper::indexeddb'
+                },
+                {
+                    name: 'localstorage',
+                    factory: 'sy::core::storage::factory::engine::localstorage',
+                    mapper: 'sy::core::storage::storemapper::localstorage'
+                },
+                {
+                    name: 'rest',
+                    factory: 'sy::core::storage::factory::engine::rest',
+                    mapper: 'sy::core::storage::storemapper::rest'
                 }
-
-                return engine;
-
-            },
-            indexeddb: function (version, entitiesMeta) {
-
-                var engine =  new Sy.Storage.Engine.IndexedDB(version);
-
-                for (var i = 0, l = entitiesMeta.length; i < l; i++) {
-                    engine.setStore(
-                        entitiesMeta[i].name,
-                        entitiesMeta[i].name.toLowerCase(),
-                        entitiesMeta[i].uuid,
-                        entitiesMeta[i].indexes.concat(entitiesMeta[i].uuid)
-                    );
-                }
-
-                engine
-                    .setConnection(
-                        window.indexedDB ||
-                        window.webkitIndexedDB ||
-                        window.mozIndexedDB ||
-                        window.msIndexedDB
-                    )
-                    .setTransaction(
-                        window.IDBTransaction ||
-                        window.webkitIDBTransaction
-                    )
-                    .setKeyRange(
-                        window.IDBKeyRange ||
-                        window.webkitIDBKeyRange
-                    )
-                    .setLogger(
-                        Sy.service.get('sy::core::logger')
-                    )
-                    .open();
-
-                return engine;
-
-            },
-            localstorage: function (version, entitiesMeta) {
-
-                var engine = new Sy.Storage.Engine.Localstorage(version);
-
-                for (var i = 0, l = entitiesMeta.length; i < l; i++) {
-                    engine.setStore(
-                        entitiesMeta[i].name,
-                        entitiesMeta[i].name.toLowerCase(),
-                        entitiesMeta[i].uuid,
-                        entitiesMeta[i].indexes
-                    );
-                }
-
-                engine.setStorage(window.localStorage);
-                engine.open();
-
-                return engine;
-
-            }
+            ]
         }
     }
 });
@@ -145,6 +86,44 @@ Sy.kernel.getServiceContainer()
                 ['setLayoutFactory', ['@sy::core::view::factory::layout']],
                 ['setDefinedWrappers', ['%app.meta.view.viewscreens%']]
             ]
+        },
+        'sy::core::storage::factory::engine::indexeddb': {
+            constructor: 'Sy.Storage.EngineFactory.IndexedDBFactory',
+            calls: [
+                ['setLogger', ['@sy::core::logger']],
+                ['setMediator', ['@sy::core::mediator']]
+            ]
+        },
+        'sy::core::storage::factory::engine::localstorage': {
+            constructor: 'Sy.Storage.EngineFactory.LocalstorageFactory',
+            calls: [
+                ['setLogger', ['@sy::core::logger']],
+                ['setMediator', ['@sy::core::mediator']]
+            ]
+        },
+        'sy::core::storage::factory::engine::rest': {
+            constructor: 'Sy.Storage.EngineFactory.RestFactory',
+            calls: [
+                ['setLogger', ['@sy::core::logger']],
+                ['setMediator', ['@sy::core::mediator']],
+                ['setManager', ['@sy::core::http::rest']]
+            ]
+        },
+        'sy::core::storage::storemapper::indexeddb': {
+            constructor: 'Sy.Storage.StoreMapper.IndexedDBMapper'
+        },
+        'sy::core::storage::storemapper::localstorage': {
+            constructor: 'Sy.Storage.StoreMapper.LocalstorageMapper'
+        },
+        'sy::core::storage::storemapper::rest': {
+            constructor: 'Sy.Storage.StoreMapper.RestMapper'
+        },
+        'sy::core::storage::unitofwork::factory': {
+            constructor: 'Sy.Storage.UnitOfWorkFactory',
+            calls: [
+                ['setGenerator', ['@sy::core::generator::uuid']],
+                ['setQueueFactory', ['@sy::core::queue::factory']]
+            ]
         }
     })
     .set('sy::core::logger', function () {
@@ -173,6 +152,25 @@ Sy.kernel.getServiceContainer()
         manager.setRegistry(this.get('sy::core::registry::factory').make());
 
         return manager;
+    })
+    .set('sy::core::storage::factory::engine::core', function () {
+
+        var factory = new Sy.Storage.EngineFactory.Core(),
+            factories = this.getParameter('storage.engines');
+
+        factory.setRegistry(
+            this.get('sy::core::registry::factory').make()
+        );
+
+        for (var i = 0, l = factories.length; i < l; i++) {
+            factory.setEngineFactory(
+                factories[i].name,
+                this.get(factories[i].factory),
+                this.get(factories[i].mapper)
+            );
+        }
+
+        return factory;
 
     })
     .set('sy::core::storage', function () {
@@ -181,7 +179,7 @@ Sy.kernel.getServiceContainer()
             storage = new Sy.Storage.Core(),
             managerFact = new Sy.Storage.ManagerFactory(),
             repositoryFact = new Sy.Storage.RepositoryFactory(),
-            engineFact = new Sy.Storage.EngineFactory(),
+            engineFact = this.get('sy::core::storage::factory::engine::core'),
             conf = Sy.kernel.getConfig().get('storage'),
             registryFact = this.get('sy::core::registry::factory');
 
@@ -190,15 +188,8 @@ Sy.kernel.getServiceContainer()
         repositoryFact
             .setMetaRegistry(registryFact.make())
             .setRepoRegistry(registryFact.make())
-            .setQueueFactory(this.get('sy::core::queue::factory'))
-            .setMeta(meta)
-            .setGenerator(this.get('sy::core::generator::uuid'));
-
-        for (var engineName in conf.engines) {
-            if (conf.engines.hasOwnProperty(engineName)) {
-                engineFact.setEngine(engineName, conf.engines[engineName]);
-            }
-        }
+            .setUOWFactory(this.get('sy::core::storage::unitofwork::factory'))
+            .setMeta(meta);
 
         managerFact
             .setEngineFactory(engineFact)

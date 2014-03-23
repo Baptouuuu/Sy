@@ -8,7 +8,7 @@
  * @venus-include ../src/QueueInterface.js
  * @venus-include ../src/Queue.js
  * @venus-include ../src/QueueFactory.js
- * @venus-include ../src/Translator.js
+ * @venus-code ../src/Translator.js
  */
 
 describe('translator', function () {

@@ -64,9 +64,9 @@ module.exports = function (grunt) {
                 jsPattern: '<script src="{{filePath}}"></script>'
             }
         },
-        shell: {
-            syTests: {
-                command: function (pkg) {
+        exec: {
+            test: {
+                cmd: function (pkg) {
                     var path;
 
                     switch (pkg) {
@@ -84,6 +84,7 @@ module.exports = function (grunt) {
                                 'entity.js',
                                 'functions.js',
                                 'queue.js',
+                                'queuefactory.js',
                                 'registry.js',
                                 'registryfactory.js',
                                 'queuefactory.js',
@@ -93,10 +94,7 @@ module.exports = function (grunt) {
                             break;
                     }
 
-                    return 'venus run -t tests/' + path + ' -n --singleton';
-                },
-                options: {
-                    stdout: true
+                    return './node_modules/venus/bin/venus run -t tests/' + path + ' -c -n --singleton';
                 }
             }
         },
@@ -248,10 +246,10 @@ module.exports = function (grunt) {
     grunt.registerTask('default', ['bower-install']);
     grunt.registerTask('test', [
         'jscs',
-        'shell:syTests:lib',
-        'shell:syTests:storage',
-        'shell:syTests:view',
-        'shell:syTests:topLevel'
+        'exec:test:lib',
+        'exec:test:storage',
+        'exec:test:view',
+        'exec:test:topLevel'
     ]);
 
 };

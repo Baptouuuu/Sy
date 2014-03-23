@@ -12,24 +12,29 @@
  * @venus-include ../../src/Lib/Generator/Interface.js
  * @venus-include ../../src/Storage/RepositoryInterface.js
  * @venus-include ../../src/Storage/Repository.js
- * @venus-include ../../src/Storage/RepositoryFactory.js
+ * @venus-include ../../src/Storage/UnitOfWork.js
+ * @venus-include ../../src/Storage/UnitOfWorkFactory.js
+ * @venus-code ../../src/Storage/RepositoryFactory.js
  */
 
 describe('storage repository factory', function () {
 
     var fact = new Sy.Storage.RepositoryFactory(),
         registryFactory = new Sy.RegistryFactory(),
-        queueFactory = new Sy.QueueFactory();
+        queueFactory = new Sy.QueueFactory(),
+        mockEntity = function () {
+            Sy.EntityInterface.call(this);
+        };
 
     queueFactory.setRegistryFactory(registryFactory);
+    mockEntity.prototype = Object.create(Sy.EntityInterface.prototype);
 
     it('should return itself', function () {
 
         expect(fact.setMetaRegistry(new Sy.RegistryInterface())).toEqual(fact);
         expect(fact.setRepoRegistry(new Sy.RegistryInterface())).toEqual(fact);
         expect(fact.setMeta([])).toEqual(fact);
-        expect(fact.setGenerator(new Sy.Lib.Generator.Interface())).toEqual(fact);
-        expect(fact.setQueueFactory(queueFactory)).toEqual(fact);
+        expect(fact.setUOWFactory(new Sy.Storage.UnitOfWorkFactory())).toEqual(fact);
 
     });
 
@@ -49,11 +54,11 @@ describe('storage repository factory', function () {
 
     });
 
-    it('should throw if invalid generator', function () {
+    it('should throw if invalid unit of work factory', function () {
 
         expect(function () {
-            fact.setGenerator({});
-        }).toThrow('Invalid generator');
+            fact.setUOWFactory({});
+        }).toThrow('Invalid factory');
 
     });
 
@@ -67,6 +72,13 @@ describe('storage repository factory', function () {
 
     it('should throw if invalid repository constructed', function () {
 
+        var uowf = new Sy.Storage.UnitOfWorkFactory(),
+            qf = new Sy.QueueFactory();
+
+        qf.setRegistryFactory(new Sy.RegistryFactory());
+        uowf.setQueueFactory(qf);
+        uowf.setGenerator(new Sy.Lib.Generator.Interface());
+
         fact.setMetaRegistry(new Sy.Registry());
         fact.setMeta([{
             name: 'invalid',
@@ -75,6 +87,7 @@ describe('storage repository factory', function () {
             indexes: [],
             uuid: 'uuid'
         }]);
+        fact.setUOWFactory(uowf);
 
         expect(function () {
             fact.make('invalid');
@@ -90,7 +103,7 @@ describe('storage repository factory', function () {
         fact.setMeta([{
             name: 'valid',
             repository: Sy.Storage.Repository,
-            entity: Sy.EntityInterface,
+            entity: mockEntity,
             indexes: ['foo'],
             uuid: 'uuid'
         }]);
@@ -98,11 +111,9 @@ describe('storage repository factory', function () {
         repo = fact.make('valid');
 
         expect(repo instanceof Sy.Storage.RepositoryInterface).toBe(true);
-        expect(repo.queue instanceof Sy.Queue).toBe(true);
         expect(repo.name).toEqual('valid');
-        expect(repo.generator instanceof Sy.Lib.Generator.Interface).toBe(true);
         expect(repo.entityKey).toEqual('uuid');
-        expect(repo.entityConstructor).toEqual(Sy.EntityInterface);
+        expect(repo.entityConstructor).toEqual(mockEntity);
         expect(repo.indexes).toEqual(['foo']);
 
     });

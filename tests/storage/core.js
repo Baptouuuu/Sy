@@ -3,7 +3,7 @@
  * @venus-include ../../src/functions.js
  * @venus-include ../../src/RegistryInterface.js
  * @venus-include ../../src/Registry.js
- * @venus-include ../../src/Storage/Core.js
+ * @venus-code ../../src/Storage/Core.js
  * @venus-include ../../src/Storage/Manager.js
  */
 
