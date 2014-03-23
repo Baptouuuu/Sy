@@ -230,20 +230,20 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
     cacheController: {
         value: function (alias, instance) {
 
-            if (this.cache === false) {
-                return this;
-            }
-
             this.loaded.set(alias, instance);
+            this.cacheOrder.push(alias);
 
-            if (typeof this.cacheLength === 'number') {
-                this.cacheOrder.push(alias);
-
-                if (this.loaded.length() > this.cacheLength) {
-                    this.loaded.get(this.cacheOrder[0]).destroy();
-                    this.loaded.remove(this.cacheOrder[0]);
-                    this.cacheOrder.splice(0, 1);
-                }
+            if (
+                this.cache === false ||
+                (
+                    this.cache === true &&
+                    typeof this.cacheLength === 'number' &&
+                    this.loaded.length() > this.cacheLength
+                )
+            ) {
+                this.loaded.get(this.cacheOrder[0]).destroy();
+                this.loaded.remove(this.cacheOrder[0]);
+                this.cacheOrder.splice(0, 1);
             }
 
             return this;
