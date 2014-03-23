@@ -67,6 +67,7 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
     /**
      * Register the app services in the global container
      *
+     * @private
      * @param {Array} services
      *
      * @return {Sy.Kernel.Core}
