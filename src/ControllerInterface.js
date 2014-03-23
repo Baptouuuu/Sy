@@ -119,6 +119,18 @@ Sy.ControllerInterface.prototype = Object.create(Object.prototype, {
 
     setBundle: {
         value: function (name) {}
+    },
+
+    /**
+     * Set the viewscreen it's related to
+     *
+     * @param {Sy.View.ViewScreen} viewscreen
+     *
+     * @return {Sy.ControllerInterface}
+     */
+
+    setViewScreen: {
+        value: function (viewscreen) {}
     }
 
 });

@@ -14,6 +14,7 @@ Sy.Controller = function () {
     this.mediator = null;
     this.mediatorListeners = {};
     this.bundle = '';
+    this.viewscreen = null;
 
 };
 
@@ -192,6 +193,24 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
                     }
                 }
             }
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    setViewScreen: {
+        value: function (viewscreen) {
+
+            if (!(viewscreen instanceof Sy.View.ViewScreen)) {
+                throw new TypeError('Invalid viewscreen');
+            }
+
+            this.viewscreen = viewscreen;
+
+            return this;
 
         }
     }
