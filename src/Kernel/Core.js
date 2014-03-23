@@ -11,6 +11,7 @@ namespace('Sy.Kernel');
 Sy.Kernel.Core = function () {
     this.config = new Sy.Configurator();
     this.container = new Sy.ServiceContainer('sy::core');
+    this.controllerManager = new Sy.Kernel.ControllerManager();
 };
 Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
@@ -56,7 +57,9 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                 viewscreens: parser.getViewScreens()
             });
 
-            this.registerServices(parser.getServices());
+            this
+                .registerServices(parser.getServices())
+                .registerControllers(parser.getControllers());
 
         }
     },
@@ -89,6 +92,40 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
             }
 
             return this;
+
+        }
+    },
+
+    /**
+     * Register all app controllers into the manager
+     *
+     * @private
+     * @param {Array} controllers
+     *
+     * @return {Sy.Kernel.Core}
+     */
+
+    registerControllers: {
+        value: function (controllers) {
+
+            var registryFactory = this.container.get('sy::core::registry::factory');
+
+            this.controllerManager
+                .setMetaRegistry(registryFactory.make())
+                .setLoadedControllersRegistry(registryFactory.make())
+                .setMediator(this.container.get('sy::core::mediator'))
+                .setServiceContainer(this.container)
+                .setCache(this.config.get('controllers.cache'))
+                .setCacheLength(this.config.get('controllers.cacheLength'));
+
+            for (var i = 0, l = controllers.length; i < l; i++) {
+                ctrlManager.registerController(
+                    controllers[i].name,
+                    controllers[i].creator
+                );
+            }
+
+            this.controllerManager.boot();
 
         }
     }
