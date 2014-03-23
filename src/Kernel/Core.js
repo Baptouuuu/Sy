@@ -12,6 +12,7 @@ Sy.Kernel.Core = function () {
     this.config = new Sy.Configurator();
     this.container = new Sy.ServiceContainer('sy::core');
     this.controllerManager = new Sy.Kernel.ControllerManager();
+    this.actionBinder = new Sy.Kernel.ActionBinder();
 };
 Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
@@ -115,13 +116,16 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
             var registryFactory = this.container.get('sy::core::registry::factory');
 
+            this.actionBinder.setMediator(this.mediator);
+
             this.controllerManager
                 .setMetaRegistry(registryFactory.make())
                 .setLoadedControllersRegistry(registryFactory.make())
                 .setMediator(this.container.get('sy::core::mediator'))
                 .setServiceContainer(this.container)
                 .setCache(this.config.get('controllers.cache'))
-                .setCacheLength(this.config.get('controllers.cacheLength'));
+                .setCacheLength(this.config.get('controllers.cacheLength'))
+                .setActionBinder(this.actionBinder);
 
             for (var i = 0, l = controllers.length; i < l; i++) {
                 ctrlManager.registerController(

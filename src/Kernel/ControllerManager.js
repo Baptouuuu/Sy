@@ -17,6 +17,7 @@ Sy.Kernel.ControllerManager = function () {
     this.cache = null;
     this.cacheLength = null;
     this.cacheOrder = [];
+    this.actionBinder = null;
 };
 Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
 
@@ -170,6 +171,28 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
     },
 
     /**
+     * Set the action binder
+     *
+     * @param {Sy.Kernel.ActionBinder} binder
+     *
+     * @return {Sy.Kernel.ControllerManager}
+     */
+
+    setActionBinder: {
+        value: function (binder) {
+
+            if (!(binder instanceof Sy.Kernel.ActionBinder)) {
+                throw new TypeError('Invalid action binder');
+            }
+
+            this.actionBinder = binder;
+
+            return this;
+
+        }
+    },
+
+    /**
      * Listener to on viewscreen display
      * Used to load appropriate controller
      *
@@ -206,6 +229,7 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
                     .setViewScreen(viewscreen);
 
                 this.cacheController(ctrl, instance);
+                this.actionBinder.bind(instance, viewscreen);
 
                 this.current = ctrl;
 
