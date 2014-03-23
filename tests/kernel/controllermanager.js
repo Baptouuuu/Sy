@@ -11,10 +11,19 @@
  * @venus-include ../../src/ServiceContainer.js
  * @venus-include ../../src/View/NodeWrapper.js
  * @venus-include ../../src/View/ViewScreen.js
+ * @venus-code ../../src/Kernel/ActionBinder.js
  * @venus-code ../../src/Kernel/ControllerManager.js
  */
 
 describe('kernel controller manager', function () {
+
+    Function.prototype.bind = Function.prototype.bind || function (context) {
+        var self = this;
+
+        return function () {
+            return self.apply(context, arguments);
+        };
+    };
 
     var manager = new Sy.Kernel.ControllerManager(),
         mockVS = function () {},
