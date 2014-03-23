@@ -48,7 +48,10 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
     boot: {
         value: function () {
 
-            var parser = new Sy.Kernel.AppParser();
+            var tester = new Sy.Kernel.FeatureTester(),
+                parser = new Sy.Kernel.AppParser();
+
+            tester.testBrowser();
 
             this.config.set('parameters.app.meta', {
                 bundles: parser.getBundles(),
