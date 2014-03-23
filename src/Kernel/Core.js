@@ -59,7 +59,8 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
             this
                 .registerServices(parser.getServices())
-                .registerControllers(parser.getControllers());
+                .registerControllers(parser.getControllers())
+                .configureLogger();
 
         }
     },
@@ -127,6 +128,31 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
             }
 
             this.controllerManager.boot();
+
+            return this;
+
+        }
+    },
+
+    /**
+     * Adapt the handlers available in the logger depending on the app env
+     * If env set to 'prod' remove all of them except for 'error'
+     *
+     * @return {Sy.Kernel.Core}
+     */
+
+    configureLogger: {
+        value: function () {
+
+            var env = this.config.get('env'),
+                logger = this.container.get('sy::core::logger');
+
+            if (env === 'prod') {
+                logger
+                    .removeHandler(logger.LOG)
+                    .removeHandler(logger.DEBUG)
+                    .removeHandler(logger.INFO);
+            }
 
             return this;
 
