@@ -115,7 +115,7 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
      * @inheritDoc
      */
 
-    idle: {
+    sleep: {
         value: function () {
 
             for (var channel in this.mediatorListeners) {
