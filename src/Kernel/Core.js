@@ -128,6 +128,8 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
             this.controllerManager.boot();
 
+            return this;
+
         }
     }
 
