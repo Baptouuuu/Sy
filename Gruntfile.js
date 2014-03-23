@@ -79,6 +79,9 @@ module.exports = function (grunt) {
                         case 'view':
                             path = 'view/';
                             break;
+                        case 'kernel':
+                            path = 'kernel';
+                            break;
                         case 'topLevel':
                             path = [
                                 'entity.js',
