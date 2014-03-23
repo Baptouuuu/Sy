@@ -104,6 +104,8 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
 
             this.mediator = mediator;
 
+            return this;
+
         }
     },
 
