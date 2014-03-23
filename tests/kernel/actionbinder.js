@@ -13,6 +13,14 @@
 
 describe('kernel action binder', function () {
 
+    Function.prototype.bind = Function.prototype.bind || function (context) {
+        var self = this;
+
+        return function () {
+            return self.apply(context, arguments);
+        };
+    };
+
     var binder = new Sy.Kernel.ActionBinder(),
         mockController = function () {
             Sy.Controller.call(this);
@@ -63,10 +71,23 @@ describe('kernel action binder', function () {
     it('should bind the controller action to the click event', function () {
         runs(function () {
             var controller = new mockController(),
-                vs = new mockVS();
+                vs = new mockVS(),
+                ev = document.createEvent('MouseEvent');
+
+            ev.initMouseEvent(
+                'click',
+                true,
+                true,
+                window,
+                null,
+                0, 0, 0, 0, /*coordinates*/
+                false, false, false, false, /*modifier keys*/
+                0,
+                null
+            );
 
             binder.bind(controller, vs);
-            actionable.click();
+            actionable.dispatchEvent(ev);
         });
 
         waits(500);
