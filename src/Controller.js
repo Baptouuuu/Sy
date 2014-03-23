@@ -17,7 +17,7 @@ Sy.Controller = function () {
 
 };
 
-Sy.Controller.prototype = Object.create(Object.prototype, {
+Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
 
     /**
      * @inheritDoc
