@@ -11,4 +11,9 @@ Sy.kernel.getConfig()
         }
     });
 
-Sy.kernel.boot();
+try {
+    Sy.kernel.boot();
+} catch (error) {
+    //thrown if the browser does not support some features required by the framework
+    //see which one with `error.message`
+}
