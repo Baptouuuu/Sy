@@ -90,11 +90,7 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
     },
 
     /**
-     * Set the bundle of the controller
-     *
-     * @param {string} name
-     *
-     * @return {Sy.Controller}
+     * @inheritDoc
      */
 
     setBundle: {

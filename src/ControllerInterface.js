@@ -107,6 +107,18 @@ Sy.ControllerInterface.prototype = Object.create(Object.prototype, {
 
     setServiceContainer: {
         value: function (container) {}
+    },
+
+    /**
+     * Set the bundle of the controller
+     *
+     * @param {String} name
+     *
+     * @return {Sy.ControllerInterface}
+     */
+
+    setBundle: {
+        value: function (name) {}
     }
 
 });
