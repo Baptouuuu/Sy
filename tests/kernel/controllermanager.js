@@ -1,5 +1,6 @@
 /**
  * @venus-library jasmine
+ * @venus-include ../../vendor/Reflection.js/reflection.min.js
  * @venus-include ../../src/functions.js
  * @venus-include ../../src/RegistryInterface.js
  * @venus-include ../../src/Registry.js
@@ -109,6 +110,20 @@ describe('kernel controller manager', function () {
 
     it('should set the cache length', function () {
         expect(manager.setCacheLength(3)).toEqual(manager);
+    });
+
+    it('should throw if trying to set invalid action binder', function () {
+        expect(function () {
+            manager.setActionBinder({});
+        }).toThrow('Invalid action binder');
+    });
+
+    it('should set the action binder', function () {
+        var ab = new Sy.Kernel.ActionBinder();
+
+        ab.setMediator(new Sy.Lib.Mediator());
+
+        expect(manager.setActionBinder(ab)).toEqual(manager);
     });
 
     it('should add the controller to the loaded controllers', function () {
