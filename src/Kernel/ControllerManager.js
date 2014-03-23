@@ -171,6 +171,7 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
      * Listener to on viewscreen display
      * Used to load appropriate controller
      *
+     * @private
      * @param {Sy.View.ViewScreen} viewscreen
      *
      * @return {void}
