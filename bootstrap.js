@@ -1,8 +1,7 @@
 namespace('Sy');
 
-Sy.config = new Sy.Configurator();
-
-Sy.config.set({
+Sy.kernel = new Sy.Kernel.Core();
+Sy.kernel.getConfig().set({
     env: 'prod',
     parameters: {
         app: {
@@ -29,13 +28,14 @@ Sy.config.set({
                 }
             ]
         }
+    },
+    controllers: {
+        cache: true
     }
 });
 
-Sy.service = new Sy.ServiceContainer('sy::core');
-
-Sy.service
-    .setParameters(Sy.config.get('parameters'))
+Sy.kernel.getServiceContainer()
+    .setParameters(Sy.kernel.getConfig().get('parameters'))
     .set({
         'sy::core::generator::uuid': {
             constructor: 'Sy.Lib.Generator.UUID'
@@ -128,110 +128,94 @@ Sy.service
                 ['setQueueFactory', ['@sy::core::queue::factory']]
             ]
         }
-    });
+    })
+    .set('sy::core::logger', function () {
 
-Sy.service.set('sy::core::logger', function () {
+        var logger = new Sy.Lib.Logger.CoreLogger('core'),
+            info = new Sy.Lib.Logger.Handler.Console(logger.INFO),
+            debug = new Sy.Lib.Logger.Handler.Console(logger.DEBUG),
+            error = new Sy.Lib.Logger.Handler.Console(logger.ERROR),
+            log = new Sy.Lib.Logger.Handler.Console(logger.LOG);
 
-    var logger = new Sy.Lib.Logger.CoreLogger('core'),
-        info = new Sy.Lib.Logger.Handler.Console(logger.INFO),
-        debug = new Sy.Lib.Logger.Handler.Console(logger.DEBUG),
-        error = new Sy.Lib.Logger.Handler.Console(logger.ERROR),
-        log = new Sy.Lib.Logger.Handler.Console(logger.LOG);
+        logger.setHandler(info, logger.INFO);
+        logger.setHandler(debug, logger.DEBUG);
+        logger.setHandler(error, logger.ERROR);
+        logger.setHandler(log, logger.LOG);
 
-    logger.setHandler(info, logger.INFO);
-    logger.setHandler(debug, logger.DEBUG);
-    logger.setHandler(error, logger.ERROR);
-    logger.setHandler(log, logger.LOG);
+        return logger;
 
-    return logger;
+    })
+    .set('sy::core::http', function () {
 
-});
+        var parser = new Sy.HTTP.HeaderParser(),
+            manager = new Sy.HTTP.Manager();
 
-Sy.service.set('sy::core::http', function () {
+        manager.setParser(parser);
+        manager.setGenerator(this.get('sy::core::generator::uuid'));
+        manager.setRegistry(this.get('sy::core::registry::factory').make());
 
-    var parser = new Sy.HTTP.HeaderParser(),
-        manager = new Sy.HTTP.Manager();
+        return manager;
+    })
+    .set('sy::core::storage::factory::engine::core', function () {
 
-    manager.setParser(parser);
-    manager.setGenerator(this.get('sy::core::generator::uuid'));
-    manager.setRegistry(this.get('sy::core::registry::factory').make());
+        var factory = new Sy.Storage.EngineFactory.Core(),
+            factories = this.getParameter('storage.engines');
 
-    return manager;
-
-});
-
-Sy.service.set('sy::core::storage::factory::engine::core', function () {
-
-    var factory = new Sy.Storage.EngineFactory.Core(),
-        factories = this.getParameter('storage.engines');
-
-    factory.setRegistry(
-        this.get('sy::core::registry::factory').make()
-    );
-
-    for (var i = 0, l = factories.length; i < l; i++) {
-        factory.setEngineFactory(
-            factories[i].name,
-            this.get(factories[i].factory),
-            this.get(factories[i].mapper)
+        factory.setRegistry(
+            this.get('sy::core::registry::factory').make()
         );
-    }
 
-    return factory;
-
-});
-
-Sy.service.set('sy::core::storage', function () {
-
-    var meta = [
-            {
-                name: 'DefaultBundle::Todo',
-                repository: Sy.Storage.Repository,
-                entity: App.Bundle.DefaultBundle.Entity.Todo,
-                indexes: [],
-                uuid: 'uuid'
-            }
-        ],
-        storage = new Sy.Storage.Core(),
-        managerFact = new Sy.Storage.ManagerFactory(),
-        repositoryFact = new Sy.Storage.RepositoryFactory(),
-        engineFact = this.get('sy::core::storage::factory::engine::core'),
-        conf = Sy.config.get('storage'),
-        registryFact = this.get('sy::core::registry::factory');
-
-    storage.setRegistry(registryFact.make());
-
-    repositoryFact
-        .setMetaRegistry(registryFact.make())
-        .setRepoRegistry(registryFact.make())
-        .setUOWFactory(this.get('sy::core::storage::unitofwork::factory'))
-        .setMeta(meta);
-
-    managerFact
-        .setEngineFactory(engineFact)
-        .setRepositoryFactory(repositoryFact);
-
-    for (var name in conf.managers) {
-        if (conf.managers.hasOwnProperty(name)) {
-            var manager = managerFact.make(name, conf.managers[name], meta);
-
-            storage.setManager(name, manager);
+        for (var i = 0, l = factories.length; i < l; i++) {
+            factory.setEngineFactory(
+                factories[i].name,
+                this.get(factories[i].factory),
+                this.get(factories[i].mapper)
+            );
         }
-    }
 
-    return storage;
+        return factory;
 
-});
+    })
+    .set('sy::core::storage', function () {
 
-Sy.service.set('sy::core::translator', function () {
-    var translator = new Sy.Translator();
-    translator
-        .setRegistry(this.get('sy::core::registry::factory').make())
-        .setQueueFactory(this.get('sy::core::queue::factory'));
-    return translator;
-});
+        var meta = this.getParameter('app.meta.entities'),
+            storage = new Sy.Storage.Core(),
+            managerFact = new Sy.Storage.ManagerFactory(),
+            repositoryFact = new Sy.Storage.RepositoryFactory(),
+            engineFact = this.get('sy::core::storage::factory::engine::core'),
+            conf = Sy.kernel.getConfig().get('storage'),
+            registryFact = this.get('sy::core::registry::factory');
 
-Sy.service
+        storage.setRegistry(registryFact.make());
+
+        repositoryFact
+            .setMetaRegistry(registryFact.make())
+            .setRepoRegistry(registryFact.make())
+            .setUOWFactory(this.get('sy::core::storage::unitofwork::factory'))
+            .setMeta(meta);
+
+        managerFact
+            .setEngineFactory(engineFact)
+            .setRepositoryFactory(repositoryFact);
+
+        for (var name in conf.managers) {
+            if (conf.managers.hasOwnProperty(name)) {
+                var manager = managerFact.make(name, conf.managers[name], meta);
+
+                storage.setManager(name, manager);
+            }
+        }
+
+        return storage;
+
+    })
+    .set('sy::core::translator', function () {
+        var translator = new Sy.Translator();
+        translator
+            .setRegistry(this.get('sy::core::registry::factory').make())
+            .setQueueFactory(this.get('sy::core::queue::factory'));
+        return translator;
+    })
     .set('sy::core::view::template::engine', function () {
         var engine = new Sy.View.TemplateEngine();
 

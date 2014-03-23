@@ -10,14 +10,15 @@ namespace('Sy');
 
 Sy.Controller = function () {
 
-    this.container = Sy.service;
-    this.mediator = this.container.get('sy::core::mediator');
+    this.container = null;
+    this.mediator = null;
     this.mediatorListeners = {};
     this.bundle = '';
+    this.viewscreen = null;
 
 };
 
-Sy.Controller.prototype = Object.create(Object.prototype, {
+Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
 
     /**
      * @inheritDoc
@@ -90,11 +91,7 @@ Sy.Controller.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Set the bundle of the controller
-     *
-     * @param {string} name
-     *
-     * @return {Sy.Controller}
+     * @inheritDoc
      */
 
     setBundle: {
@@ -115,13 +112,67 @@ Sy.Controller.prototype = Object.create(Object.prototype, {
      * @inheritDoc
      */
 
-    idle: {
+    setMediator: {
+        value: function (mediator) {
+
+            if (!(mediator instanceof Sy.Lib.Mediator)) {
+                throw new TypeError('Invalid mediator');
+            }
+
+            this.mediator = mediator;
+
+            return this;
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    setServiceContainer: {
+        value: function (container) {
+
+            if (!(container instanceof Sy.ServiceContainerInterface)) {
+                throw new TypeError('Invalid service container');
+            }
+
+            this.container = container;
+
+            return this;
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    sleep: {
         value: function () {
 
             for (var channel in this.mediatorListeners) {
                 if (this.mediatorListeners.hasOwnProperty(channel)) {
                     for (var i = 0, l = this.mediatorListeners[channel].length; i < l; i++) {
                         this.mediator.pause(channel, this.mediatorListeners[channel][i]);
+                    }
+                }
+            }
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    wakeup: {
+        value: function () {
+
+            for (var channel in this.mediatorListeners) {
+                if (this.mediatorListeners.hasOwnProperty(channel)) {
+                    for (var i = 0, l = this.mediatorListeners[channel].length; i < l; i++) {
+                        this.mediator.unpause(channel, this.mediatorListeners[channel][i]);
                     }
                 }
             }
@@ -142,6 +193,24 @@ Sy.Controller.prototype = Object.create(Object.prototype, {
                     }
                 }
             }
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    setViewScreen: {
+        value: function (viewscreen) {
+
+            if (!(viewscreen instanceof Sy.View.ViewScreen)) {
+                throw new TypeError('Invalid viewscreen');
+            }
+
+            this.viewscreen = viewscreen;
+
+            return this;
 
         }
     }

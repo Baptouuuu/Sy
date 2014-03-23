@@ -12,7 +12,7 @@ namespace('Sy.Storage.Engine');
 Sy.Storage.Engine.Localstorage = function (version) {
 
     if (!JSON) {
-        throw new Error('JSON object missing! Please load a polyfil in order to use this engine!');
+        throw new Error('JSON object missing! Please load a polyfill in order to use this engine!');
     }
 
     this.storage = null;

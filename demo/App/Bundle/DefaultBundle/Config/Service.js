@@ -1,12 +1,7 @@
 namespace('App.Bundle.DefaultBundle.Config');
 
-App.Bundle.DefaultBundle.Config.Service = function () {
-
-    Sy.Configurator.call(this);
-
-};
-
-App.Bundle.DefaultBundle.Config.Service.prototype = Object.create(Sy.Configurator.prototype, {
+App.Bundle.DefaultBundle.Config.Service = function () {};
+App.Bundle.DefaultBundle.Config.Service.prototype = Object.create(Object.prototype, {
 
     define: {
         value: function () {
@@ -14,14 +9,16 @@ App.Bundle.DefaultBundle.Config.Service.prototype = Object.create(Sy.Configurato
             return [
                 {
                     name        : 'my::service',        /*beware of your services naming, those are global to your app*/
-                    object      : 'MyService',
-                    dependencies: [
-                        'another'
+                    constructor : 'App.Bundle.DefaultBundle.Service.MyService',
+                    calls       : [
+                        ['setter', ['arg']]
                     ]
                 },
                 {
                     name    : 'another',
-                    object  : 'Another'
+                    creator : function () {
+                        return {};
+                    }
                 }
             ];
 
