@@ -160,6 +160,20 @@ Sy.Lib.Logger.CoreLogger.prototype = Object.create(Sy.Lib.Logger.Interface.proto
             return this;
 
         }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    lock: {
+        value: function () {
+
+            Object.seal(this.handlers);
+
+            return this;
+
+        }
     }
 
 });

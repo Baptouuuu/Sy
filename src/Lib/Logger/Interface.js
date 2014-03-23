@@ -173,6 +173,16 @@ Sy.Lib.Logger.Interface.prototype = Object.create(Object.prototype, {
 
     removeHandler: {
         value: function (level) {}
+    },
+
+    /**
+     * Prevents adding or removing handlers
+     *
+     * @return {Sy.Lib.Logger.Interface}
+     */
+
+    lock: {
+        value: function () {}
     }
 
 });
