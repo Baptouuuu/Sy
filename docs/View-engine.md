@@ -17,7 +17,7 @@ This the top layer in your app, it's the node containing all what's displayed by
 
 It's accessed via the service container as follows:
 ```js
-var viewport = Sy.service.get('sy::core::viewport');
+var viewport = Sy.kernel.getServiceContainer().get('sy::core::viewport');
 ```
 
 In order to work, your SPA html must look like this:
@@ -59,7 +59,7 @@ If there's no ViewScreen already set in the viewport, it's no problem.
 You can create your own `ViewScreen` wrapper by creating a class inheriting from the default one and then register it in the appropriate factory.
 Sample:
 ```js
-var factory = Sy.service.get('sy::core::view::factory::viewscreen'),
+var factory = Sy.kernel.getServiceContainer().get('sy::core::view::factory::viewscreen'),
     Wrapper = function () {
       Sy.View.ViewScreen.call(this);
     };
@@ -202,7 +202,7 @@ The rendering of the layers described above is based on the object `Sy.View.Temp
 
 The only method you have to care about on this object is `render` and is used as follows:
 ```js
-var renderer = Sy.service.get('sy::core::view::template::engine');
+var renderer = Sy.kernel.getServiceContainer().get('sy::core::view::template::engine');
 renderer.render(node, {
   attr: {
     nested: [

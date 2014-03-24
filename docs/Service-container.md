@@ -1,6 +1,6 @@
 # Service container
 
-Sy is bundled with a service container object, a default instance can be found in the object `Sy.service`.
+Sy is bundled with a service container object, a default instance can be retrieved from the framework kernel: `Sy.kernel.getServiceContainer()`.
 
 ## Creation
 
@@ -17,7 +17,7 @@ myContainer.setParameters({
 
 The name passed to the constructor has no real purpose, except to identify more easily your containers; as it's not used internally by the object you can omit it.
 
-The parameters setted is used afterward when building your services. In the context of the framework `Sy.service.parameters` is a reference to the object defined in `Sy.config` under the path `parameters`.
+The parameters setted is used afterward when building your services. In the context of the framework, the parameters object is a reference to the object defined in the framework config under the path `parameters`.
 
 ## Adding a service
 

@@ -16,7 +16,7 @@ This is the main object to access the whole mechanism; it holds your managers. I
 ### Usage
 
 ```js
-var storage = Sy.service.get('sy::core::storage');
+var storage = Sy.kernel.getServiceContainer().get('sy::core::storage');
 storage.getManager('myManagerName');
 ```
 **Note**: If no manager name specified it will look for a default one named `main`.
@@ -29,7 +29,7 @@ A manager holds a set of entities repositories around a specific engine.
 
 You configure your managers with the [configurator](Configurator.md) `Sy.config` with the key `storage.managers`:
 ```js
-Sy.config.set('storage.managers', {
+Sy.kernel.getConfig().set('storage.managers', {
   main: {
     type: 'engine type', //available types: "rest", "indexeddb", "localstorage"
     storageName: 'app::storage',  //used by indexeddb and localstorage as key for the storage (optional)
@@ -166,7 +166,7 @@ An engine is an interface between the repository and the actual storage engine a
 
 You can create your own engine by creating a factory (must implement `Sy.FactoryInterface`) generating it and then registering it by adding an object to the array defined in the configurator under `parameters.storage.engines`:
 ```js
-Sy.config.get('parameters.storage.engines').push({
+Sy.kernel.getConfig().get('parameters.storage.engines').push({
   name: 'your engine name',
   factory: 'engine::factory::name', //the factory is retrieved via a service
   mapper: 'storemapper::service'
