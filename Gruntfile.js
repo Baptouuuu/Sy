@@ -52,7 +52,6 @@ module.exports = function (grunt) {
                         'src/Registry.js',
                         'src/ServiceContainerInterface.js',
                         'src/ServiceContainer.js',
-                        'src/ServiceInterface.js',
                         'bootstrap.js'
                     ]
                 }

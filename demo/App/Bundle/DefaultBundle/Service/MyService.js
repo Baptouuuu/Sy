@@ -1,12 +1,8 @@
 namespace('App.Bundle.DefaultBundle.Service');
 
-App.Bundle.DefaultBundle.Service.MyService = function () {
+App.Bundle.DefaultBundle.Service.MyService = function () {};
 
-    Sy.Service.call(this);
-
-};
-
-App.Bundle.DefaultBundle.Service.MyService.prototype = Object.create(Sy.Service.prototype, {
+App.Bundle.DefaultBundle.Service.MyService.prototype = Object.create(Object.prototype, {
 
     someMethod: {
         value: function () {
