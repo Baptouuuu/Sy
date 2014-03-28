@@ -127,6 +127,14 @@ Sy.kernel.getServiceContainer()
                 ['setGenerator', ['@sy::core::generator::uuid']],
                 ['setQueueFactory', ['@sy::core::queue::factory']]
             ]
+        },
+        'sy::core::storage::repository::factory': {
+            constructor: 'Sy.Storage.RepositoryFactory',
+            calls: [
+                ['setRegistryFactory', ['@sy::core::registry::factory']],
+                ['setUOWFactory', ['@sy::core::storage::unitofwork::factory']],
+                ['setMeta', ['%app.meta.entities%']]
+            ]
         }
     })
     .set('sy::core::logger', function () {
@@ -181,22 +189,15 @@ Sy.kernel.getServiceContainer()
         var meta = this.getParameter('app.meta.entities'),
             storage = new Sy.Storage.Core(),
             managerFact = new Sy.Storage.ManagerFactory(),
-            repositoryFact = new Sy.Storage.RepositoryFactory(),
             engineFact = this.get('sy::core::storage::factory::engine::core'),
             conf = Sy.kernel.getConfig().get('storage'),
             registryFact = this.get('sy::core::registry::factory');
 
         storage.setRegistry(registryFact.make());
 
-        repositoryFact
-            .setMetaRegistry(registryFact.make())
-            .setRepoRegistry(registryFact.make())
-            .setUOWFactory(this.get('sy::core::storage::unitofwork::factory'))
-            .setMeta(meta);
-
         managerFact
             .setEngineFactory(engineFact)
-            .setRepositoryFactory(repositoryFact);
+            .setRepositoryFactory(this.get('sy::core::storage::repository::factory'));
 
         for (var name in conf.managers) {
             if (conf.managers.hasOwnProperty(name)) {

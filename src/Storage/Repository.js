@@ -16,6 +16,7 @@ Sy.Storage.Repository = function () {
     this.entityConstructor = null;
     this.uow = null;
     this.name = null;
+    this.cache = null;
 
 };
 
@@ -33,6 +34,24 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
             }
 
             this.uow = uow;
+
+            return this;
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    setCacheRegistry: {
+        value: function (registry) {
+
+            if (!(registry instanceof Sy.RegistryInterface)) {
+                throw new TypeError('Invalid registry');
+            }
+
+            this.cache = registry;
 
             return this;
 
@@ -146,6 +165,10 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
             }
 
             this.uow.handle(entity);
+            this.cache.set(
+                entity.get(this.entityKey),
+                entity
+            );
 
             return this;
 
@@ -188,15 +211,23 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
         value: function (args) {
 
             if (args.index === this.entityKey) {
-                this.engine.read(
-                    this.name,
-                    args.value,
-                    function (object) {
-                        args.callback(
-                            this.buildEntity(object)
-                        );
-                    }.bind(this)
-                );
+                if (this.cache.has(args.value)) {
+                    setTimeout(
+                        args.callback,
+                        0,
+                        this.cache.get(args.value)
+                    );
+                } else {
+                    this.engine.read(
+                        this.name,
+                        args.value,
+                        function (object) {
+                            args.callback(
+                                this.buildEntity(object)
+                            );
+                        }.bind(this)
+                    );
+                }
             } else {
                 args.limit = 1;
                 this.findBy(args);
@@ -269,11 +300,19 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
     buildEntity: {
         value: function (object) {
 
-            var entity = new this.entityConstructor();
+            if (this.cache.has(object[this.entityKey])) {
 
-            entity.set(object);
+                return this.cache.get(object[this.entityKey]);
 
-            return entity;
+            } else {
+
+                var entity = new this.entityConstructor();
+
+                entity.set(object);
+
+                return entity;
+
+            }
 
         }
     }
