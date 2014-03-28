@@ -87,6 +87,7 @@ describe('storage repository', function () {
         expect(repo.setEntityKey('uuid')).toEqual(repo);
         expect(repo.setEntityConstructor(mockEntity)).toEqual(repo);
         expect(repo.setIndexes([])).toEqual(repo);
+        expect(repo.setCacheRegistry(new Sy.Registry())).toEqual(repo);
 
     });
 
@@ -129,6 +130,7 @@ describe('storage repository', function () {
         repo.setEntityKey('uuid');
         repo.setEntityConstructor(mockEntity);
         repo.setEngine(new mockEngine());
+        repo.setCacheRegistry(new Sy.Registry());
 
         repo.findOneBy({
             index: 'uuid',
@@ -157,6 +159,7 @@ describe('storage repository', function () {
         repo.setEntityConstructor(mockEntity);
         repo.setEngine(new mockEngine());
         repo.setIndexes(['foo']);
+        repo.setCacheRegistry(new Sy.Registry());
 
         repo.findOneBy({
             index: 'foo',
@@ -185,6 +188,7 @@ describe('storage repository', function () {
         repo.setEntityConstructor(mockEntity);
         repo.setEngine(new mockEngine());
         repo.setIndexes(['foo']);
+        repo.setCacheRegistry(new Sy.Registry());
 
         repo.findBy({
             index: 'foo',
@@ -195,6 +199,41 @@ describe('storage repository', function () {
             }
         });
 
+    });
+
+    it('should throw if trying to set invalid cache registry', function () {
+        var repo = new Sy.Storage.Repository();
+
+        expect(function () {
+            repo.setCacheRegistry({});
+        }).toThrow('Invalid registry');
+    });
+
+    it('should return the exact same entity object', function () {
+        var repo = new Sy.Storage.Repository(),
+            qf = new Sy.QueueFactory(),
+            uow = new Sy.Storage.UnitOfWork(),
+            e = new Sy.Entity();
+
+        e.set('uuid', 'foo');
+
+        qf.setRegistryFactory(new Sy.RegistryFactory());
+        uow
+            .setQueue(qf.make())
+            .setEntityKey('uuid');
+        repo
+            .setUnitOfWork(uow)
+            .setCacheRegistry(new Sy.Registry())
+            .setEntityKey('uuid')
+            .setEntityConstructor(Sy.Entity)
+            .persist(e)
+            .findOneBy({
+                index: 'uuid',
+                value: 'foo',
+                callback: function (r) {
+                    expect(e).toEqual(r);
+                }
+            });
     });
 
 });

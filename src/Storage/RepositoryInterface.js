@@ -18,11 +18,23 @@ Sy.Storage.RepositoryInterface.prototype = Object.create(Object.prototype, {
      *
      * @param {Sy.Storage.UnitOfWork} uow
      *
-     * @return {Sy.Storage.Repository}
+     * @return {Sy.Storage.RepositoryInterface}
      */
 
     setUnitOfWork: {
         value: function (uow) {}
+    },
+
+    /**
+     * Set the entity cache registry
+     *
+     * @param {Sy.RegistryInterface} registry
+     *
+     * @return {Sy.Storage.RepositoryInterface}
+     */
+
+    setCacheRegistry: {
+        value: function (registry) {}
     },
 
     /**

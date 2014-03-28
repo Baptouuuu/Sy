@@ -13,48 +13,29 @@ Sy.Storage.RepositoryFactory = function () {
     this.meta = null;
     this.loaded = null;
     this.uowFactory = null;
+    this.registryFactory = null;
 };
 
 Sy.Storage.RepositoryFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
 
     /**
-     * Set a registry for handling list of metas
+     * Set the registry factory
      *
-     * @param {Sy.RegistryInterface} registry
-     *
-     * @return {Sy.Storage.RepositoryFactory}
-     */
-
-    setMetaRegistry: {
-        value: function (registry) {
-
-            if (!(registry instanceof Sy.RegistryInterface)) {
-                throw new TypeError('Invalid registry');
-            }
-
-            this.meta = registry;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set a registry for handling loaded repositories
-     *
-     * @param {Sy.RegistryInterface} registry
+     * @param {Sy.RegistryFactory} factory
      *
      * @return {Sy.Storage.RepositoryFactory}
      */
 
-    setRepoRegistry: {
-        value: function (registry) {
+    setRegistryFactory: {
+        value: function (factory) {
 
-            if (!(registry instanceof Sy.RegistryInterface)) {
-                throw new TypeError('Invalid registry');
+            if (!(factory instanceof Sy.RegistryFactory)) {
+                throw new TypeError('Invalid registry factory');
             }
 
-            this.loaded = registry;
+            this.meta = factory.make();
+            this.loaded = factory.make();
+            this.registryFactory = factory;
 
             return this;
 
@@ -139,7 +120,8 @@ Sy.Storage.RepositoryFactory.prototype = Object.create(Sy.FactoryInterface.proto
                 .setEntityKey(meta.uuid)
                 .setEntityConstructor(meta.entity)
                 .setIndexes(meta.indexes)
-                .setUnitOfWork(uow);
+                .setUnitOfWork(uow)
+                .setCacheRegistry(this.registryFactory.make());
 
             this.loaded.set(alias, repo);
 

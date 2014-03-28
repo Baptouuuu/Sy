@@ -31,26 +31,17 @@ describe('storage repository factory', function () {
 
     it('should return itself', function () {
 
-        expect(fact.setMetaRegistry(new Sy.RegistryInterface())).toEqual(fact);
-        expect(fact.setRepoRegistry(new Sy.RegistryInterface())).toEqual(fact);
+        expect(fact.setRegistryFactory(registryFactory)).toEqual(fact);
         expect(fact.setMeta([])).toEqual(fact);
         expect(fact.setUOWFactory(new Sy.Storage.UnitOfWorkFactory())).toEqual(fact);
 
     });
 
-    it('should throw if invalid meta registry', function () {
+    it('should throw if invalid registry factory', function () {
 
         expect(function () {
-            fact.setMetaRegistry({});
-        }).toThrow('Invalid registry');
-
-    });
-
-    it('should throw if invalid repo registry', function () {
-
-        expect(function () {
-            fact.setRepoRegistry({});
-        }).toThrow('Invalid registry');
+            fact.setRegistryFactory({});
+        }).toThrow('Invalid registry factory');
 
     });
 
@@ -79,7 +70,7 @@ describe('storage repository factory', function () {
         uowf.setQueueFactory(qf);
         uowf.setGenerator(new Sy.Lib.Generator.Interface());
 
-        fact.setMetaRegistry(new Sy.Registry());
+        fact.setRegistryFactory(registryFactory);
         fact.setMeta([{
             name: 'invalid',
             repository: function () {},
@@ -99,7 +90,7 @@ describe('storage repository factory', function () {
 
         var repo;
 
-        fact.setMetaRegistry(new Sy.Registry());
+        fact.setRegistryFactory(registryFactory);
         fact.setMeta([{
             name: 'valid',
             repository: Sy.Storage.Repository,
