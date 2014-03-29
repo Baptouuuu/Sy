@@ -76,14 +76,16 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
             path = entity.split('::');
 
             if (path.length === 1) {
-                ent = new App.Bundle[this.bundle].Entity[path[0]](attributes);
+                ent = new App.Bundle[this.bundle].Entity[path[0]]();
             } else {
-                ent = new App.Bundle[path[0]].Entity[path[1]](attributes);
+                ent = new App.Bundle[path[0]].Entity[path[1]]();
             }
 
             if (!(ent instanceof Sy.EntityInterface)) {
                 throw new TypeError('"' + entity + '" does not implement "Sy.EntityInterface"');
             }
+
+            ent.set(attributes);
 
             return ent;
 
