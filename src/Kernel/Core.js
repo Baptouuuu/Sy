@@ -114,21 +114,22 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
     registerControllers: {
         value: function (controllers) {
 
-            var registryFactory = this.container.get('sy::core::registry::factory');
+            var registryFactory = this.container.get('sy::core::registry::factory'),
+                mediator = this.container.get('sy::core::mediator');
 
-            this.actionBinder.setMediator(this.mediator);
+            this.actionBinder.setMediator(mediator);
 
             this.controllerManager
                 .setMetaRegistry(registryFactory.make())
                 .setLoadedControllersRegistry(registryFactory.make())
-                .setMediator(this.container.get('sy::core::mediator'))
+                .setMediator(mediator)
                 .setServiceContainer(this.container)
                 .setCache(this.config.get('controllers.cache'))
                 .setCacheLength(this.config.get('controllers.cacheLength'))
                 .setActionBinder(this.actionBinder);
 
             for (var i = 0, l = controllers.length; i < l; i++) {
-                ctrlManager.registerController(
+                this.controllerManager.registerController(
                     controllers[i].name,
                     controllers[i].creator
                 );
