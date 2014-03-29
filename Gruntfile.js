@@ -6,7 +6,7 @@ module.exports = function (grunt) {
         'src/ConfiguratorInterface.js',
         'src/ControllerInterface.js',
         'src/EntityInterface.js',
-        'src/FactoryInterface',
+        'src/FactoryInterface.js',
         'src/HTTP/RequestInterface.js',
         'src/HTTP/ResponseInterface.js',
         'src/Lib/Generator/Interface.js',
