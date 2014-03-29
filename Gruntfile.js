@@ -1,5 +1,94 @@
 module.exports = function (grunt) {
 
+    var frameworkFiles = [
+        'src/functions.js',
+        /* interfaces first */
+        'src/ConfiguratorInterface.js',
+        'src/ControllerInterface.js',
+        'src/EntityInterface.js',
+        'src/FactoryInterface',
+        'src/HTTP/RequestInterface.js',
+        'src/HTTP/ResponseInterface.js',
+        'src/Lib/Generator/Interface.js',
+        'src/Lib/Logger/Handler/Interface.js',
+        'src/Lib/Logger/Interface.js',
+        'src/QueueInterface.js',
+        'src/RegistryInterface.js',
+        'src/ServiceContainerInterface.js',
+        'src/Storage/RepositoryInterface.js',
+        'src/Storage/EngineInterface.js',
+        'src/Storage/StoreMapperInterface.js',
+        'src/TemplateEngineInterface.js',
+        'src/View/LayoutFactoryInterface.js',
+        'src/View/ListFactoryInterface.js',
+        'src/View/ViewScreenFactoryInterface.js',
+        /* kernel */
+        'src/Kernel/ActionBinder.js',
+        'src/Kernel/AppParser.js',
+        'src/Kernel/ControllerManager.js',
+        'src/Kernel/Core.js',
+        'src/Kernel/FeatureTester.js',
+        /* libs */
+        'src/Lib/Generator/UUID.js',
+        'src/Lib/Logger/CoreLogger.js',
+        'src/Lib/Logger/Handler/Console.js',
+        'src/Lib/Mediator.js',
+        /* http */
+        'src/HTTP/JSONRequest.js',
+        'src/HTTP/JSONResponse.js',
+        'src/HTTP/HeaderParser.js',
+        'src/HTTP/HTMLRequest.js',
+        'src/HTTP/HTMLResponse.js',
+        'src/HTTP/Manager.js',
+        'src/HTTP/Request.js',
+        'src/HTTP/Response.js',
+        'src/HTTP/REST.js',
+        /* storage */
+        'src/Storage/Core.js',
+        'src/Storage/Engine/IndexedDB.js',
+        'src/Storage/Engine/Localstorage.js',
+        'src/Storage/Engine/Rest.js',
+        'src/Storage/EngineFactory/AbstractFactory.js',
+        'src/Storage/EngineFactory/Core.js',
+        'src/Storage/EngineFactory/IndexedDBFactory.js',
+        'src/Storage/EngineFactory/LocalstorageFactory.js',
+        'src/Storage/EngineFactory/RestFactory.js',
+        'src/Storage/Manager.js',
+        'src/Storage/ManagerFactory.js',
+        'src/Storage/Repository.js',
+        'src/Storage/RepositoryFactory.js',
+        'src/Storage/StoreMapper/IndexedDBMapper.js',
+        'src/Storage/StoreMapper/LocalstorageMapper.js',
+        'src/Storage/StoreMapper/RestMapper.js',
+        'src/Storage/UnitOfWork.js',
+        'src/Storage/UnitOfWorkFactory.js',
+        /* view */
+        'src/View/Layout.js',
+        'src/View/LayoutFactory.js',
+        'src/View/List.js',
+        'src/View/ListFactory.js',
+        'src/View/Manager.js',
+        'src/View/NodeWrapper.js',
+        'src/View/Parser.js',
+        'src/View/TemplateEngine.js',
+        'src/View/ViewPort.js',
+        'src/View/ViewScreen.js',
+        'src/View/ViewScreenFactory.js',
+        /* top objects */
+        'src/Configurator.js',
+        'src/Controller.js',
+        'src/DOM.js',
+        'src/Entity.js',
+        'src/ParamProxy.js',
+        'src/Queue.js',
+        'src/QueueFactory.js',
+        'src/Registry.js',
+        'src/RegistryFactory.js',
+        'src/ServiceContainer.js',
+        'src/Translator.js',
+        'bootstrap.js'
+    ];
+
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         uglify: {
@@ -8,52 +97,16 @@ module.exports = function (grunt) {
             },
             build: {
                 files: {
-                    'framework.min.js': [
-                        'src/functions.js',
-                        'src/Lib/Generator/Interface.js',
-                        'src/Lib/Generator/UUID.js',
-                        'src/Lib/Logger/Handler/Interface.js',
-                        'src/Lib/Logger/Handler/Console.js',
-                        'src/Lib/Logger/Interface.js',
-                        'src/Lib/Logger/CoreLogger.js',
-                        'src/Lib/Mediator.js',
-                        'src/HTTP/RequestInterface.js',
-                        'src/HTTP/Request.js',
-                        'src/HTTP/HTMLRequest.js',
-                        'src/HTTP/JSONRequest.js',
-                        'src/HTTP/ResponseInterface.js',
-                        'src/HTTP/Response.js',
-                        'src/HTTP/HTMLResponse.js',
-                        'src/HTTP/JSONResponse.js',
-                        'src/HTTP/HeaderParser.js',
-                        'src/HTTP/Manager.js',
-                        'src/HTTP/REST.js',
-                        'src/Storage/Core.js',
-                        'src/Storage/EngineInterface.js',
-                        'src/Storage/EngineFactory.js',
-                        'src/Storage/Engine/IndexedDB.js',
-                        'src/Storage/Engine/Localstorage.js',
-                        'src/Storage/Engine/Rest.js',
-                        'src/Storage/Manager.js',
-                        'src/Storage/ManagerFactory.js',
-                        'src/Storage/RepositoryInterface.js',
-                        'src/Storage/Repository.js',
-                        'src/Storage/RepositoryFactory.js',
-                        'src/ConfiguratorInterface.js',
-                        'src/Configurator.js',
-                        'src/ControllerInterface.js',
-                        'src/Controller.js',
-                        'src/EntityInterface.js',
-                        'src/Entity.js',
-                        'src/FactoryInterface.js',
-                        'src/QueueInterface.js',
-                        'src/Queue.js',
-                        'src/RegistryInterface.js',
-                        'src/Registry.js',
-                        'src/ServiceContainerInterface.js',
-                        'src/ServiceContainer.js',
-                        'bootstrap.js'
-                    ]
+                    'dist/framework.min.js': frameworkFiles
+                }
+            },
+            concat: {
+                files: {
+                    'dist/framework.js': frameworkFiles
+                },
+                options: {
+                    mangle: false,
+                    beautify: true
                 }
             }
         },
@@ -246,6 +299,7 @@ module.exports = function (grunt) {
     require('load-grunt-tasks')(grunt);
 
     grunt.registerTask('default', ['bower-install']);
+    grunt.registerTask('build', ['jscs', 'uglify']);
     grunt.registerTask('test', [
         'jscs',
         'exec:test:lib',
