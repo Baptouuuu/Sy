@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Template • TodoMVC</title>
+		<link rel="stylesheet" href="vendor/todomvc-common/base.css">
+		<!-- CSS overrides - remove if you don't need it -->
+		<link rel="stylesheet" href="css/app.css">
+	</head>
+	<body>
+		<section class="viewport"></section>
+		<section id="todoapp" data-sy-view="main" data-sy-controller="Todo::Main">
+			<header id="header" data-sy-layout="header">
+				<h1>todos</h1>
+				<input id="new-todo" placeholder="What needs to be done?" autofocus data-sy-action="new|keyup">
+			</header>
+			<!-- This section should be hidden by default and shown when there are todos -->
+			<section id="main" data-sy-layout="main">
+				<input id="toggle-all" type="checkbox">
+				<label for="toggle-all">Mark all as complete</label>
+				<form action="#" data-sy-action="listChanges|change|submit|click">
+					<ul id="todo-list" data-sy-list="tasks">
+						<li class="{{ status }}" data-uuid="{{ uuid }}">
+							<div class="view">
+								<input class="toggle" type="checkbox" data-uuid="{{ uuid }}">
+								<label>{{ name }}</label>
+								<button class="destroy" data-uuid="{{ uuid }}"></button>
+							</div>
+							<input class="edit" value="{{ name }}" data-uuid="{{ uuid }}">
+						</li>
+					</ul>
+				</form>
+			</section>
+			<!-- This footer should hidden by default and shown when there are todos -->
+			<footer id="footer" data-sy-layout="footer">
+				<!-- This should be `0 items left` by default -->
+				<span id="todo-count"><strong>1</strong> item left</span>
+				<!-- Hidden if no completed items are left ↓ -->
+				<button id="clear-completed">Clear completed (1)</button>
+			</footer>
+		</section>
+		<footer id="info">
+			<p>Double-click to edit a todo</p>
+			<!-- Change this out with your name and url ↓ -->
+			<p>Created by <a href="http://github.com/Baptouuuu/Sy.com">Baptiste Langlade</a></p>
+			<p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
+		</footer>
+		<!-- Scripts here. Don't remove this ↓ -->
+		<script src="../vendor/underscore/underscore-min.js"></script>
+		<script src="../vendor/moment/moment.js"></script>
+		<script src="../vendor/Reflection.js/reflection.min.js"></script>
+		<script src="../dist/framework.js"></script>
+		<script src="vendor/todomvc-common/base.js"></script>
+		<script src="js/App/Bundle/Todo/Controller/Main.js"></script>
+		<script src="js/App/Bundle/Todo/Entity/Task.js"></script>
+		<script src="js/app.js"></script>
+	</body>
+</html>
