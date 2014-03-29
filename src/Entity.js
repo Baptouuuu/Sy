@@ -61,7 +61,11 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
     get: {
         value: function (attr) {
 
-            return this.attributes[attr];
+            if (attr === undefined) {
+                return this.attributes;
+            } else {
+                return this.attributes[attr];
+            }
 
         }
     },
