@@ -32,7 +32,7 @@ Sy.Storage.EngineFactory.LocalstorageFactory.prototype = Object.create(Sy.Storag
                 engine.setStore(
                     stores[i].alias,
                     stores[i].name,
-                    stores[i].indetifier,
+                    stores[i].identifier,
                     stores[i].indexes
                 );
             }

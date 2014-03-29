@@ -32,7 +32,7 @@ Sy.Storage.EngineFactory.IndexedDBFactory.prototype = Object.create(Sy.Storage.E
                 engine.setStore(
                     stores[i].alias,
                     stores[i].name,
-                    stores[i].indetifier,
+                    stores[i].identifier,
                     stores[i].indexes
                 );
             }

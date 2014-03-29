@@ -55,7 +55,7 @@ Sy.Storage.EngineFactory.RestFactory.prototype = Object.create(Sy.Storage.Engine
                 engine.setStore(
                     stores[i].alias,
                     stores[i].name,
-                    stores[i].indetifier,
+                    stores[i].identifier,
                     stores[i].indexes
                 );
             }
