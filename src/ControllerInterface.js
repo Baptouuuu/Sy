@@ -131,6 +131,17 @@ Sy.ControllerInterface.prototype = Object.create(Object.prototype, {
 
     setViewScreen: {
         value: function (viewscreen) {}
+    },
+
+    /**
+     * Notify the controller it's fully loaded
+     * Can be used to retrieve needed dependencies
+     *
+     * @return {Sy.ControllerInterface}
+     */
+
+    init: {
+        value: function () {}
     }
 
 });

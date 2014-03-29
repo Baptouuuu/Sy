@@ -226,7 +226,8 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
                     .setBundle(bundleName)
                     .setMediator(this.mediator)
                     .setServiceContainer(this.container)
-                    .setViewScreen(viewscreen);
+                    .setViewScreen(viewscreen)
+                    .init();
 
                 this.cacheController(ctrl, instance);
                 this.actionBinder.bind(instance, viewscreen);
