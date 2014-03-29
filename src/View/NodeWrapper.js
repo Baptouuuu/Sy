@@ -86,6 +86,34 @@ Sy.View.NodeWrapper.prototype = Object.create(Object.prototype, {
             return this;
 
         }
+    },
+
+    /**
+     * Find one element in the node tree matching the given selector
+     *
+     * @param {String} selector Css selector
+     *
+     * @return {HTMLElement|null}
+     */
+
+    findOne: {
+        value: function (selector) {
+            return this.node.querySelector(selector);
+        }
+    },
+
+    /**
+     * Find a set of elements in the node tree matching the given selector
+     *
+     * @param {String} selector Css selector
+     *
+     * @return {NodeList}
+     */
+
+    find: {
+        value: function (selector) {
+            return this.querySelectorAll(selector);
+        }
     }
 
 });
