@@ -39,6 +39,8 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
                     .append(tasks[i].get());
             }
 
+            this.computeCheckboxes();
+
         }
     },
 
@@ -72,10 +74,17 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
 
             var n = event.target;
 
-            event.preventDefault();
+            if (event.type === 'submit') {
+                event.preventDefault();
+            }
 
             if (event.type === 'change' && n.classList.contains('toggle')) {
-                this.toggleStatus(n);
+                this.toggleStatus(
+                    n.dataset.uuid,
+                    n.checked ?
+                        'COMPLETED' :
+                        'ACTIVE'
+                );
             } else if (event.type === 'click') {
                 if (n.classList.contains('destroy')) {
                     this.removeTask(n);
@@ -86,17 +95,13 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
     },
 
     toggleStatus: {
-        value: function (n) {
+        value: function (uuid, status) {
 
-            var t = this.tasks.get(n.dataset.uuid);
+            var t = this.tasks.get(uuid);
 
-            event.preventDefault();
-
-            if (n.checked) {
-                t.set('status', t.COMPLETED);
-            } else {
-                t.set('status', t.ACTIVE);
-            }
+            t.set('status', t[status]);
+            this.repo.persist(t);
+            this.repo.flush();
 
             this.templating.render(
                 this.viewscreen
@@ -120,6 +125,50 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
             this.repo.remove(t);
             this.repo.flush();
             list.getNode().removeChild(node);
+
+        }
+    },
+
+    markAllAsReadAction: {
+        value: function (event) {
+
+            var n = event.target,
+                checkboxes,
+                status;
+
+            if (n.checked) {
+                status = 'COMPLETED';
+            } else {
+                status = 'ACTIVE';
+            }
+
+            this.tasks.get().forEach(function (task) {
+                this.toggleStatus(
+                    task.get('uuid'),
+                    status
+                );
+            }, this);
+
+            this.computeCheckboxes();
+        }
+    },
+
+    computeCheckboxes: {
+        value: function () {
+
+            var checkboxes = this.viewscreen
+                .getLayout('main')
+                .getList('tasks')
+                .find('.toggle'),
+                task;
+
+            for (var i = 0, l = checkboxes.length; i < l; i++) {
+                task = this.tasks.get(checkboxes[i].dataset.uuid);
+
+                checkboxes[i].checked = task.get('status') === task.COMPLETED ?
+                    true :
+                    false;
+            }
 
         }
     }

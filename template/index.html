@@ -16,7 +16,7 @@
 			</header>
 			<!-- This section should be hidden by default and shown when there are todos -->
 			<section id="main" data-sy-layout="main">
-				<input id="toggle-all" type="checkbox">
+				<input id="toggle-all" type="checkbox" data-sy-action="markAllAsRead|change">
 				<label for="toggle-all">Mark all as complete</label>
 				<form action="#" data-sy-action="listChanges|change|submit|click">
 					<ul id="todo-list" data-sy-list="tasks">
