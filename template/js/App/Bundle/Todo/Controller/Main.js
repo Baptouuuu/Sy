@@ -17,6 +17,28 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
                 .getRepository('Todo::Task');
             this.templating = this.container
                 .get('sy::core::view::template::engine');
+            this.repo.findBy({
+                index: 'uuid',
+                value: [''],
+                callback: this.loadPreviousTasks.bind(this)
+            });
+        }
+    },
+
+    loadPreviousTasks: {
+        value: function (tasks) {
+
+            for (var i = 0, l = tasks.length; i < l; i++) {
+                this.tasks.set(
+                    tasks[i].get('uuid'),
+                    tasks[i]
+                );
+                this.viewscreen
+                    .getLayout('main')
+                    .getList('tasks')
+                    .append(tasks[i].get());
+            }
+
         }
     },
 
