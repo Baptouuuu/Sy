@@ -112,7 +112,7 @@ Sy.View.NodeWrapper.prototype = Object.create(Object.prototype, {
 
     find: {
         value: function (selector) {
-            return this.querySelectorAll(selector);
+            return this.node.querySelectorAll(selector);
         }
     }
 
