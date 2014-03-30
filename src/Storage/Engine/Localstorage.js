@@ -290,7 +290,7 @@ Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterf
 
             store = this.stores[store];
 
-            var key = this.stores[store].key;
+            var key = store.key;
 
             this.mediator.publish(
                 this.storageKey + '::on::pre::remove',
