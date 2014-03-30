@@ -137,6 +137,8 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
             this.repo.flush();
             list.getNode().removeChild(node);
 
+            this.updateFooter();
+
         }
     },
 
@@ -227,8 +229,6 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
                     this.removeTask(task.get('uuid'));
                 }
             }, this);
-
-            this.updateFooter();
 
         }
     },
