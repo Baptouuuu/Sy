@@ -89,7 +89,7 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
                 );
             } else if (event.type === 'click') {
                 if (n.classList.contains('destroy')) {
-                    this.removeTask(n);
+                    this.removeTask(n.dataset.uuid);
                 }
             }
 
@@ -118,9 +118,9 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
     },
 
     removeTask: {
-        value: function (n) {
+        value: function (uuid) {
 
-            var t = this.tasks.get(n.dataset.uuid),
+            var t = this.tasks.get(uuid),
                 list = this.viewscreen.getLayout('main').getList('tasks'),
                 node = list.findOne('li[data-uuid="' + t.get('uuid') + '"]');
 
@@ -203,6 +203,24 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
                 left: left.toString(),
                 completed: completed.toString()
             });
+
+        }
+    },
+
+    removeAllAction: {
+        value: function (event) {
+
+            if (this.tasks.length() === 0) {
+                return;
+            }
+
+            this.tasks.get().forEach(function (task) {
+                if (task.get('status') === task.COMPLETED) {
+                    this.removeTask(task.get('uuid'));
+                }
+            }, this);
+
+            this.updateFooter();
 
         }
     }
