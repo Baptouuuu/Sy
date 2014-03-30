@@ -14,16 +14,15 @@
 				<h1>todos</h1>
 				<input id="new-todo" placeholder="What needs to be done?" autofocus data-sy-action="new|keyup">
 			</header>
-			<!-- This section should be hidden by default and shown when there are todos -->
 			<section id="main" data-sy-layout="main">
 				<input id="toggle-all" type="checkbox" data-sy-action="markAllAsRead|change">
 				<label for="toggle-all">Mark all as complete</label>
-				<form action="#" data-sy-action="listChanges|change|submit|click">
+				<form action="#" data-sy-action="listChanges|change|submit|click|dblclick">
 					<ul id="todo-list" data-sy-list="tasks">
 						<li class="{{ status }}" data-uuid="{{ uuid }}">
 							<div class="view">
 								<input class="toggle" type="checkbox" data-uuid="{{ uuid }}">
-								<label>{{ name }}</label>
+								<label data-uuid="{{uuid}}">{{ name }}</label>
 								<button class="destroy" data-uuid="{{ uuid }}"></button>
 							</div>
 							<input class="edit" value="{{ name }}" data-uuid="{{ uuid }}">
@@ -31,11 +30,8 @@
 					</ul>
 				</form>
 			</section>
-			<!-- This footer should hidden by default and shown when there are todos -->
 			<footer id="footer" class="hidden" data-sy-layout="footer">
-				<!-- This should be `0 items left` by default -->
 				<span id="todo-count"><strong>{{ left }}</strong> item left</span>
-				<!-- Hidden if no completed items are left ↓ -->
 				<button id="clear-completed" data-sy-action="removeAll|click">Clear completed ({{ completed }})</button>
 			</footer>
 		</section>

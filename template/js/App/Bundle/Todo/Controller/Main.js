@@ -78,6 +78,7 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
 
             if (event.type === 'submit') {
                 event.preventDefault();
+                this.resetUI();
             }
 
             if (event.type === 'change' && n.classList.contains('toggle')) {
@@ -91,6 +92,13 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
                 if (n.classList.contains('destroy')) {
                     this.removeTask(n.dataset.uuid);
                 }
+            } else if (event.type === 'dblclick') {
+                if (n.nodeName === 'LABEL') {
+                    this.toggleTaskEdit(n.dataset.uuid);
+                }
+            } else if (event.type === 'change' && n.classList.contains('edit')) {
+                this.toggleTaskEdit(n.dataset.uuid);
+                this.updateTask(n.dataset.uuid, n.value);
             }
 
         }
@@ -221,6 +229,52 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
             }, this);
 
             this.updateFooter();
+
+        }
+    },
+
+    toggleTaskEdit: {
+        value: function (uuid) {
+
+            var el = this.viewscreen
+                .getLayout('main')
+                .getList('tasks')
+                .findOne('li[data-uuid="' + uuid + '"]');
+
+            el.classList.toggle('editing');
+
+        }
+    },
+
+    updateTask: {
+        value: function (uuid, value) {
+
+            var task = this.tasks.get(uuid),
+                el = this.viewscreen
+                .getLayout('main')
+                .getList('tasks')
+                .findOne('li[data-uuid="' + uuid + '"]');
+
+            task.set('name', value);
+            this.templating.render(el, task.get());
+
+            this.repo.persist(task);
+            this.repo.flush();
+
+        }
+    },
+
+    resetUI: {
+        value: function () {
+
+            var els = this.viewscreen
+                .getLayout('main')
+                .getList('tasks')
+                .find('.editing');
+
+            for (var i = 0, l = els.length; i < l; i++) {
+                els[i].classList.remove('editing');
+            }
 
         }
     }
