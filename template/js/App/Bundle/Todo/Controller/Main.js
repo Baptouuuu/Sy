@@ -101,6 +101,8 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
                 this.updateTask(n.dataset.uuid, n.value);
             }
 
+            this.repo.flush();
+
         }
     },
 
@@ -111,7 +113,6 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
 
             t.set('status', t[status]);
             this.repo.persist(t);
-            this.repo.flush();
 
             this.templating.render(
                 this.viewscreen
@@ -134,7 +135,6 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
 
             this.tasks.remove(t.get('uuid'));
             this.repo.remove(t);
-            this.repo.flush();
             list.getNode().removeChild(node);
 
             this.updateFooter();
@@ -163,6 +163,7 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
             }, this);
 
             this.computeCheckboxes();
+            this.repo.flush();
         }
     },
 
@@ -229,6 +230,7 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
                     this.removeTask(task.get('uuid'));
                 }
             }, this);
+            this.repo.flush();
 
         }
     },
