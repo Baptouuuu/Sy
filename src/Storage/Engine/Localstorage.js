@@ -172,13 +172,13 @@ Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterf
      */
 
     read: {
-        value: function (store, identifier, callback) {
+        value: function (storeName, identifier, callback) {
 
-            if (!this.stores[store]) {
+            if (!this.stores[storeName]) {
                 throw new ReferenceError('Unknown store');
             }
 
-            store = this.stores[store];
+            var store = this.stores[storeName];
 
             if (this.data[store.path][identifier]) {
                 setTimeout(
@@ -198,19 +198,19 @@ Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterf
      */
 
     create: {
-        value: function (store, object, callback) {
+        value: function (storeName, object, callback) {
 
-            if (!this.stores[store]) {
+            if (!this.stores[storeName]) {
                 throw new ReferenceError('Unknown store');
             }
 
-            store = this.stores[store];
+            var store = this.stores[storeName];
 
             var key = store.key;
 
             this.mediator.publish(
                 this.storageKey + '::on::pre::create',
-                store,
+                storeName,
                 object
             );
 
@@ -220,7 +220,7 @@ Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterf
 
             this.mediator.publish(
                 this.storageKey + '::on::post::create',
-                store,
+                storeName,
                 object
             );
 
@@ -240,17 +240,17 @@ Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterf
      */
 
     update: {
-        value: function (store, identifier, object, callback) {
+        value: function (storeName, identifier, object, callback) {
 
-            if (!this.stores[store]) {
+            if (!this.stores[storeName]) {
                 throw new ReferenceError('Unknown store');
             }
 
-            store = this.stores[store];
+            var store = this.stores[storeName];
 
             this.mediator.publish(
                 this.storageKey + '::on::pre::update',
-                store,
+                storeName,
                 identifier,
                 object
             );
@@ -261,7 +261,7 @@ Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterf
 
             this.mediator.publish(
                 this.storageKey + '::on::post::update',
-                store,
+                storeName,
                 identifier,
                 object
             );
@@ -282,19 +282,19 @@ Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterf
      */
 
     remove: {
-        value: function (store, identifier, callback) {
+        value: function (storeName, identifier, callback) {
 
-            if (!this.stores[store]) {
+            if (!this.stores[storeName]) {
                 throw new ReferenceError('Unknown store');
             }
 
-            store = this.stores[store];
+            var store = this.stores[storeName];
 
             var key = store.key;
 
             this.mediator.publish(
                 this.storageKey + '::on::pre::remove',
-                store,
+                storeName,
                 identifier
             );
 
@@ -304,7 +304,7 @@ Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterf
 
             this.mediator.publish(
                 this.storageKey + '::on::post::remove',
-                store,
+                storeName,
                 identifier
             );
 

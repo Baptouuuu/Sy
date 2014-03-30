@@ -108,13 +108,13 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
      */
 
     read: {
-        value: function (store, identifier, callback) {
+        value: function (storeName, identifier, callback) {
 
-            if (!this.stores[store]) {
+            if (!this.stores[storeName]) {
                 throw new ReferenceError('Unknown store');
             }
 
-            var meta = this.stores[store];
+            var meta = this.stores[storeName];
 
             this.manager.get({
                 uri: this.basePath
@@ -137,18 +137,18 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
      */
 
     create: {
-        value: function (store, object, callback) {
+        value: function (storeName, object, callback) {
 
-            if (!this.stores[store]) {
+            if (!this.stores[storeName]) {
                 throw new ReferenceError('Unknown store');
             }
 
-            var meta = this.stores[store];
+            var meta = this.stores[storeName];
 
             this.mediator.publish(
                 'app::storage::on::pre::create',
                 this.basePath,
-                store,
+                storeName,
                 object
             );
 
@@ -164,7 +164,7 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
                     this.mediator.publish(
                         'app::storage::on::post::create',
                         this.basePath,
-                        store,
+                        storeName,
                         object
                     );
 
@@ -181,18 +181,18 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
      */
 
     update: {
-        value: function (store, identifier, object, callback) {
+        value: function (storeName, identifier, object, callback) {
 
-            if (!this.stores[store]) {
+            if (!this.stores[storeName]) {
                 throw new ReferenceError('Unknown store');
             }
 
-            var meta = this.stores[store];
+            var meta = this.stores[storeName];
 
             this.mediator.publish(
                 'app::storage::on::pre::update',
                 this.basePath,
-                store,
+                storeName,
                 identifier,
                 object
             );
@@ -209,7 +209,7 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
                     this.mediator.publish(
                         'app::storage::on::post::update',
                         this.basePath,
-                        store,
+                        storeName,
                         identifier,
                         object
                     );
@@ -227,18 +227,18 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
      */
 
     remove: {
-        value: function (store, identifier, callback) {
+        value: function (storeName, identifier, callback) {
 
-            if (!this.stores[store]) {
+            if (!this.stores[storeName]) {
                 throw new ReferenceError('Unknown store');
             }
 
-            var meta = this.stores[store];
+            var meta = this.stores[storeName];
 
             this.mediator.publish(
                 'app::storage::on::pre::remove',
                 this.basePath,
-                store,
+                storeName,
                 identifier
             );
 
@@ -253,7 +253,7 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
                     this.mediator.publish(
                         'app::storage::on::post::remove',
                         this.basePath,
-                        store,
+                        storeName,
                         identifier
                     );
 

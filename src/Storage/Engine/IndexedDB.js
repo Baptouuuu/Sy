@@ -264,13 +264,13 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
      */
 
     read: {
-        value: function (store, identifier, callback) {
+        value: function (storeName, identifier, callback) {
 
-            if (!this.stores[store]) {
+            if (!this.stores[storeName]) {
                 throw new ReferenceError('Invalid store');
             }
 
-            store = this.stores[store];
+            var store = this.stores[storeName];
 
             try {
 
@@ -305,19 +305,19 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
      */
 
     create: {
-        value: function (store, object, callback) {
+        value: function (storeName, object, callback) {
 
-            if (!this.stores[store]) {
+            if (!this.stores[storeName]) {
                 throw new ReferenceError('Invalid store');
             }
 
-            store = this.stores[store];
+            var store = this.stores[storeName];
 
             try {
 
                 this.mediator.publish(
                     this.name + '::on::pre::create',
-                    store,
+                    storeName,
                     object
                 );
 
@@ -332,7 +332,7 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
                     callback(event.target.result);
                     this.mediator.publish(
                         this.name + '::on::post::create',
-                        store,
+                        storeName,
                         object
                     );
                 }.bind(this));
@@ -357,19 +357,19 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
      */
 
     update: {
-        value: function (store, identifier, object, callback) {
+        value: function (storeName, identifier, object, callback) {
 
-            if (!this.stores[store]) {
+            if (!this.stores[storeName]) {
                 throw new ReferenceError('Invalid store');
             }
 
-            store = this.stores[store];
+            var store = this.stores[storeName];
 
             try {
 
                 this.mediator.publish(
                     this.name + '::on::pre::update',
-                    store,
+                    storeName,
                     identifier,
                     object
                 );
@@ -385,7 +385,7 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
                     callback(event.target.result);
                     this.mediator.publish(
                         this.name + '::on::post::update',
-                        store,
+                        storeName,
                         identifier,
                         object
                     );
@@ -411,19 +411,19 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
      */
 
     remove: {
-        value: function (store, identifier, callback) {
+        value: function (storeName, identifier, callback) {
 
-            if (!this.stores[store]) {
+            if (!this.stores[storeName]) {
                 throw new ReferenceError('Invalid store');
             }
 
-            store = this.stores[store];
+            var store = this.stores[storeName];
 
             try {
 
                 this.mediator.publish(
                     this.name + '::on::pre::remove',
-                    store,
+                    storeName,
                     identifier
                 );
 
@@ -438,7 +438,7 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
                     callback(event.target.result);
                     this.mediator.publish(
                         this.name + '::on::post::remove',
-                        store,
+                        storeName,
                         identifier
                     );
                 });
