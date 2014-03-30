@@ -40,6 +40,7 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
             }
 
             this.computeCheckboxes();
+            this.updateFooter();
 
         }
     },
@@ -64,6 +65,7 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
                     .getLayout('main')
                     .getList('tasks')
                     .append(t.get());
+                this.updateFooter();
             }
 
         }
@@ -110,6 +112,7 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
                     .findOne('li[data-uuid="' + t.get('uuid') + '"]'),
                 t.get()
             );
+            this.updateFooter();
 
         }
     },
@@ -169,6 +172,37 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
                     true :
                     false;
             }
+
+        }
+    },
+
+    updateFooter: {
+        value: function () {
+
+            var left = 0,
+                completed = 0,
+                tasks = this.tasks.get(),
+                footer = this.viewscreen.getLayout('footer');
+
+            if (tasks.length === 0) {
+                footer.getNode().classList.add('hidden');
+                return;
+            } else {
+                footer.getNode().classList.remove('hidden');
+            }
+
+            for (var i = 0, l = tasks.length; i < l; i++) {
+                if (tasks[i].get('status') === tasks[i].COMPLETED) {
+                    completed++;
+                } else {
+                    left++;
+                }
+            }
+
+            footer.render({
+                left: left.toString(),
+                completed: completed.toString()
+            });
 
         }
     }
