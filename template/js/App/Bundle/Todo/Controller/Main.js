@@ -118,6 +118,7 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
 
             this.tasks.remove(t.get('uuid'));
             this.repo.remove(t);
+            this.repo.flush();
             list.getNode().removeChild(node);
 
         }
