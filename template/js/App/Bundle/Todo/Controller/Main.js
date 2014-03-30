@@ -88,9 +88,11 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
                         'COMPLETED' :
                         'ACTIVE'
                 );
+                this.repo.flush();
             } else if (event.type === 'click') {
                 if (n.classList.contains('destroy')) {
                     this.removeTask(n.dataset.uuid);
+                    this.repo.flush();
                 }
             } else if (event.type === 'dblclick') {
                 if (n.nodeName === 'LABEL') {
@@ -99,9 +101,9 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
             } else if (event.type === 'change' && n.classList.contains('edit')) {
                 this.toggleTaskEdit(n.dataset.uuid);
                 this.updateTask(n.dataset.uuid, n.value);
+                this.repo.flush();
             }
 
-            this.repo.flush();
 
         }
     },
@@ -261,7 +263,6 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
             this.templating.render(el, task.get());
 
             this.repo.persist(task);
-            this.repo.flush();
 
         }
     },
