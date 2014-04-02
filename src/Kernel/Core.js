@@ -64,7 +64,8 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
             this
                 .registerServices(parser.getServices())
                 .registerControllers(parser.getControllers())
-                .configureLogger();
+                .configureLogger()
+                .registerShutdownListener();
 
         }
     },
@@ -164,6 +165,30 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
             return this;
 
+        }
+    },
+
+    /**
+     * Add a `beforeunload` on the window to fire a channel to notify the app
+     * it's being closed, so it can be properly shutdown
+     *
+     * @return {Sy.Kernel.Core}
+     */
+
+    registerShutdownListener: {
+        value: function () {
+            window.addEventListener('beforeunload', function (event) {
+                try {
+                    this.container.get('sy::core::mediator').publish(
+                        'app::shutdown',
+                        event
+                    );
+                } catch (error) {
+                    return error.message;
+                }
+            }.bind(this), false);
+
+            return this;
         }
     }
 
