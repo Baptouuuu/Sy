@@ -1,5 +1,6 @@
 /**
  * @venus-library jasmine
+ * @venus-include ../vendor/Reflection.js/reflection.min.js
  * @venus-code ../src/functions.js
  */
 
@@ -51,6 +52,41 @@ describe('functions', function () {
         objectSetter.call(obj, 'foo.bar.baz', 'foobar');
 
         expect(obj.foo.bar.baz).toEqual('foobar');
+    });
+
+    it('should return the value via the specific getter', function () {
+        var mock = function () {this.foo = 24;},
+            data = {};
+
+        mock.prototype = Object.create(Object.prototype, {
+            getFoo: {value: function () {return 42;}}
+        });
+
+        data.bar = new mock();
+
+        expect(reflectedObjectGetter.call(data, 'bar.foo')).toEqual(42);
+    });
+
+    it('should return the value via the generic getter', function () {
+        var mock = function () {this.foo = 24;},
+            data = {};
+
+        mock.prototype = Object.create(Object.prototype, {
+            get: {value: function (prop) {return prop;}}
+        });
+
+        data.bar = new mock();
+
+        expect(reflectedObjectGetter.call(data, 'bar.foo')).toEqual('foo');
+    });
+
+    it('should return the value via the property', function () {
+        var mock = function () {this.foo = 24;},
+            data = {};
+
+        data.bar = new mock();
+
+        expect(reflectedObjectGetter.call(data, 'bar.foo')).toEqual(24);
     });
 
 });
