@@ -10,7 +10,7 @@
         </div>
         <div class="render-dataset" data-foo="{{ element }}"></div>
         <div class="render-nested-object">
-            {{ root.attribute }}
+            {{ root.attribute.foo }} {{ root.attribute.bar }} {{ root.attribute.baz }}
         </div>
         <div class="render-multiple-placeholders">
             {{ foo }} and {{ bar }}

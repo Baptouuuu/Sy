@@ -1,5 +1,6 @@
 /**
  * @venus-library jasmine
+ * @venus-include ../../vendor/Reflection.js/reflection.min.js
  * @venus-include ../../src/functions.js
  * @venus-include ../../src/RegistryInterface.js
  * @venus-include ../../src/Registry.js
@@ -64,23 +65,44 @@ describe('view template engine', function () {
     });
 
     it('should render node with nested data', function () {
-        var node = document.querySelector('.render-nested-object');
+        var node = document.querySelector('.render-nested-object'),
+            mock = function () {this.foo = 42;};
 
-        engine.render(node, {
-            root: {
-                attribute: 42
+        mock.prototype = Object.create(Object.prototype, {
+            getBar: {
+                value: function () {
+                    return 42;
+                }
+            },
+            get: {
+                value: function (prop) {
+                    if (prop === 'foo') {
+                        return this.foo;
+                    } else {
+                        return prop;
+                    }
+                }
             }
         });
 
-        expect(node.textContent).toEqual('42');
-
         engine.render(node, {
             root: {
-                attribute: 24
+                attribute: new mock()
             }
         });
 
-        expect(node.textContent).toEqual('24');
+        expect(node.textContent).toEqual('42 42 baz');
+
+        var d = new mock();
+        d.foo = 24;
+
+        engine.render(node, {
+            root: {
+                attribute: d
+            }
+        });
+
+        expect(node.textContent).toEqual('24 42 baz');
 
     });
 

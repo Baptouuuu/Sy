@@ -188,7 +188,7 @@ Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface
                 var results = this.PATTERN.exec(source);
 
                 if (results !== null && results.length >= 1) {
-                    source = source.replace(results[0], objectGetter.call(data, results[1]) || '');
+                    source = source.replace(results[0], reflectedObjectGetter.call(data, results[1]) || '');
                 }
             }
 

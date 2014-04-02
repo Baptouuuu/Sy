@@ -49,7 +49,13 @@ Sy.Lib.Mediator.prototype = Object.create(Object.prototype, {
 
             }
 
-            return this.channels[options.channel].add(options.fn, options.context, options.priority, options.async);
+            return this.channels[options.channel].add(
+                options.fn,
+                options.context,
+                options.priority,
+                options.async,
+                options.bubbles
+            );
 
         }
 
@@ -264,10 +270,11 @@ Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
      * @param {object} context Callback context
      * @param {integer} priority
      * @param {boolean} async
+     * @param {boolean} bubbles Set to true if you want errors to bubbles up (otherwise it's catched by the library)
      */
 
     add: {
-        value: function (fn, context, priority, async) {
+        value: function (fn, context, priority, async, bubbles) {
 
             var guid = this.generator.generate();
 
@@ -276,6 +283,7 @@ Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
                 context: context || window,
                 priority: priority || 1,
                 async: !!async,
+                bubbles: !!bubbles,
                 stopped: false
             };
 
@@ -365,6 +373,10 @@ Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
                             this.logger.error(error.message, error);
                         }
 
+                        if (subscriber.bubbles === true) {
+                            throw error;
+                        }
+
                     }
 
                 }
@@ -435,17 +447,7 @@ Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
     subscriberCall: {
         value: function (self, fn, context, args) {
 
-            try {
-
-                fn.apply(context, args);
-
-            } catch (error) {
-
-                if (self.logger) {
-                    self.logger.error(error.message, error);
-                }
-
-            }
+            fn.apply(context, args);
 
         }
     },
