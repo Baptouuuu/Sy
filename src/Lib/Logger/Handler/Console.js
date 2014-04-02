@@ -90,6 +90,8 @@ Sy.Lib.Logger.Handler.Console.prototype = Object.create(Sy.Lib.Logger.Handler.In
                 var output = '[' + moment().format('YYYY-M-D hh:mm:ss') + ']',
                     extra = data || [];
 
+                message = message || '';
+
                 output += ' ' + name + '.' + level.toUpperCase();
                 output += ' ' + message.toString();
 
