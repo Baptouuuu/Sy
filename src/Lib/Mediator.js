@@ -435,17 +435,7 @@ Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
     subscriberCall: {
         value: function (self, fn, context, args) {
 
-            try {
-
-                fn.apply(context, args);
-
-            } catch (error) {
-
-                if (self.logger) {
-                    self.logger.error(error.message, error);
-                }
-
-            }
+            fn.apply(context, args);
 
         }
     },
