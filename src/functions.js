@@ -142,7 +142,7 @@ function reflectedObjectGetter (ns) {
         } else {
             return undefined;
         }
-    }
+    };
 
     if (typeof ns === 'string') {
         namespaces = ns.split('.');
