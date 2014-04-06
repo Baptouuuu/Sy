@@ -13,6 +13,28 @@ App.Bundle.Todo.Entity.Task.prototype = Object.create(Sy.Entity.prototype, {
     ACTIVE: {
         value: 'active',
         writable: false
+    },
+
+    setCompleted: {
+        value: function () {
+            this.set('status', this.COMPLETED);
+
+            return this;
+        }
+    },
+
+    setActive: {
+        value: function () {
+            this.set('status', this.ACTIVE);
+
+            return this;
+        }
+    },
+
+    isCompleted: {
+        value: function () {
+            return this.get('status') === this.COMPLETED;
+        }
     }
 
 });

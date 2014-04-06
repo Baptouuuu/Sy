@@ -18,7 +18,7 @@
 
         Sy.kernel.getServiceContainer()
             .get('sy::core::viewport')
-            .display('main');
+            .display('Todo::Main');
         Sy.kernel.getServiceContainer()
             .get('listener::repo::task')
             .boot();

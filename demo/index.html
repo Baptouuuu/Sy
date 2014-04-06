@@ -9,7 +9,7 @@
 	</head>
 	<body>
 		<section class="viewport"></section>
-		<section id="todoapp" data-sy-view="main" data-sy-controller="Todo::Main">
+		<section id="todoapp" data-sy-view="Todo::Main" data-sy-controller="Todo::Main">
 			<header id="header" data-sy-layout="header">
 				<h1>todos</h1>
 				<input id="new-todo" placeholder="What needs to be done?" autofocus data-sy-action="new|keyup">
@@ -48,6 +48,7 @@
 		<script src="../dist/framework.js"></script>
 		<script src="vendor/todomvc-common/base.js"></script>
 		<script src="js/App/Bundle/Todo/Controller/Main.js"></script>
+		<script src="js/App/Bundle/Todo/ViewScreen/Main.js"></script>
 		<script src="js/App/Bundle/Todo/Entity/Task.js"></script>
 		<script src="js/App/Bundle/Todo/Config/Service.js"></script>
 		<script src="js/App/Bundle/Todo/Service/TaskRepoListener.js"></script>

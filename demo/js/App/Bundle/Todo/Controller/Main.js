@@ -4,7 +4,6 @@ App.Bundle.Todo.Controller.Main = function () {
     Sy.Controller.call(this);
     this.tasks = null;
     this.repo = null;
-    this.templating = null;
 };
 App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototype, {
 
@@ -15,8 +14,6 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
                 .get('sy::core::storage')
                 .getManager()
                 .getRepository('Todo::Task');
-            this.templating = this.container
-                .get('sy::core::view::template::engine');
             this.repo.findBy({
                 index: 'uuid',
                 value: [''],
@@ -33,14 +30,9 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
                     tasks[i].get('uuid'),
                     tasks[i]
                 );
-                this.viewscreen
-                    .getLayout('main')
-                    .getList('tasks')
-                    .append(tasks[i].get());
             }
 
-            this.computeCheckboxes();
-            this.updateFooter();
+            this.viewscreen.prependTasks(tasks);
 
         }
     },
@@ -60,12 +52,8 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
                     t.get('uuid'),
                     t
                 );
-                event.target.value = null;
-                this.viewscreen
-                    .getLayout('main')
-                    .getList('tasks')
-                    .append(t.get());
-                this.updateFooter();
+                this.viewscreen.prependTask(t);
+                this.viewscreen.updateFooter(this.tasks.get());
             }
 
         }
@@ -78,16 +66,12 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
 
             if (event.type === 'submit') {
                 event.preventDefault();
-                this.resetUI();
+                this.viewscreen.resetUI();
             }
 
             if (event.type === 'change' && n.classList.contains('toggle')) {
-                this.toggleStatus(
-                    n.dataset.uuid,
-                    n.checked ?
-                        'COMPLETED' :
-                        'ACTIVE'
-                );
+                this.toggleStatus(n.dataset.uuid, n.checked);
+                this.viewscreen.updateFooter(this.tasks.get());
                 this.repo.flush();
             } else if (event.type === 'click') {
                 if (n.classList.contains('destroy')) {
@@ -96,10 +80,10 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
                 }
             } else if (event.type === 'dblclick') {
                 if (n.nodeName === 'LABEL') {
-                    this.toggleTaskEdit(n.dataset.uuid);
+                    this.viewscreen.toggleTaskEdit(n.dataset.uuid);
                 }
             } else if (event.type === 'change' && n.classList.contains('edit')) {
-                this.toggleTaskEdit(n.dataset.uuid);
+                this.viewscreen.toggleTaskEdit(n.dataset.uuid);
                 this.updateTask(n.dataset.uuid, n.value);
                 this.repo.flush();
             }
@@ -109,21 +93,18 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
     },
 
     toggleStatus: {
-        value: function (uuid, status) {
+        value: function (uuid, checked) {
 
             var t = this.tasks.get(uuid);
 
-            t.set('status', t[status]);
+            if (checked) {
+                t.setCompleted();
+            } else {
+                t.setActive();
+            }
             this.repo.persist(t);
 
-            this.templating.render(
-                this.viewscreen
-                    .getLayout('main')
-                    .getList('tasks')
-                    .findOne('li[data-uuid="' + t.get('uuid') + '"]'),
-                t.get()
-            );
-            this.updateFooter();
+            this.viewscreen.updateTask(t);
 
         }
     },
@@ -131,15 +112,13 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
     removeTask: {
         value: function (uuid) {
 
-            var t = this.tasks.get(uuid),
-                list = this.viewscreen.getLayout('main').getList('tasks'),
-                node = list.findOne('li[data-uuid="' + t.get('uuid') + '"]');
+            var t = this.tasks.get(uuid);
 
             this.tasks.remove(t.get('uuid'));
             this.repo.remove(t);
-            list.getNode().removeChild(node);
+            this.viewscreen.removeTask(uuid);
 
-            this.updateFooter();
+            this.viewscreen.updateFooter(this.tasks.get());
 
         }
     },
@@ -147,76 +126,15 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
     markAllAsReadAction: {
         value: function (event) {
 
-            var n = event.target,
-                checkboxes,
-                status;
-
-            if (n.checked) {
-                status = 'COMPLETED';
-            } else {
-                status = 'ACTIVE';
-            }
-
             this.tasks.get().forEach(function (task) {
                 this.toggleStatus(
                     task.get('uuid'),
-                    status
+                    event.target.checked
                 );
             }, this);
 
-            this.computeCheckboxes();
+            this.viewscreen.updateFooter(this.tasks.get());
             this.repo.flush();
-        }
-    },
-
-    computeCheckboxes: {
-        value: function () {
-
-            var checkboxes = this.viewscreen
-                .getLayout('main')
-                .getList('tasks')
-                .find('.toggle'),
-                task;
-
-            for (var i = 0, l = checkboxes.length; i < l; i++) {
-                task = this.tasks.get(checkboxes[i].dataset.uuid);
-
-                checkboxes[i].checked = task.get('status') === task.COMPLETED ?
-                    true :
-                    false;
-            }
-
-        }
-    },
-
-    updateFooter: {
-        value: function () {
-
-            var left = 0,
-                completed = 0,
-                tasks = this.tasks.get(),
-                footer = this.viewscreen.getLayout('footer');
-
-            if (tasks.length === 0) {
-                footer.getNode().classList.add('hidden');
-                return;
-            } else {
-                footer.getNode().classList.remove('hidden');
-            }
-
-            for (var i = 0, l = tasks.length; i < l; i++) {
-                if (tasks[i].get('status') === tasks[i].COMPLETED) {
-                    completed++;
-                } else {
-                    left++;
-                }
-            }
-
-            footer.render({
-                left: left.toString(),
-                completed: completed.toString()
-            });
-
         }
     },
 
@@ -228,24 +146,14 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
             }
 
             this.tasks.get().forEach(function (task) {
-                if (task.get('status') === task.COMPLETED) {
-                    this.removeTask(task.get('uuid'));
+                if (task.isCompleted()) {
+                    this.tasks.remove(task.get('uuid'));
+                    this.repo.remove(task);
+                    this.viewscreen.removeTask(task.get('uuid'));
                 }
             }, this);
+            this.viewscreen.updateFooter(this.tasks.get());
             this.repo.flush();
-
-        }
-    },
-
-    toggleTaskEdit: {
-        value: function (uuid) {
-
-            var el = this.viewscreen
-                .getLayout('main')
-                .getList('tasks')
-                .findOne('li[data-uuid="' + uuid + '"]');
-
-            el.classList.toggle('editing');
 
         }
     },
@@ -253,31 +161,12 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
     updateTask: {
         value: function (uuid, value) {
 
-            var task = this.tasks.get(uuid),
-                el = this.viewscreen
-                .getLayout('main')
-                .getList('tasks')
-                .findOne('li[data-uuid="' + uuid + '"]');
+            var task = this.tasks.get(uuid);
 
             task.set('name', value);
-            this.templating.render(el, task.get());
+            this.viewscreen.updateTask(task);
 
             this.repo.persist(task);
-
-        }
-    },
-
-    resetUI: {
-        value: function () {
-
-            var els = this.viewscreen
-                .getLayout('main')
-                .getList('tasks')
-                .find('.editing');
-
-            for (var i = 0, l = els.length; i < l; i++) {
-                els[i].classList.remove('editing');
-            }
 
         }
     }
