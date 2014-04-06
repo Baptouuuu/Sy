@@ -1,6 +1,6 @@
 # Book
 
-This book will guide you in the different framework's components and how there are integrated with each other.
+This book will guide you through the different framework's components and how there are integrated with each other.
 
 * [Sy fundamentals](fundamentals.md)
 * [UI](ui.md)
