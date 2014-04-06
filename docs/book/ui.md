@@ -41,7 +41,7 @@ Those channels are published, like I'm sure you've understood, before the new vi
 
 ## Viewscreen
 
-This is an actual *page* of your app, and as it represent a whole page you can't nest them (see [layouts](#Layout) to compose your viewscreen). To declare them you just put them wherever you want in your DOM tree, you just have to add the attribute `data-sy-view` to flag a node as a viewscreen (the value of this attribute is the name of your viewscreen).
+This is an actual *page* of your app, and as it represent a whole page you can't nest them (see [layouts](#layout) to compose your viewscreen). To declare them you just put them wherever you want in your DOM tree, you just have to add the attribute `data-sy-view` to flag a node as a viewscreen (the value of this attribute is the name of your viewscreen).
 
 Example:
 ```html
@@ -112,7 +112,7 @@ viewscreenWrapper.getLayout('bar');
 
 ## List
 
-This is the last layer (I promise) that can be declared in your viewscreen. It's here to help you better handle lists of data. Those must be declared inside a [`Layout`](#Layout). It expose 2 new methods: `append` and `prepend`, and modify the behaviour of `render`.
+This is the last layer (I promise) that can be declared in your viewscreen. It's here to help you better handle lists of data. Those must be declared inside a [`Layout`](#layout). It expose 2 new methods: `append` and `prepend`, and modify the behaviour of `render`.
 
 First declare a new list:
 ```html
