@@ -1,6 +1,6 @@
 /**
  * @venus-library jasmine
- * @venus-include ../../../../../moment/moment.js
+ * @venus-include ../../../../vendor/moment/moment.js
  * @venus-include ../../../../src/functions.js
  * @venus-include ../../../../src/Lib/Logger/Handler/Interface.js
  * @venus-include ../../../../src/Lib/Logger/Interface.js
@@ -22,6 +22,7 @@ describe('console logger handler', function () {
         var handler = new Sy.Lib.Logger.Handler.Console('info');
 
         expect(handler.isHandling('info')).toBe(true);
+        expect(handler.isHandling('foo')).toBe(false);
 
     });
 
@@ -29,7 +30,15 @@ describe('console logger handler', function () {
 
         var handler = new Sy.Lib.Logger.Handler.Console('info');
 
-        expect(handler.handle('info', 'foo')).toEqual(handler);
+        expect(handler.handle('name', 'info', 'foo')).toEqual(handler);
+
+    });
+
+    it('should return say that the level does not exist', function () {
+
+        expect(function () {
+            var handler = new Sy.Lib.Logger.Handler.Console('foo');
+        }).toThrow('Unknown logger level');
 
     });
 
