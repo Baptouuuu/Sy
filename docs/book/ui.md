@@ -1,5 +1,7 @@
 # User Interface
 
+[Next section (Controller) >](controller.md)
+
 The User Interface is surely the first thing you'll do when building your app. You need to know what will be your interface before starting to structure your data and how to animate the whole.
 
 Sy took the concept of a viewport where you'll inject a so called viewscreen. The viewport is simply a DOM node, it's the only one that should be displayed to the user. But as the framework don't come with any CSS, it's up to you to choose how to hide every things that's outside of this node.
