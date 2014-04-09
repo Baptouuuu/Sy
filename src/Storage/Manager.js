@@ -88,6 +88,19 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
     },
 
     /**
+     * Return the engine
+     * Can be useful when the dev want to add the headers for the http engine
+     *
+     * @return {Sy.Storage.EngineInterface}
+     */
+
+    getEngine: {
+        value: function () {
+            return this.engine;
+        }
+    },
+
+    /**
      * Return an entity repository
      *
      * @param {string} alias
