@@ -73,7 +73,7 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
      *
      * @param {Sy.Lib.Mediator} mediator
      *
-     * @return {Sy.Storage.Engine.Localstorage}
+     * @return {Sy.Storage.Engine.Rest}
      */
 
     setMediator: {
