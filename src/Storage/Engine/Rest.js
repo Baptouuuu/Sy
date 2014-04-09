@@ -263,7 +263,7 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
                 identifier
             );
 
-            this.manager.put({
+            this.manager.remove({
                 uri: this.basePath
                     .replace(/{{path}}/, meta.path)
                     .replace(/{{key}}/, identifier),
