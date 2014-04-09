@@ -4,7 +4,7 @@
 	Sy.kernel.getConfig()
         .set('env', 'dev')
         .set('name', 'TodoMVC')
-        .set('storage.managers', {
+        .set('parameters.storage.managers', {
             main: {
                 type: 'localstorage',
                 version: 1,

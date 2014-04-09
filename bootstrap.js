@@ -190,7 +190,7 @@ Sy.kernel.getServiceContainer()
             storage = new Sy.Storage.Core(),
             managerFact = new Sy.Storage.ManagerFactory(),
             engineFact = this.get('sy::core::storage::factory::engine::core'),
-            conf = Sy.kernel.getConfig().get('storage'),
+            conf = this.getParameter('storage.managers'),
             registryFact = this.get('sy::core::registry::factory');
 
         storage.setRegistry(registryFact.make());
@@ -199,9 +199,9 @@ Sy.kernel.getServiceContainer()
             .setEngineFactory(engineFact)
             .setRepositoryFactory(this.get('sy::core::storage::repository::factory'));
 
-        for (var name in conf.managers) {
-            if (conf.managers.hasOwnProperty(name)) {
-                var manager = managerFact.make(name, conf.managers[name], meta);
+        for (var name in conf) {
+            if (conf.hasOwnProperty(name)) {
+                var manager = managerFact.make(name, conf[name], meta);
 
                 storage.setManager(name, manager);
             }
