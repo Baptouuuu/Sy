@@ -24,6 +24,27 @@ The View is an abstraction layer between your controller and the actual *view* t
 
 The Controller is here to pilot the other 2 parts. Meaning retrieve data (and save it on user interactions) and apply this data via the View (not the *view*, see above).
 
+# Bundles
+
+Your app must be organised by bundles. A bundle is a regroupment of your code, where you'll find controllers, entities, services, etc... It's just a way to organize your work and segment code of your app. Plus the framework relies on this structure to discover where are located your classes. For php developers, you'll find the same notion in the [Symfony](http://symfony.com) framework.
+
+To see where to put a class, please refer to the appropriate section.
+
+# Namespacing
+
+If you have written some javascript before, you probably know the problem of global variables that can be easily overriden. To avoid this problem, many developers use self contained functions so the variables are contained in this restricted scope. The problem with this approach is that it creates many closures, and one of the goals of this framework is to avoid them as much as possible.
+
+That's where namespacing shines. With this framework, your global footprint is reduced to 2 global objects (and 6 global functions):
+
+* `App`: where all *your* code is put
+* `Sy`: where all the framework code is contained
+
+Everything inside `App` is only classes declarations, every object instanciation will be contained inside `Sy.kernel` which is the instanciation of `Sy.Kernel.Core`.
+
+To resume, by using namespaces you can avoid the problem of global variables **and** avoid the heavy memory cost of closures (and its impact on garbage collection).
+
+*Note*: Google has a [section](https://developers.google.com/speed/articles/optimizing-javascript) about closures and their drawbacks (section *Avoiding pitfalls with closures*).
+
 ## What is does not
 
 ### Routing
