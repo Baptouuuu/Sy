@@ -1,6 +1,6 @@
 # Controller
 
-[< Previous section (UI)](ui.md)
+[< Previous chapter (UI)](ui.md) | [Next chapter (Storage) >](storage.md)
 
 Once your UI is ready, place to interaction with the controllers. In Sy, one viewscreen is handled by only one controller. To load your controllers, the framework listen to the viewport changes, and when a new viewscreen is displayed the associated controller will be loaded.
 

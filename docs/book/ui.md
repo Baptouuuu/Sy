@@ -1,6 +1,6 @@
 # User Interface
 
-[Next section (Controller) >](controller.md)
+[Next chapter (Controller) >](controller.md)
 
 The User Interface is surely the first thing you'll do when building your app. You need to know what will be your interface before starting to structure your data and how to animate the whole.
 

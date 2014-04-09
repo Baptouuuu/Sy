@@ -1,6 +1,6 @@
 # Storage
 
-[< Previous section (Controller)](controller.md) | [Next section (Service container) >](service-container.md)
+[< Previous chapter (Controller)](controller.md) | [Next chapter (Service container) >](service-container.md)
 
 The third big part of your application is of course your data. The framework comes with a library to help you abstract as mush as possible the work needed to persist your data. It also helps you move from one type of storage to another with just a one liner change in your code. The storage mechanism with 3 types of storage:
 
