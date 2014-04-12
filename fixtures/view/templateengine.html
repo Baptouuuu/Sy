@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head></head>
+    <body>
+        <div class="render-nested-node">
+            <span>foo</span>
+            <div class="nested">
+                {{ element }}
+            </div>
+        </div>
+        <div class="render-dataset" data-foo="{{ element }}"></div>
+        <div class="render-nested-object">
+            {{ root.attribute.foo }} {{ root.attribute.bar }} {{ root.attribute.baz }}
+        </div>
+        <div class="render-multiple-placeholders">
+            {{ foo }} and {{ bar }}
+        </div>
+        <input type="text" class="render-input" value="{{ value }}" />
+        <div class="render-classlist {{ classname }}"></div>
+    </body>
+</html>

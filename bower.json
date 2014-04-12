@@ -1,0 +1,16 @@
+{
+  "name": "sy",
+  "homepage": "https://github.com/baptouuuu/sy",
+  "version": "0.5.0",
+  "main": "",
+  "ignore": [
+    ".jshintrc",
+    "**/*.txt"
+  ],
+  "dependencies": {
+    "underscore": "1.5.1",
+    "moment": "~2.4.0",
+    "Reflection.js": "~1.1.0"
+  },
+  "devDependencies": {}
+}
