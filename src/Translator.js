@@ -10,7 +10,7 @@ namespace('Sy');
 Sy.Translator = function () {
     this.currentLanguage = null;
     this.languages = null;
-    this.queueFactory = null;
+    this.stateRegistryFactory = null;
 };
 
 Sy.Translator.prototype = Object.create(Object.prototype, {
@@ -38,21 +38,21 @@ Sy.Translator.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Set the queue factory used to easily create new groups of translations
+     * Set the state registry factory used to easily create new groups of translations
      *
-     * @param {Sy.QueueFactory} factory
+     * @param {Sy.StateRegistryFactory} factory
      *
      * @return {Sy.Translator}
      */
 
-    setQueueFactory: {
+    setStateRegistryFactory: {
         value: function (factory) {
 
-            if (!(factory instanceof Sy.QueueFactory)) {
-                throw new TypeError('Invalid queue factory');
+            if (!(factory instanceof Sy.StateRegistryFactory)) {
+                throw new TypeError('Invalid state registry factory');
             }
 
-            this.queueFactory = factory;
+            this.stateRegistryFactory = factory;
 
             return this;
 
@@ -93,7 +93,7 @@ Sy.Translator.prototype = Object.create(Object.prototype, {
             if (!this.languages.has(language)) {
                 this.languages.set(
                     language,
-                    this.queueFactory.make()
+                    this.stateRegistryFactory.make()
                 );
             }
 

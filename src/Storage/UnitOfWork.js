@@ -9,7 +9,7 @@ namespace('Sy.Storage');
  */
 
 Sy.Storage.UnitOfWork = function () {
-    this.queue = null;
+    this.states = null;
     this.engine = null;
     this.generator = null;
     this.name = null;
@@ -33,21 +33,21 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Set a queue to hold scheduled entities
+     * Set a state registry to hold scheduled entities
      *
-     * @param {Sy.QueueInterface} queue
+     * @param {Sy.StateRegistryInterface} states
      *
      * @return {Sy.Storage.UnitOfWork}
      */
 
-    setQueue: {
-        value: function (queue) {
+    setStateRegistry: {
+        value: function (states) {
 
-            if (!(queue instanceof Sy.QueueInterface)) {
-                throw new TypeError('Invalid queue');
+            if (!(states instanceof Sy.StateRegistryInterface)) {
+                throw new TypeError('Invalid state registry');
             }
 
-            this.queue = queue;
+            this.states = states;
 
             return this;
 
@@ -154,19 +154,19 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                     this.entityKey,
                     this.generator.generate()
                 );
-                this.queue.set(
+                this.states.set(
                     this.SCHEDULED_FOR_CREATION,
                     entity.get(this.entityKey),
                     entity
                 );
             } else if (this.isScheduledForCreation(entity)) {
-                this.queue.set(
+                this.states.set(
                     this.SCHEDULED_FOR_CREATION,
                     entity.get(this.entityKey),
                     entity
                 );
             } else {
-                this.queue.set(
+                this.states.set(
                     this.SCHEDULED_FOR_UPDATE,
                     entity.get(this.entityKey),
                     entity
@@ -191,23 +191,23 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
         value: function (entity) {
 
             if (this.isScheduledForCreation(entity)) {
-                this.queue.remove(
+                this.states.remove(
                     this.SCHEDULED_FOR_CREATION,
                     entity.get(this.entityKey)
                 );
             } else if (this.isScheduledForUpdate(entity)) {
-                this.queue.remove(
+                this.states.remove(
                     this.SCHEDULED_FOR_UPDATE,
                     entity.get(this.entityKey)
                 );
 
-                this.queue.set(
+                this.states.set(
                     this.SCHEDULED_FOR_REMOVAL,
                     entity.get(this.entityKey),
                     entity
                 );
             } else {
-                this.queue.set(
+                this.states.set(
                     this.SCHEDULED_FOR_REMOVAL,
                     entity.get(this.entityKey),
                     entity
@@ -229,7 +229,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
     isScheduledFor: {
         value: function (event, entity) {
 
-            return this.queue.has(
+            return this.states.has(
                 event,
                 entity.get(this.entityKey)
             );
@@ -303,9 +303,9 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
     flush: {
         value: function () {
 
-            var toRemove = this.queue.has(this.SCHEDULED_FOR_REMOVAL) ? this.queue.get(this.SCHEDULED_FOR_REMOVAL) : [],
-                toUpdate = this.queue.has(this.SCHEDULED_FOR_UPDATE) ? this.queue.get(this.SCHEDULED_FOR_UPDATE) : [],
-                toCreate = this.queue.has(this.SCHEDULED_FOR_CREATION) ? this.queue.get(this.SCHEDULED_FOR_CREATION) : [];
+            var toRemove = this.states.has(this.SCHEDULED_FOR_REMOVAL) ? this.states.get(this.SCHEDULED_FOR_REMOVAL) : [],
+                toUpdate = this.states.has(this.SCHEDULED_FOR_UPDATE) ? this.states.get(this.SCHEDULED_FOR_UPDATE) : [],
+                toCreate = this.states.has(this.SCHEDULED_FOR_CREATION) ? this.states.get(this.SCHEDULED_FOR_CREATION) : [];
 
             for (var i = 0, l = toRemove.length; i < l; i++) {
                 this.engine.remove(
@@ -384,7 +384,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
     removalListener: {
         value: function (identifier) {
 
-            this.queue.remove('remove', identifier);
+            this.states.remove('remove', identifier);
 
         }
     },
@@ -401,7 +401,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
     updateListener: {
         value: function (object) {
 
-            this.queue.remove('update', object[this.entityKey]);
+            this.states.remove('update', object[this.entityKey]);
 
         }
     },
@@ -418,7 +418,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
     createListener: {
         value: function (identifier) {
 
-            this.queue.remove('create', identifier);
+            this.states.remove('create', identifier);
 
         }
     }

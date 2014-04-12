@@ -5,9 +5,9 @@
  * @venus-include ../../src/RegistryInterface.js
  * @venus-include ../../src/Registry.js
  * @venus-include ../../src/RegistryFactory.js
- * @venus-include ../../src/QueueInterface.js
- * @venus-include ../../src/Queue.js
- * @venus-include ../../src/QueueFactory.js
+ * @venus-include ../../src/StateRegistryInterface.js
+ * @venus-include ../../src/StateRegistry.js
+ * @venus-include ../../src/StateRegistryFactory.js
  * @venus-include ../../src/Lib/Generator/Interface.js
  * @venus-include ../../src/Storage/UnitOfWork.js
  * @venus-code ../../src/Storage/UnitOfWorkFactory.js
@@ -27,18 +27,18 @@ describe('storage UnitOfWork', function () {
         expect(factory.setGenerator(new Sy.Lib.Generator.Interface())).toEqual(factory);
     });
 
-    it('should throw if trying to set invalid queue factory', function () {
+    it('should throw if trying to set invalid state registry factory', function () {
         expect(function () {
-            factory.setQueueFactory({});
-        }).toThrow('Invalid queue factory');
+            factory.setStateRegistryFactory({});
+        }).toThrow('Invalid state registry factory');
     });
 
-    it('should set the queue factory', function () {
-        var f = new Sy.QueueFactory();
+    it('should set the state registry factory', function () {
+        var f = new Sy.StateRegistryFactory();
 
         f.setRegistryFactory(new Sy.RegistryFactory());
 
-        expect(factory.setQueueFactory(f)).toEqual(factory);
+        expect(factory.setStateRegistryFactory(f)).toEqual(factory);
     });
 
     it('should make an unit of work', function () {

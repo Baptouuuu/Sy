@@ -6,7 +6,7 @@ At this time find documentation for these components:
 
 * [Service container](Service-container.md)
 * [Registry](Registry.md)
-* [Queue](Queue.md)
+* [StateRegistry](StateRegistry.md)
 * [Configurator](Configurator.md)
 * [HTTP library](HTTP-Library.md)
 * [Logger](Logger.md)

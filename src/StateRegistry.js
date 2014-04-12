@@ -1,14 +1,14 @@
 namespace('Sy');
 
 /**
- * Default implementation of QueueInterface
+ * Default implementation of StateRegistryInterface
  *
  * @package Sy
- * @implements {Sy.QueueInterface}
+ * @implements {Sy.StateRegistryInterface}
  * @class
  */
 
-Sy.Queue = function () {
+Sy.StateRegistry = function () {
 
     this.data = null;
     this.states = [];
@@ -16,14 +16,14 @@ Sy.Queue = function () {
 
 };
 
-Sy.Queue.prototype = Object.create(Sy.QueueInterface.prototype, {
+Sy.StateRegistry.prototype = Object.create(Sy.StateRegistryInterface.prototype, {
 
     /**
      * Set the registry factory
      *
      * @param {Sy.RegistryFactory} factory
      *
-     * @return {Sy.Queue}
+     * @return {Sy.StateRegistry}
      */
 
     setRegistryFactory: {

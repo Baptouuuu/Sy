@@ -8,9 +8,9 @@ namespace('Sy');
  * @interface
  */
 
-Sy.QueueInterface = function () {};
+Sy.StateRegistryInterface = function () {};
 
-Sy.QueueInterface.prototype = Object.create(Object.prototype, {
+Sy.StateRegistryInterface.prototype = Object.create(Object.prototype, {
 
     /**
      * Set a new element for a specific state
@@ -19,7 +19,7 @@ Sy.QueueInterface.prototype = Object.create(Object.prototype, {
      * @param {string} key
      * @param {mixed} value
      *
-     * @return {Sy.QueueInterface}
+     * @return {Sy.StateRegistryInterface}
      */
 
     set: {
@@ -78,7 +78,7 @@ Sy.QueueInterface.prototype = Object.create(Object.prototype, {
      * @param {string} state
      * @param {string} key
      *
-     * @return {Sy.QueueInterface}
+     * @return {Sy.StateRegistryInterface}
      */
 
     remove: {

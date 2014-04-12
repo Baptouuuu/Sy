@@ -56,8 +56,8 @@ Sy.kernel.getServiceContainer()
         'sy::core::registry::factory': {
             constructor: 'Sy.RegistryFactory'
         },
-        'sy::core::queue::factory': {
-            constructor: 'Sy.QueueFactory',
+        'sy::core::stateregistry::factory': {
+            constructor: 'Sy.StateRegistryFactory',
             calls: [
                 ['setRegistryFactory', ['@sy::core::registry::factory']]
             ]
@@ -125,7 +125,7 @@ Sy.kernel.getServiceContainer()
             constructor: 'Sy.Storage.UnitOfWorkFactory',
             calls: [
                 ['setGenerator', ['@sy::core::generator::uuid']],
-                ['setQueueFactory', ['@sy::core::queue::factory']]
+                ['setStateRegistryFactory', ['@sy::core::stateregistry::factory']]
             ]
         },
         'sy::core::storage::repository::factory': {
@@ -214,7 +214,7 @@ Sy.kernel.getServiceContainer()
         var translator = new Sy.Translator();
         translator
             .setRegistry(this.get('sy::core::registry::factory').make())
-            .setQueueFactory(this.get('sy::core::queue::factory'));
+            .setStateRegistryFactory(this.get('sy::core::stateregistry::factory'));
         return translator;
     })
     .set('sy::core::view::template::engine', function () {

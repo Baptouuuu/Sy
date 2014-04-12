@@ -5,17 +5,17 @@
  * @venus-include ../src/Registry.js
  * @venus-include ../src/FactoryInterface.js
  * @venus-include ../src/RegistryFactory.js
- * @venus-include ../src/QueueInterface.js
- * @venus-code ../src/Queue.js
+ * @venus-include ../src/StateRegistryInterface.js
+ * @venus-code ../src/StateRegistry.js
  */
 
-describe('queue', function () {
+describe('state registry', function () {
 
     var factory = new Sy.RegistryFactory();
 
     it('should set an element in a new state', function () {
 
-        var q = new Sy.Queue();
+        var q = new Sy.StateRegistry();
 
         q.setRegistryFactory(factory);
 
@@ -27,7 +27,7 @@ describe('queue', function () {
 
     it('should return that the key is not setted', function () {
 
-        var q = new Sy.Queue();
+        var q = new Sy.StateRegistry();
 
         q.setRegistryFactory(factory);
 
@@ -37,7 +37,7 @@ describe('queue', function () {
 
     it('should return that the state is not setted', function () {
 
-        var q = new Sy.Queue();
+        var q = new Sy.StateRegistry();
 
         q.setRegistryFactory(factory);
 
@@ -47,7 +47,7 @@ describe('queue', function () {
 
     it('should return the setted value', function () {
 
-        var q = new Sy.Queue();
+        var q = new Sy.StateRegistry();
 
         q.setRegistryFactory(factory);
 
@@ -59,7 +59,7 @@ describe('queue', function () {
 
     it('should return an array with the setted value inside', function () {
 
-        var q = new Sy.Queue();
+        var q = new Sy.StateRegistry();
 
         q.setRegistryFactory(factory);
 
@@ -71,7 +71,7 @@ describe('queue', function () {
 
     it('should return a list of arrays', function () {
 
-        var q = new Sy.Queue();
+        var q = new Sy.StateRegistry();
 
         q.setRegistryFactory(factory);
 
@@ -83,7 +83,7 @@ describe('queue', function () {
 
     it('should return the state of the key', function () {
 
-        var q = new Sy.Queue();
+        var q = new Sy.StateRegistry();
 
         q.setRegistryFactory(factory);
 
@@ -95,7 +95,7 @@ describe('queue', function () {
 
     it('should return the list of key\'s states', function () {
 
-        var q = new Sy.Queue();
+        var q = new Sy.StateRegistry();
 
         q.setRegistryFactory(factory);
 
@@ -108,7 +108,7 @@ describe('queue', function () {
 
     it('should return undefined for unsetted key', function () {
 
-        var q = new Sy.Queue();
+        var q = new Sy.StateRegistry();
 
         q.setRegistryFactory(factory);
 
@@ -118,7 +118,7 @@ describe('queue', function () {
 
     it('should remove an element of a state', function () {
 
-        var q = new Sy.Queue();
+        var q = new Sy.StateRegistry();
 
         q.setRegistryFactory(factory);
 
@@ -131,7 +131,7 @@ describe('queue', function () {
 
     it('should remove all elements of a state', function () {
 
-        var q = new Sy.Queue();
+        var q = new Sy.StateRegistry();
 
         q.setRegistryFactory(factory);
 
@@ -145,7 +145,7 @@ describe('queue', function () {
 
     it('should remove all elements', function () {
 
-        var q = new Sy.Queue();
+        var q = new Sy.StateRegistry();
 
         q.setRegistryFactory(factory);
 

@@ -1,26 +1,26 @@
 namespace('Sy');
 
 /**
- * Factory generating queue objects
+ * Factory generating state registry objects
  *
  * @package Sy
  * @class
  * @implements {Sy.FactoryInterface}
  */
 
-Sy.QueueFactory = function () {
+Sy.StateRegistryFactory = function () {
 
     this.registryFactory = null;
 
 };
-Sy.QueueFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
+Sy.StateRegistryFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
 
     /**
      * Set the registry factory
      *
      * @param {Sy.RegistryFactory} factory
      *
-     * @return {Sy.QueueFactory}
+     * @return {Sy.StateRegistryFactory}
      */
 
     setRegistryFactory: {
@@ -44,7 +44,7 @@ Sy.QueueFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
     make: {
         value: function () {
 
-            var q = new Sy.Queue();
+            var q = new Sy.StateRegistry();
 
             q.setRegistryFactory(this.registryFactory);
 

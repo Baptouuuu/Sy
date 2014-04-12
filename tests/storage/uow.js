@@ -6,8 +6,8 @@
  * @venus-include ../../src/RegistryInterface.js
  * @venus-include ../../src/Registry.js
  * @venus-include ../../src/RegistryFactory.js
- * @venus-include ../../src/QueueInterface.js
- * @venus-include ../../src/Queue.js
+ * @venus-include ../../src/StateRegistryInterface.js
+ * @venus-include ../../src/StateRegistry.js
  * @venus-include ../../src/EntityInterface.js
  * @venus-include ../../src/Entity.js
  * @venus-include ../../src/Lib/Generator/Interface.js
@@ -20,17 +20,17 @@ describe('storage UnitOfWork', function () {
 
     var uow = new Sy.Storage.UnitOfWork();
 
-    it('should throw if trying to set invalid queue object', function () {
+    it('should throw if trying to set invalid state registry object', function () {
         expect(function () {
-            uow.setQueue({});
-        }).toThrow('Invalid queue');
+            uow.setStateRegistry({});
+        }).toThrow('Invalid state registry');
     });
 
-    it('should set the queue', function () {
-        var q = new Sy.Queue();
+    it('should set the state registry', function () {
+        var q = new Sy.StateRegistry();
         q.setRegistryFactory(new Sy.RegistryFactory());
 
-        expect(uow.setQueue(q)).toEqual(uow);
+        expect(uow.setStateRegistry(q)).toEqual(uow);
     });
 
     it('should throw if trying to set invalid engine', function () {

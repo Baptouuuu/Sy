@@ -11,7 +11,7 @@ namespace('Sy.Storage');
 
 Sy.Storage.UnitOfWorkFactory = function () {
     this.generator = null;
-    this.queueFactory = null;
+    this.stateRegistryFactory = null;
 };
 Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
 
@@ -38,21 +38,21 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
     },
 
     /**
-     * Set the queue factory
+     * Set the state registry factory
      *
-     * @param {Sy.QueueFactory} factory
+     * @param {Sy.StateRegistry} factory
      *
      * @return {Sy.Storage.UnitOfWorkFactory}
      */
 
-    setQueueFactory: {
+    setStateRegistryFactory: {
         value: function (factory) {
 
-            if (!(factory instanceof Sy.QueueFactory)) {
-                throw new TypeError('Invalid queue factory');
+            if (!(factory instanceof Sy.StateRegistry)) {
+                throw new TypeError('Invalid state registry factory');
             }
 
-            this.queueFactory = factory;
+            this.stateRegistryFactory = factory;
 
             return this;
 
@@ -69,7 +69,7 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
             var uow = new Sy.Storage.UnitOfWork();
 
             uow
-                .setQueue(this.queueFactory.make())
+                .setStateRegistry(this.stateRegistryFactory.make())
                 .setGenerator(this.generator)
                 .setName(name)
                 .setEntityKey(entityKey);

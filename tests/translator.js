@@ -5,9 +5,9 @@
  * @venus-include ../src/RegistryInterface.js
  * @venus-include ../src/Registry.js
  * @venus-include ../src/RegistryFactory.js
- * @venus-include ../src/QueueInterface.js
- * @venus-include ../src/Queue.js
- * @venus-include ../src/QueueFactory.js
+ * @venus-include ../src/StateRegistryInterface.js
+ * @venus-include ../src/StateRegistry.js
+ * @venus-include ../src/StateRegistryFactory.js
  * @venus-code ../src/Translator.js
  */
 
@@ -15,17 +15,17 @@ describe('translator', function () {
 
     var translator = new Sy.Translator(),
         registryFactory = new Sy.RegistryFactory(),
-        queueFactory = new Sy.QueueFactory();
+        stateRegistryFactory = new Sy.StateRegistryFactory();
 
-    queueFactory.setRegistryFactory(registryFactory);
+    stateRegistryFactory.setRegistryFactory(registryFactory);
 
     translator.setRegistry(registryFactory.make());
-    translator.setQueueFactory(queueFactory);
+    translator.setStateRegistryFactory(stateRegistryFactory);
 
     it('should return itself', function () {
 
         expect(translator.setRegistry(registryFactory.make())).toEqual(translator);
-        expect(translator.setQueueFactory(queueFactory)).toEqual(translator);
+        expect(translator.setStateRegistryFactory(stateRegistryFactory)).toEqual(translator);
         expect(translator.setLanguage('fr')).toEqual(translator);
         expect(translator.registerTranslation('fr', 'root', 'bar', 'baz')).toEqual(translator);
 
@@ -39,11 +39,11 @@ describe('translator', function () {
 
     });
 
-    it('should throw if invalid queue factory', function () {
+    it('should throw if invalid state registry factory', function () {
 
         expect(function () {
-            translator.setQueueFactory({});
-        }).toThrow('Invalid queue factory');
+            translator.setStateRegistryFactory({});
+        }).toThrow('Invalid state registry factory');
 
     });
 

@@ -5,14 +5,14 @@
  * @venus-include ../src/RegistryInterface.js
  * @venus-include ../src/Registry.js
  * @venus-include ../src/RegistryFactory.js
- * @venus-include ../src/QueueInterface.js
- * @venus-include ../src/Queue.js
- * @venus-code ../src/QueueFactory.js
+ * @venus-include ../src/StateRegistryInterface.js
+ * @venus-include ../src/StateRegistry.js
+ * @venus-code ../src/StateRegistryFactory.js
  */
 
-describe('queue factory', function () {
+describe('state registry factory', function () {
 
-    var factory = new Sy.QueueFactory();
+    var factory = new Sy.StateRegistryFactory();
 
     factory.setRegistryFactory(
         new Sy.RegistryFactory()
@@ -32,7 +32,7 @@ describe('queue factory', function () {
 
         var q = factory.make();
 
-        expect(q instanceof Sy.Queue).toBe(true);
+        expect(q instanceof Sy.StateRegistry).toBe(true);
 
     });
 

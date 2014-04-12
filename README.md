@@ -20,7 +20,7 @@ Sy is still in development, but some libraries are already fully functional:
 - Logger
 - Mediator (Pub/Sub library)
 - Configurator
-- Queue
+- StateRegistry
 - Registry
 - Service container
 
