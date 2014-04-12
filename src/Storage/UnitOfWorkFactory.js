@@ -48,7 +48,7 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
     setStateRegistryFactory: {
         value: function (factory) {
 
-            if (!(factory instanceof Sy.StateRegistry)) {
+            if (!(factory instanceof Sy.StateRegistryFactory)) {
                 throw new TypeError('Invalid state registry factory');
             }
 
