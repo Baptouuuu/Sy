@@ -7,5 +7,3 @@ This book will guide you through the different framework's components and how th
 * [Controller](controller.md)
 * [Storage](storage.md)
 * [Service container](service-container.md)
-* [Translation](translation.md)
-* [Tests](tests.md)
