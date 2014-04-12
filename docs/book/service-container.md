@@ -1,6 +1,7 @@
 # Service container
 
 [< Previous chapter (Storage)](storage.md)
+
 The service container is one of the biggest part of the framework. Every dependency management inside the core is done via a single instance of the `ServiceContainer`. And you should leverage it to organize your code inside your bundles to loose coupling. As you've seen in the controller chapter you have an easy access to it via `this.container` wherever inside your controllers.
 
 This chapter is here to walk you through on how to define your services. To see exactly what's at your disposal with the service container please read its own [documentation](../Service-container.md).
