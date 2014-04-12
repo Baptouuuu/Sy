@@ -1,5 +1,7 @@
 # Sy fundamentals
 
+[Next chapter (UI) >](ui.md)
+
 This is a MVC framework built for large, offline first, application. It helps the developer, aka *you*, keep its code organized around a strong code structure (that should feel familiar to Symfony developers).
 
 ## Loosely coupling
