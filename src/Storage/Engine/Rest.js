@@ -16,6 +16,7 @@ Sy.Storage.Engine.Rest = function (version) {
     this.manager = null;
     this.basePath = '';
     this.mediator = null;
+    this.headers = {};
 
 };
 
@@ -72,7 +73,7 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
      *
      * @param {Sy.Lib.Mediator} mediator
      *
-     * @return {Sy.Storage.Engine.Localstorage}
+     * @return {Sy.Storage.Engine.Rest}
      */
 
     setMediator: {
@@ -82,6 +83,23 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
 
             return this;
 
+        }
+    },
+
+    /**
+     * Set the headers that will be associated to every request made by the engine
+     * Useful to set authentication tokens
+     *
+     * @param {Object} headers
+     *
+     * @return {Sy.Storage.Engine.Rest}
+     */
+
+    setHeaders: {
+        value: function (headers) {
+            this.headers = headers;
+
+            return this;
         }
     },
 
@@ -120,6 +138,7 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
                 uri: this.basePath
                     .replace(/{{path}}/, meta.path)
                     .replace(/{{key}}/, identifier),
+                headers: this.headers,
                 listener: function (resp) {
 
                     callback(resp.getBody());
@@ -156,6 +175,7 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
                 uri: this.basePath
                     .replace(/{{path}}/, meta.path)
                     .replace(/{{key}}/, ''),
+                headers: this.headers,
                 data: object,
                 listener: function (resp) {
 
@@ -201,6 +221,7 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
                 uri: this.basePath
                     .replace(/{{path}}/, meta.path)
                     .replace(/{{key}}/, identifier),
+                headers: this.headers,
                 data: object,
                 listener: function (resp) {
 
@@ -242,10 +263,11 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
                 identifier
             );
 
-            this.manager.put({
+            this.manager.remove({
                 uri: this.basePath
                     .replace(/{{path}}/, meta.path)
                     .replace(/{{key}}/, identifier),
+                headers: this.headers,
                 listener: function (resp) {
 
                     callback(identifier);
@@ -293,6 +315,7 @@ Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prot
                 uri: this.basePath
                     .replace(/{{path}}/, meta.path)
                     .replace(/{{key}}/, '?' + queries.join('&')),
+                headers: this.headers,
                 listener: function (resp) {
 
                     callback(resp.getBody());

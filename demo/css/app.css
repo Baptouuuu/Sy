@@ -1,0 +1,4 @@
+/* base.css overrides */
+body > [data-sy-view] {
+    display: none;
+}

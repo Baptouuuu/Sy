@@ -1,141 +1,57 @@
-<!DOCTYPE html>
-<html>
-    <head>
-
-    </head>
-    <body>
-
-        <section class="viewport">
-            <section class="main" data-sy-view="main">
-                <h1>{{ header }}</h1>
-                <section data-sy-layout="list">
-                    <ul data-sy-list="elements">
-                        <li>
-                            {{ value }}
-                        </li>
-                    </ul>
-                </section>
-                <section data-sy-layout="content">
-
-                </section>
-            </section>
-        </section>
-
-        <section data-sy-view="detail">
-            <h1>{{ element.title }}</h1>
-        </section>
-
-        <!-- deps -->
-        <!-- bower:js -->
-        <script src="../vendor/underscore/underscore.js"></script>
-        <script src="../vendor/moment/moment.js"></script>
-        <script src="../vendor/Reflection.js/reflection.min.js"></script>
-        <!-- endbower -->
-
-        <!-- sy files -->
-        <script src="../src/functions.js"></script>
-        <script src="../src/DOM.js"></script>
-
-            <!-- interfaces first -->
-            <script src="../src/Lib/Generator/Interface.js"></script>
-            <script src="../src/Lib/Logger/Handler/Interface.js"></script>
-            <script src="../src/Lib/Logger/Interface.js"></script>
-            <script src="../src/ConfiguratorInterface.js"></script>
-            <script src="../src/ControllerInterface.js"></script>
-            <script src="../src/EntityInterface.js"></script>
-            <script src="../src/ServiceContainerInterface.js"></script>
-            <script src="../src/RegistryInterface.js"></script>
-            <script src="../src/QueueInterface.js"></script>
-            <script src="../src/HTTP/RequestInterface.js"></script>
-            <script src="../src/HTTP/ResponseInterface.js"></script>
-            <script src="../src/FactoryInterface.js"></script>
-            <script src="../src/View/LayoutFactoryInterface.js"></script>
-            <script src="../src/View/ListFactoryInterface.js"></script>
-            <script src="../src/View/TemplateEngineInterface.js"></script>
-            <script src="../src/View/ViewScreenFactoryInterface.js"></script>
-            <script src="../src/Storage/RepositoryInterface.js"></script>
-            <script src="../src/Storage/EngineInterface.js"></script>
-            <script src="../src/Storage/StoreMapperInterface.js"></script>
-
-            <!-- kernel -->
-            <script src="../src/Kernel/Core.js"></script>
-            <script src="../src/Kernel/AppParser.js"></script>
-            <script src="../src/Kernel/ControllerManager.js"></script>
-            <script src="../src/Kernel/ActionBinder.js"></script>
-            <script src="../src/Kernel/FeatureTester.js"></script>
-
-            <!-- libs -->
-            <script src="../src/Lib/Mediator.js"></script>
-            <script src="../src/Lib/Generator/UUID.js"></script>
-            <script src="../src/Lib/Logger/Handler/Console.js"></script>
-            <script src="../src/Lib/Logger/CoreLogger.js"></script>
-
-            <!-- http -->
-            <script src="../src/HTTP/Request.js"></script>
-            <script src="../src/HTTP/Response.js"></script>
-            <script src="../src/HTTP/JSONRequest.js"></script>
-            <script src="../src/HTTP/JSONResponse.js"></script>
-            <script src="../src/HTTP/HTMLRequest.js"></script>
-            <script src="../src/HTTP/HTMLResponse.js"></script>
-            <script src="../src/HTTP/HeaderParser.js"></script>
-            <script src="../src/HTTP/Manager.js"></script>
-            <script src="../src/HTTP/REST.js"></script>
-
-            <!-- storage -->
-            <script src="../src/Storage/Core.js"></script>
-            <script src="../src/Storage/Manager.js"></script>
-            <script src="../src/Storage/ManagerFactory.js"></script>
-            <script src="../src/Storage/Repository.js"></script>
-            <script src="../src/Storage/RepositoryFactory.js"></script>
-            <script src="../src/Storage/Engine/Rest.js"></script>
-            <script src="../src/Storage/Engine/Localstorage.js"></script>
-            <script src="../src/Storage/Engine/IndexedDB.js"></script>
-            <script src="../src/Storage/EngineFactory/AbstractFactory.js"></script>
-            <script src="../src/Storage/EngineFactory/IndexedDBFactory.js"></script>
-            <script src="../src/Storage/EngineFactory/LocalstorageFactory.js"></script>
-            <script src="../src/Storage/EngineFactory/RestFactory.js"></script>
-            <script src="../src/Storage/EngineFactory/Core.js"></script>
-            <script src="../src/Storage/StoreMapper/IndexedDBMapper.js"></script>
-            <script src="../src/Storage/StoreMapper/LocalstorageMapper.js"></script>
-            <script src="../src/Storage/StoreMapper/RestMapper.js"></script>
-            <script src="../src/Storage/UnitOfWork.js"></script>
-            <script src="../src/Storage/UnitOfWorkFactory.js"></script>
-
-            <!-- view -->
-            <script src="../src/View/Parser.js"></script>
-            <script src="../src/View/TemplateEngine.js"></script>
-            <script src="../src/View/NodeWrapper.js"></script>
-            <script src="../src/View/List.js"></script>
-            <script src="../src/View/ListFactory.js"></script>
-            <script src="../src/View/Layout.js"></script>
-            <script src="../src/View/LayoutFactory.js"></script>
-            <script src="../src/View/ViewScreen.js"></script>
-            <script src="../src/View/ViewScreenFactory.js"></script>
-            <script src="../src/View/Manager.js"></script>
-            <script src="../src/View/ViewPort.js"></script>
-
-            <!-- top objects -->
-            <script src="../src/ParamProxy.js"></script>
-            <script src="../src/ServiceContainer.js"></script>
-            <script src="../src/Configurator.js"></script>
-            <script src="../src/Controller.js"></script>
-            <script src="../src/Entity.js"></script>
-            <script src="../src/Registry.js"></script>
-            <script src="../src/RegistryFactory.js"></script>
-            <script src="../src/Queue.js"></script>
-            <script src="../src/QueueFactory.js"></script>
-            <script src="../src/Translator.js"></script>
-            <script src="../src/DOM.js"></script>
-        <script src="../bootstrap.js"></script>
-
-        <!-- app files -->
-            <script src="App/Bundle/DefaultBundle/Controller/Main.js"></script>
-            <script src="App/Bundle/DefaultBundle/Config/Service.js"></script>
-            <script src="App/Bundle/DefaultBundle/Entity/Todo.js"></script>
-            <script src="App/Bundle/DefaultBundle/Service/MyService.js"></script>
-            <script src="App/Bundle/DefaultBundle/Service/Another.js"></script>
-
-        <script src="App/main.js"></script>
-
-    </body>
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Template • TodoMVC</title>
+		<link rel="stylesheet" href="vendor/todomvc-common/base.css">
+		<!-- CSS overrides - remove if you don't need it -->
+		<link rel="stylesheet" href="css/app.css">
+	</head>
+	<body>
+		<section class="viewport"></section>
+		<section id="todoapp" data-sy-view="Todo::Main" data-sy-controller="Todo::Main">
+			<header id="header" data-sy-layout="header">
+				<h1>todos</h1>
+				<input id="new-todo" placeholder="What needs to be done?" autofocus data-sy-action="new|keyup">
+			</header>
+			<section id="main" data-sy-layout="main">
+				<input id="toggle-all" type="checkbox" data-sy-action="markAllAsRead|change">
+				<label for="toggle-all">Mark all as complete</label>
+				<form action="#" data-sy-action="listChanges|change|submit|click|dblclick">
+					<ul id="todo-list" data-sy-list="tasks">
+						<li class="{{ status }}" data-uuid="{{ uuid }}">
+							<div class="view">
+								<input class="toggle" type="checkbox" data-uuid="{{ uuid }}">
+								<label data-uuid="{{uuid}}">{{ name }}</label>
+								<button class="destroy" data-uuid="{{ uuid }}"></button>
+							</div>
+							<input class="edit" value="{{ name }}" data-uuid="{{ uuid }}">
+						</li>
+					</ul>
+				</form>
+			</section>
+			<footer id="footer" class="hidden" data-sy-layout="footer">
+				<span id="todo-count"><strong>{{ left }}</strong> item left</span>
+				<button id="clear-completed" data-sy-action="removeAll|click">Clear completed ({{ completed }})</button>
+			</footer>
+		</section>
+		<footer id="info">
+			<p>Double-click to edit a todo</p>
+			<!-- Change this out with your name and url ↓ -->
+			<p>Created by <a href="http://github.com/Baptouuuu/Sy.com">Baptiste Langlade</a></p>
+			<p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
+		</footer>
+		<!-- Scripts here. Don't remove this ↓ -->
+		<script src="../vendor/underscore/underscore-min.js"></script>
+		<script src="../vendor/moment/moment.js"></script>
+		<script src="../vendor/Reflection.js/reflection.min.js"></script>
+		<script src="../dist/framework.js"></script>
+		<script src="vendor/todomvc-common/base.js"></script>
+		<script src="js/App/Bundle/Todo/Controller/Main.js"></script>
+		<script src="js/App/Bundle/Todo/ViewScreen/Main.js"></script>
+		<script src="js/App/Bundle/Todo/Entity/Task.js"></script>
+		<script src="js/App/Bundle/Todo/Config/Service.js"></script>
+		<script src="js/App/Bundle/Todo/Service/TaskRepoListener.js"></script>
+		<script src="js/app.js"></script>
+	</body>
 </html>

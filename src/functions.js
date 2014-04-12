@@ -127,40 +127,39 @@ function capitalize (string) {
 function reflectedObjectGetter (ns) {
 
     var namespaces = null,
-        referer = this,
-        getValue;
-
-    getValue = function (property) {
-        var referer = new ReflectionObject(this);
-
-        if (referer.hasMethod('get' + capitalize(property))) {
-            return referer.getMethod('get' + capitalize(property)).call();
-        } else if (referer.hasMethod('get')) {
-            return referer.getMethod('get').call(property);
-        } else if (referer.hasProperty(property)) {
-            return referer.getProperty(property).getValue();
-        } else {
-            return undefined;
-        }
-    };
+        referer = this;
 
     if (typeof ns === 'string') {
         namespaces = ns.split('.');
 
         if (namespaces.length === 1) {
-            return getValue.call(referer, ns);
+            return getReflectedValue.call(referer, ns);
         }
 
     } else if (ns instanceof Array && ns.length > 1) {
         namespaces = ns;
     } else if (ns instanceof Array && ns.length === 1) {
-        return getValue.call(referer, ns[0]);
+        return getReflectedValue.call(referer, ns[0]);
     } else {
         return undefined;
     }
 
     ns = namespaces.shift();
 
-    return reflectedObjectGetter.call(getValue.call(referer, ns), namespaces);
+    return reflectedObjectGetter.call(getReflectedValue.call(referer, ns), namespaces);
 
 }
+
+function getReflectedValue (property) {
+    var referer = new ReflectionObject(this);
+
+    if (referer.hasMethod('get' + capitalize(property))) {
+        return referer.getMethod('get' + capitalize(property)).call();
+    } else if (referer.hasMethod('get')) {
+        return referer.getMethod('get').call(property);
+    } else if (referer.hasProperty(property)) {
+        return referer.getProperty(property).getValue();
+    } else {
+        return undefined;
+    }
+};
