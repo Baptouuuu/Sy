@@ -13,22 +13,13 @@ The aim of this framework is to help you build Single-Page Application (SPA). Sy
 
 ## Project state
 
-Sy is still in development, but some libraries are already fully functional:
+Sy is still in development, but all the libraries available in the branch `develop` are fully functional.
 
-- HTTP manager
-- Generator
-- Logger
-- Mediator (Pub/Sub library)
-- Configurator
-- StateRegistry
-- Registry
-- Service container
-
-Bare in mind that until the first release some methods of those libraries may change.
+Bare in mind that until the release 1.0 some methods of those libraries may change.
 
 ## Documentation
 
-The framework documentation is available in the folder [docs](docs/Index.md).
+Please read the framework [book](docs/book/), you should also take a look at the [components documentations](docs/Index.md).
 
 ## Conventions
 
@@ -70,4 +61,4 @@ Sy framework uses [gitflow](http://nvie.com/posts/a-successful-git-branching-mod
 
 Before submitting new issues, make sure no one already opened a discussion in the [tracker](https://github.com/baptouuuu/sy/issues) related to yours.
 
-Please follow the coding style explained above.
+Please follow the coding style explained above (Most of the coding style via a grunt task, so any error will appear in travis).
