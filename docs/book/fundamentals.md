@@ -45,6 +45,32 @@ To resume, by using namespaces you can avoid the problem of global variables **a
 
 *Note*: Google has a [section](https://developers.google.com/speed/articles/optimizing-javascript) about closures and their drawbacks (section *Avoiding pitfalls with closures*).
 
+# App bootstrap
+
+In the other chapters you'll see how to define your classes inside your bundles, but it does not tell you how to initiate your application.
+
+Usually, it's done inside a small file added in last inside your html page, this one will be responsible to define your app configuration, boot the framework kernel and display the first viewscreen.
+
+Example:
+```js
+Sy.kernel.getConfig()
+    .set('some.config', 'value');
+
+try {
+    Sy.kernel.boot();
+
+    Sy.kernel.getServiceContainer()
+        .get('sy::core::viewport')
+        .display('home');
+} catch (error) {
+    //error if the browser is not supported by the framework
+}
+```
+This is a typical file on how to launch your app. Remember to call the `boot` method *only and only* when everything is loaded (all your app files) and configured; otherwise some configuration may not affect the framework the way you'd expect.
+
+Please take a look at the working demo available at the root of this repository for a real example.
+
+
 ## What is does not
 
 ### Routing
