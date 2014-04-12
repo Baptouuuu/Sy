@@ -40,7 +40,7 @@ The term `uri` has been chosen as you can only access resources on the same doma
 
 By default the request method is set to `GET`, but you can change it with:
 ```js
-request.setMETHOD('POST');
+request.setMethod('POST');
 ```
 This method accept: `GET`, `POST`, `PUT`, `DELETE`, `OPTIONS`, `HEAD`, `TRACE` and `CONNECT`.
 
