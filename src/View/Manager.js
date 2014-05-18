@@ -110,6 +110,18 @@ Sy.View.Manager.prototype = Object.create(Object.prototype, {
             return this.views.get(name);
 
         }
+    },
+
+    /**
+     * Return an array of all registered viewscreens
+     *
+     * @return {Array}
+     */
+
+    getViewScreens: {
+        value: function () {
+            return this.views.get();
+        }
     }
 
 });
