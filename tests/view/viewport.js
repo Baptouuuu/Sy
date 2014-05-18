@@ -70,4 +70,8 @@ describe('viewport', function () {
 
     });
 
+    it('should return the current viewscreen', function () {
+        expect(viewport.getCurrentViewScreen() instanceof Sy.View.ViewScreen).toBe(true);
+    });
+
 });
