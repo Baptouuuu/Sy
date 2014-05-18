@@ -17,7 +17,6 @@ Sy.Kernel.ControllerManager = function () {
     this.cache = null;
     this.cacheLength = null;
     this.cacheOrder = [];
-    this.actionBinder = null;
 };
 Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
 
@@ -171,28 +170,6 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Set the action binder
-     *
-     * @param {Sy.Kernel.ActionBinder} binder
-     *
-     * @return {Sy.Kernel.ControllerManager}
-     */
-
-    setActionBinder: {
-        value: function (binder) {
-
-            if (!(binder instanceof Sy.Kernel.ActionBinder)) {
-                throw new TypeError('Invalid action binder');
-            }
-
-            this.actionBinder = binder;
-
-            return this;
-
-        }
-    },
-
-    /**
      * Listener to on viewscreen display
      * Used to load appropriate controller
      *
@@ -206,39 +183,14 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
         value: function (event) {
 
             var viewscreen = event.getViewScreen(),
-                ctrl = viewscreen.getNode().dataset.syController,
-                instance,
-                bundleName;
+                alias = viewscreen.getNode().dataset.syController;
 
-            if (this.loaded.has(ctrl)) {
-
-                if (this.current !== ctrl) {
-                    this.loaded.get(this.current).sleep();
-                    this.loaded.get(ctrl).wakeup();
-                    this.current = ctrl;
-                }
-
-            } else if (this.meta.has(ctrl)) {
-
-                bundleName = ctrl.split('::')[0];
-
-                instance = new (this.meta.get(ctrl))();
-                instance
-                    .setBundle(bundleName)
-                    .setMediator(this.mediator)
-                    .setServiceContainer(this.container)
-                    .setViewScreen(viewscreen)
-                    .init();
-
-                this.cacheController(ctrl, instance);
-                this.actionBinder.bind(instance, viewscreen);
-
-                this.current = ctrl;
-
+            if (this.loaded.has(alias) && this.current !== alias) {
+                this.loaded.get(this.current).sleep();
+                this.loaded.get(alias).wakeup();
+                this.current = alias;
             } else {
-
-                throw new ReferenceError('The controller with the alias "' + ctrl + '" is undefined');
-
+                this.buildController(viewscreen);
             }
 
         }
@@ -279,6 +231,77 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
     },
 
     /**
+     * Build a controller instance for the specified viewscreen
+     *
+     * @param {Sy.View.ViewScreen} viewscreen
+     *
+     * @return {Sy.Kernel.ControllerManager}
+     */
+
+    buildController: {
+        value: function (viewscreen) {
+
+            if (!(viewscreen instanceof Sy.View.ViewScreen)) {
+                throw new TypeError('Invalid viewscreen');
+            }
+
+            var alias = viewscreen.getNode().dataset.syController,
+                bundleName = alias.split('::')[0],
+                instance;
+
+            if (!this.meta.has(alias)) {
+                throw new ReferenceError('The controller with the alias "' + alias + '" is undefined');
+            }
+
+            instance = new (this.meta.get(alias))();
+            instance
+                .setBundle(bundleName)
+                .setMediator(this.mediator)
+                .setServiceContainer(this.container)
+                .setViewScreen(viewscreen)
+                .init();
+
+            this.cacheController(alias, instance);
+            this.current = alias;
+
+            return this;
+
+        }
+    },
+
+    /**
+     * Check if a controller is built
+     *
+     * @param {String} alias Controller alias
+     *
+     * @return {Boolean}
+     */
+
+    isControllerBuilt: {
+        value: function (alias) {
+
+            return this.loaded.has(alias);
+
+        }
+    },
+
+    /**
+     * Get the instance of a controller
+     *
+     * @param {String} alias Controller alias
+     *
+     * @return {Sy.ControllerInterface}
+     */
+
+    getController: {
+        value: function (alias) {
+
+            return this.loaded.get(alias);
+
+        }
+    },
+
+    /**
      * Bootstrap the manager
      *
      * @return {Sy.Kernel.ControllerManager}
@@ -288,7 +311,7 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
         value: function () {
 
             this.mediator.subscribe({
-                channel: 'view::on::pre::display',
+                channel: Sy.View.Event.ViewPortEvent.prototype.PRE_DISPLAY,
                 fn: this.onDisplayListener,
                 context: this
             });
