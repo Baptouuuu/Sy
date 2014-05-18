@@ -13,6 +13,7 @@
  * @venus-include ../../src/View/NodeWrapper.js
  * @venus-include ../../src/View/ViewScreen.js
  * @venus-include ../../src/Kernel/ActionBinder.js
+ * @venus-include ../../src/View/Event/ViewPortEvent.js
  * @venus-code ../../src/Kernel/ControllerManager.js
  */
 
@@ -127,20 +128,22 @@ describe('kernel controller manager', function () {
     });
 
     it('should add the controller to the loaded controllers', function () {
-        var vs = new mockVS();
+        var vs = new mockVS(),
+            evt = new Sy.View.Event.ViewPortEvent(vs);
 
         manager.registerController('foo::bar', mockController);
-        manager.onDisplayListener(vs);
+        manager.onDisplayListener(evt);
 
         expect(manager.loaded.has('foo::bar')).toBe(true);
     });
 
     it('should load a new controller and destroy the hold one', function () {
-         var vs = new mockVS2();
+        var vs = new mockVS2(),
+            evt = new Sy.View.Event.ViewPortEvent(vs);
 
         manager.registerController('foo::baz', mockController);
         manager.setCache(false);
-        manager.onDisplayListener(vs);
+        manager.onDisplayListener(evt);
 
         expect(manager.loaded.has('foo::baz')).toBe(true);
         expect(manager.loaded.has('foo::bar')).toBe(false);
