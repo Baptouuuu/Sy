@@ -4,11 +4,10 @@ App.Bundle.Todo.Config.Service = function () {};
 App.Bundle.Todo.Config.Service.prototype = Object.create(Object.prototype, {
 
     define: {
-        value: function () {
+        value: function (container) {
 
-            return [
-                {
-                    name: 'listener::repo::task',
+            container.set({
+                'listener::repo::task': {
                     constructor: 'App.Bundle.Todo.Service.TaskRepoListener',
                     calls: [
                         ['setRest', ['@sy::core::http::rest']],
@@ -16,7 +15,7 @@ App.Bundle.Todo.Config.Service.prototype = Object.create(Object.prototype, {
                         ['setApiPath', ['%api.basePath%']]
                     ]
                 }
-            ];
+            });
 
         }
     }

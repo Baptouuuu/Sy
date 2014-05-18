@@ -61,44 +61,14 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                 viewscreens: parser.getViewScreens()
             });
 
+            parser
+                .buildServices(this.container)
+                .buildConfig(this.config);
+
             this
-                .registerServices(parser.getServices())
                 .registerControllers(parser.getControllers())
                 .configureLogger()
                 .registerShutdownListener();
-
-        }
-    },
-
-    /**
-     * Register the app services in the global container
-     *
-     * @private
-     * @param {Array} services
-     *
-     * @return {Sy.Kernel.Core}
-     */
-
-    registerServices: {
-        value: function (services) {
-
-            for (var i = 0, l = services.length; i < l; i++) {
-                if (services[i].creator) {
-                    this.container.set(
-                        services[i].name,
-                        services[i].creator
-                    );
-                } else if (typeof services[i].constructor === 'string') {
-                    var def = {},
-                        name = services[i].name;
-                    delete services[i].name;
-
-                    def[name] = services[i];
-                    this.container.set(def);
-                }
-            }
-
-            return this;
 
         }
     },
