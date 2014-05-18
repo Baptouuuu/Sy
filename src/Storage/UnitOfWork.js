@@ -300,7 +300,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
      * @return {Sy.Storage.UnitOfWork}
      */
 
-    flush: {
+    commit: {
         value: function () {
 
             var toRemove = this.states.has(this.SCHEDULED_FOR_REMOVAL) ? this.states.get(this.SCHEDULED_FOR_REMOVAL) : [],
