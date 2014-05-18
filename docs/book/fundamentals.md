@@ -32,7 +32,7 @@ Your app must be organised by bundles. A bundle is a regroupment of your code, w
 
 To see where to put a class, please refer to the appropriate section.
 
-# Namespacing
+## Namespacing
 
 If you have written some javascript before, you probably know the problem of global variables that can be easily overriden. To avoid this problem, many developers use self contained functions so the variables are contained in this restricted scope. The problem with this approach is that it creates many closures, and one of the goals of this framework is to avoid them as much as possible.
 
@@ -47,7 +47,7 @@ To resume, by using namespaces you can avoid the problem of global variables **a
 
 *Note*: Google has a [section](https://developers.google.com/speed/articles/optimizing-javascript) about closures and their drawbacks (section *Avoiding pitfalls with closures*).
 
-# App bootstrap
+## App bootstrap
 
 In the other chapters you'll see how to define your classes inside your bundles, but it does not tell you how to initiate your application.
 
