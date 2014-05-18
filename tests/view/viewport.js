@@ -4,6 +4,7 @@
  * @venus-include ../../src/View/Manager.js
  * @venus-include ../../src/View/NodeWrapper.js
  * @venus-include ../../src/View/ViewScreen.js
+ * @venus-include ../../src/View/Event/ViewPortEvent.js
  * @venus-code ../../src/View/ViewPort.js
  */
 

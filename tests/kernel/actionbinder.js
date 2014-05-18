@@ -7,6 +7,7 @@
  * @venus-include ../../src/Controller.js
  * @venus-include ../../src/View/NodeWrapper.js
  * @venus-include ../../src/View/ViewScreen.js
+ * @venus-include ../../src/Event/ControllerEvent.js
  * @venus-code ../../src/Kernel/ActionBinder.js
  * @venus-fixture ../../fixtures/kernel/viewscreen.html
  */

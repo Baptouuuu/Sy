@@ -106,7 +106,7 @@ Sy.View.ViewPort.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
             var viewscreen = this.manager.getViewScreen(name),
                 node = viewscreen.getNode(),
-                event = new Sy.View.ViewPortEvent(viewscreen);
+                event = new Sy.View.Event.ViewPortEvent(viewscreen);
 
             if (this.mediator) {
                 this.mediator.publish(event.PRE_DISPLAY, event);
