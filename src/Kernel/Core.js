@@ -12,7 +12,7 @@ Sy.Kernel.Core = function () {
     this.config = new Sy.Configurator();
     this.container = new Sy.ServiceContainer('sy::core');
     this.controllerManager = new Sy.Kernel.ControllerManager();
-    this.actionBinder = new Sy.Kernel.ActionBinder();
+    this.actionDispatcher = new Sy.Kernel.ActionDispatcher();
 };
 Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
@@ -86,9 +86,10 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
         value: function (controllers) {
 
             var registryFactory = this.container.get('sy::core::registry::factory'),
-                mediator = this.container.get('sy::core::mediator');
-
-            this.actionBinder.setMediator(mediator);
+                mediator = this.container.get('sy::core::mediator'),
+                viewport = this.container.get('sy::core::viewport'),
+                logger = this.container.get('sy::core::logger'),
+                viewscreensManager = this.container.get('sy::core::view::manager');
 
             this.controllerManager
                 .setMetaRegistry(registryFactory.make())
@@ -96,8 +97,13 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                 .setMediator(mediator)
                 .setServiceContainer(this.container)
                 .setCache(this.config.get('controllers.cache'))
-                .setCacheLength(this.config.get('controllers.cacheLength'))
-                .setActionBinder(this.actionBinder);
+                .setCacheLength(this.config.get('controllers.cacheLength'));
+
+            this.actionDispatcher
+                .setViewPort(viewport)
+                .setControllerManager(this.controllerManager)
+                .setMediator(mediator)
+                .setLogger(logger);
 
             for (var i = 0, l = controllers.length; i < l; i++) {
                 this.controllerManager.registerController(
@@ -107,6 +113,9 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
             }
 
             this.controllerManager.boot();
+            this.actionDispatcher.bindViewScreens(
+                viewscreensManager.getViewScreens()
+            );
 
             return this;
 
