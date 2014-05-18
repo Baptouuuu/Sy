@@ -117,6 +117,12 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                 viewscreensManager.getViewScreens()
             );
 
+            if (viewport.getCurrentViewScreen()) {
+                this.controllerManager.buildController(
+                    viewport.getCurrentViewScreen()
+                );
+            }
+
             return this;
 
         }
