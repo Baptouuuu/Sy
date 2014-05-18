@@ -102,7 +102,15 @@ Sy.View.ViewPort.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
     getCurrentViewScreen: {
         value: function () {
+
+            if (this.current === null && this.node.childElementCount === 1) {
+                this.current = this.manager.getViewScreen(
+                    this.node.firstElementChild.dataset.syView
+                );
+            }
+
             return this.current;
+
         }
     },
 
