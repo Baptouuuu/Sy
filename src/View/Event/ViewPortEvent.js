@@ -5,7 +5,7 @@ namespace('Sy.View.Event');
  *
  * @package Sy
  * @subpackage View.Event
- * @class 
+ * @class
  */
 
 Sy.View.Event.ViewPortEvent = function (viewscreen) {
@@ -30,9 +30,9 @@ Sy.View.Event.ViewPortEvent.prototype = Object.create(Object.prototype, {
 	/**
 	 * Return the viewscreen being displayed
 	 *
-	 * @return {Sy.View.ViewScreen} 
+	 * @return {Sy.View.ViewScreen}
 	 */
-	
+
 	getViewScreen: {
 		value: function () {
 			return this.viewscreen;
