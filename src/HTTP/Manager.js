@@ -215,6 +215,7 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
                     response;
 
                 if (
+                    headers['Content-Type'] !== undefined &&
                     headers['Content-Type'].indexOf('application/json') !== -1 &&
                     request.obj.getType() === 'json'
                 ) {
@@ -222,6 +223,7 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
                     response = new Sy.HTTP.JSONResponse();
 
                 } else if (
+                    headers['Content-Type'] !== undefined &&
                     headers['Content-Type'].indexOf('text/html') !== -1 &&
                     request.obj.getType() === 'html'
                 ) {
@@ -242,7 +244,7 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
                 this.requests.remove(event.target.UUID);
 
-                if (lstn !== undefined) {
+                if (lstn instanceof Function) {
 
                     lstn(response);
 
