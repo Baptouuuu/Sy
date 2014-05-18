@@ -197,15 +197,16 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
      * Used to load appropriate controller
      *
      * @private
-     * @param {Sy.View.ViewScreen} viewscreen
+     * @param {Sy.View.Event.ViewPortEvent} event
      *
      * @return {void}
      */
 
     onDisplayListener: {
-        value: function (viewscreen) {
+        value: function (event) {
 
-            var ctrl = viewscreen.getNode().dataset.syController,
+            var viewscreen = event.getViewScreen(),
+                ctrl = viewscreen.getNode().dataset.syController,
                 instance,
                 bundleName;
 

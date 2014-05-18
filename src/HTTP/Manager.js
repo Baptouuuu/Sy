@@ -14,6 +14,7 @@ Sy.HTTP.Manager = function () {
     this.requests = null;
     this.parser = null;
     this.generator = null;
+    this.logger = null;
 
 };
 
@@ -82,6 +83,28 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
     },
 
     /**
+     * Set the logger
+     *
+     * @param {Sy.Lib.Logger.Interface} logger
+     *
+     * @return {Sy.HTTP.Manager}
+     */
+
+    setLogger: {
+        value: function (logger) {
+
+            if (!(logger instanceof Sy.Lib.Logger.Interface)) {
+                throw new TypeError('Invalid logger');
+            }
+
+            this.logger = logger;
+
+            return this;
+
+        }
+    },
+
+    /**
      * Prepare a new HTTP request
      *
      * @param {Sy.HTTP.RequestInterface} request
@@ -94,6 +117,10 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
             if (!(request instanceof Sy.HTTP.RequestInterface)) {
                 throw new TypeError('Invalid request type');
+            }
+
+            if (this.logger) {
+                this.logger.info('Preparing a new HTTP request...', request);
             }
 
             var uuid = this.generator.generate(),
@@ -142,6 +169,10 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
             this.requests.set(uuid, req);
 
+            if (this.logger) {
+                this.logger.info('HTTP request prepared', req);
+            }
+
             return uuid;
 
         }
@@ -180,6 +211,10 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
             if (typeof request === 'string') {
                 var req = this.requests.get(request);
+
+                if (this.logger) {
+                    this.logger.info('Launching a HTTP request...', req);
+                }
 
                 req.xhr.send(req.data);
 
@@ -246,6 +281,10 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
                 if (lstn instanceof Function) {
 
+                    if (this.logger) {
+                        this.logger.info('Notifying the request is finished...', response);
+                    }
+
                     lstn(response);
 
                 }
@@ -270,6 +309,10 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
             request.xhr.abort();
             this.requests.remove(identifier);
+
+            if (this.logger) {
+                this.logger.info('HTTP request aborted', identifier);
+            }
 
             return this;
 
