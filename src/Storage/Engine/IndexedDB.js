@@ -283,7 +283,7 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
 
                 request.addEventListener('success', function (event) {
                     callback(event.target.result);
-                });
+                }.bind(this));
 
                 request.addEventListener('error', function (event) {
                     this.logger.error('Read operation failed!', event);
@@ -441,7 +441,7 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
                         storeName,
                         identifier
                     );
-                });
+                }.bind(this));
 
                 request.addEventListener('error', function (event) {
                     this.logger.error('Delete operation failed!', event);
