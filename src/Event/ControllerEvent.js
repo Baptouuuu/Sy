@@ -7,7 +7,7 @@ namespace('Sy.Event');
  * @subpackage Event
  * @class
  */
-Sy.Event.ControllerEvent = function (controller, action) {
+Sy.Event.ControllerEvent = function (controller, action, event) {
     if (!(controller instanceof Sy.ControllerInterface)) {
         throw new TypeError('Invalid controller');
     }
@@ -18,6 +18,7 @@ Sy.Event.ControllerEvent = function (controller, action) {
 
     this.controller = controller;
     this.action = action;
+    this.event = event;
 };
 Sy.Event.ControllerEvent.prototype = Object.create(Object.prototype, {
 
@@ -52,6 +53,18 @@ Sy.Event.ControllerEvent.prototype = Object.create(Object.prototype, {
     getAction: {
         value: function () {
             return this.action;
+        }
+    },
+
+    /**
+     * Return original DOM event
+     *
+     * @return {Event}
+     */
+
+    getOriginalEvent: {
+        value: function () {
+            return this.event;
         }
     }
 
