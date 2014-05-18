@@ -82,14 +82,14 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Init a new HTTP request
+     * Prepare a new HTTP request
      *
      * @param {Sy.HTTP.RequestInterface} request
      *
      * @return {string} Identifier of the request
      */
 
-    launch: {
+    prepare: {
         value: function (request) {
 
             if (!(request instanceof Sy.HTTP.RequestInterface)) {
@@ -138,11 +138,55 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
                 }
             }
 
-            req.xhr.send(requestData);
+            req.data = requestData;
 
             this.requests.set(uuid, req);
 
             return uuid;
+
+        }
+    },
+
+    /**
+     * Return the XMLHttpRequest instance for the specified uuid
+     *
+     * @param {String} uuid
+     *
+     * @return {XMLHttpRequest}
+     */
+
+    getXHR: {
+        value: function (uuid) {
+
+            var req = this.requests.get(uuid);
+
+            return req.xhr;
+
+        }
+    },
+
+    /**
+     * Launch the specified request
+     * If it's a uuid, it will send the previously prepared request
+     * If it's a request object, it will automatically prepare it
+     *
+     * @param {String|Sy.HTTP.RequestInterface} request
+     *
+     * @return {string} Identifier of the request
+     */
+
+    launch: {
+        value: function (request) {
+
+            if (typeof request === 'string') {
+                var req = this.requests.get(request);
+
+                req.xhr.send(req.data);
+
+                return req.uuid;
+            } else {
+                return this.launch(this.prepare(request));
+            }
 
         }
     },
