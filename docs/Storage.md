@@ -209,9 +209,11 @@ Last but not least, the three engines all use the mediator to notify you when yo
 
 Channels name are:
 
-* `app::storage::on::pre::create`, with the store name `BundleName::EntityName` and the raw data object as arguments
-* `app::storage::on::post::create`, with the store name `BundleName::EntityName` and the raw data object as arguments
-* `app::storage::on::pre::update`, with the store name `BundleName::EntityName`, the identifier and the raw data object as arguments
-* `app::storage::on::post::update`, with the store name `BundleName::EntityName`, the identifier and the raw data object as argument
-* `app::storage::on::pre::remove`, with the store name `BundleName::EntityName` and the identifier
-* `app::storage::on::post::remove`, with the store name `BundleName::EntityName` and the identifier
+* `storage::on::pre::create`
+* `storage::on::post::create`
+* `storage::on::pre::update`
+* `storage::on::post::update`
+* `storage::on::pre::remove`
+* `storage::on::post::remove`
+
+Each one of them is stored inside the object `Sy.Storage.Event.LifecycleEvent`. An instance of this object is passed as argument of these channels.

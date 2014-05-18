@@ -97,13 +97,14 @@ Sy.Kernel.ActionBinder.prototype = Object.create(Object.prototype, {
 
             var target = event.currentTarget,
                 controller = this.controllers[target.dataset.syControllerIndex],
-                action = target.dataset.syActionName;
+                action = target.dataset.syActionName,
+                event = new Sy.Event.ControllerEvent(controller, action);
 
-            this.mediator.publish('controller::on::pre::action', controller, action);
+            this.mediator.publish(event.PRE_ACTION, event);
 
             controller[action].call(controller, event);
 
-            this.mediator.publish('controller::on::pre::action', controller, action);
+            this.mediator.publish(event.POST_ACTION, event);
 
         }
     }

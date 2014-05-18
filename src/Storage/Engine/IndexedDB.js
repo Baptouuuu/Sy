@@ -311,14 +311,19 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
                 throw new ReferenceError('Invalid store');
             }
 
-            var store = this.stores[storeName];
+            var store = this.stores[storeName],
+                evt = new Sy.Storage.Event.LifecycleEvent(
+                    this.name,
+                    storeName,
+                    null,
+                    object
+                );
 
             try {
 
                 this.mediator.publish(
-                    this.name + '::on::pre::create',
-                    storeName,
-                    object
+                    evt.PRE_CREATE,
+                    evt
                 );
 
                 var transaction = this.storage.transaction(
@@ -331,9 +336,8 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
                 request.addEventListener('success', function (event) {
                     callback(event.target.result);
                     this.mediator.publish(
-                        this.name + '::on::post::create',
-                        storeName,
-                        object
+                        evt.POST_CREATE,
+                        evt
                     );
                 }.bind(this));
 
@@ -363,15 +367,19 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
                 throw new ReferenceError('Invalid store');
             }
 
-            var store = this.stores[storeName];
+            var store = this.stores[storeName],
+                evt = new Sy.Storage.Event.LifecycleEvent(
+                    this.name,
+                    storeName,
+                    identifier,
+                    object
+                );
 
             try {
 
                 this.mediator.publish(
-                    this.name + '::on::pre::update',
-                    storeName,
-                    identifier,
-                    object
+                    evt.PRE_UPDATE,
+                    evt
                 );
 
                 var transaction = this.storage.transaction(
@@ -384,10 +392,8 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
                 request.addEventListener('success', function (event) {
                     callback(event.target.result);
                     this.mediator.publish(
-                        this.name + '::on::post::update',
-                        storeName,
-                        identifier,
-                        object
+                        evt.POST_UPDATE,
+                        evt
                     );
                 }.bind(this));
 
@@ -417,14 +423,19 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
                 throw new ReferenceError('Invalid store');
             }
 
-            var store = this.stores[storeName];
+            var store = this.stores[storeName],
+                evt = new Sy.Storage.Event.LifecycleEvent(
+                    this.name,
+                    storeName,
+                    identifier,
+                    null
+                );
 
             try {
 
                 this.mediator.publish(
-                    this.name + '::on::pre::remove',
-                    storeName,
-                    identifier
+                    evt.PRE_REMOVE,
+                    evt
                 );
 
                 var transaction = this.storage.transaction(
@@ -437,9 +448,8 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
                 request.addEventListener('success', function (event) {
                     callback(event.target.result);
                     this.mediator.publish(
-                        this.name + '::on::post::remove',
-                        storeName,
-                        identifier
+                        evt.POST_REMOVE,
+                        evt
                     );
                 }.bind(this));
 

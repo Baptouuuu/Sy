@@ -149,9 +149,11 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
         value: function () {
             window.addEventListener('beforeunload', function (event) {
                 try {
+                    var evt = new Sy.Event.AppShutdownEvent(event);
+
                     this.container.get('sy::core::mediator').publish(
-                        'app::shutdown',
-                        event
+                        evt.KEY,
+                        evt
                     );
                 } catch (error) {
                     return error.message;

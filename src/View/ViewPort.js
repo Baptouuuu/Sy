@@ -105,10 +105,11 @@ Sy.View.ViewPort.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
         value: function (name) {
 
             var viewscreen = this.manager.getViewScreen(name),
-                node = viewscreen.getNode();
+                node = viewscreen.getNode(),
+                event = new Sy.View.ViewPortEvent(viewscreen);
 
             if (this.mediator) {
-                this.mediator.publish('view::on::pre::display', viewscreen);
+                this.mediator.publish(event.PRE_DISPLAY, event);
             }
 
             switch (this.node.childElementCount) {
@@ -123,7 +124,7 @@ Sy.View.ViewPort.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
             }
 
             if (this.mediator) {
-                this.mediator.publish('view::on::post::display', viewscreen);
+                this.mediator.publish(event.POST_DISPLAY, event);
             }
 
             return this;
