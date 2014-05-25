@@ -56,4 +56,9 @@ describe('view manager', function () {
 
     });
 
+    it('should return all viewscreens', function () {
+        expect(manager.getViewScreens() instanceof Array).toBe(true);
+        expect(manager.getViewScreens().length).toEqual(1);
+    });
+
 });

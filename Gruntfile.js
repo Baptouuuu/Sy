@@ -23,7 +23,7 @@ module.exports = function (grunt) {
         'src/View/TemplateEngineInterface.js',
         'src/View/ViewScreenFactoryInterface.js',
         /* kernel */
-        'src/Kernel/ActionBinder.js',
+        'src/Kernel/ActionDispatcher.js',
         'src/Kernel/AppParser.js',
         'src/Kernel/ControllerManager.js',
         'src/Kernel/Core.js',
