@@ -136,7 +136,7 @@ Sy.Kernel.ActionDispatcher.prototype = Object.create(Object.prototype, {
     bindViewScreen: {
         value: function (viewscreen) {
 
-            if(!(viewscreen instanceof Sy.View.ViewScreen)) {
+            if (!(viewscreen instanceof Sy.View.ViewScreen)) {
                 throw new TypeError('Invalid viewscreen');
             }
 
