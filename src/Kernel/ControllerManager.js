@@ -209,9 +209,6 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
     cacheController: {
         value: function (alias, instance) {
 
-            this.loaded.set(alias, instance);
-            this.cacheOrder.push(alias);
-
             if (
                 this.cache === false ||
                 (
@@ -224,6 +221,9 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
                 this.loaded.remove(this.cacheOrder[0]);
                 this.cacheOrder.splice(0, 1);
             }
+
+            this.loaded.set(alias, instance);
+            this.cacheOrder.push(alias);
 
             return this;
 
