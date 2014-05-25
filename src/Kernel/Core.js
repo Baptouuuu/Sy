@@ -12,7 +12,7 @@ Sy.Kernel.Core = function () {
     this.config = new Sy.Configurator();
     this.container = new Sy.ServiceContainer('sy::core');
     this.controllerManager = new Sy.Kernel.ControllerManager();
-    this.actionBinder = new Sy.Kernel.ActionBinder();
+    this.actionDispatcher = new Sy.Kernel.ActionDispatcher();
 };
 Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
@@ -61,44 +61,14 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                 viewscreens: parser.getViewScreens()
             });
 
+            parser
+                .buildServices(this.container)
+                .buildConfig(this.config);
+
             this
-                .registerServices(parser.getServices())
                 .registerControllers(parser.getControllers())
                 .configureLogger()
                 .registerShutdownListener();
-
-        }
-    },
-
-    /**
-     * Register the app services in the global container
-     *
-     * @private
-     * @param {Array} services
-     *
-     * @return {Sy.Kernel.Core}
-     */
-
-    registerServices: {
-        value: function (services) {
-
-            for (var i = 0, l = services.length; i < l; i++) {
-                if (services[i].creator) {
-                    this.container.set(
-                        services[i].name,
-                        services[i].creator
-                    );
-                } else if (typeof services[i].constructor === 'string') {
-                    var def = {},
-                        name = services[i].name;
-                    delete services[i].name;
-
-                    def[name] = services[i];
-                    this.container.set(def);
-                }
-            }
-
-            return this;
 
         }
     },
@@ -116,9 +86,10 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
         value: function (controllers) {
 
             var registryFactory = this.container.get('sy::core::registry::factory'),
-                mediator = this.container.get('sy::core::mediator');
-
-            this.actionBinder.setMediator(mediator);
+                mediator = this.container.get('sy::core::mediator'),
+                viewport = this.container.get('sy::core::viewport'),
+                logger = this.container.get('sy::core::logger'),
+                viewscreensManager = this.container.get('sy::core::view::manager');
 
             this.controllerManager
                 .setMetaRegistry(registryFactory.make())
@@ -126,8 +97,13 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                 .setMediator(mediator)
                 .setServiceContainer(this.container)
                 .setCache(this.config.get('controllers.cache'))
-                .setCacheLength(this.config.get('controllers.cacheLength'))
-                .setActionBinder(this.actionBinder);
+                .setCacheLength(this.config.get('controllers.cacheLength'));
+
+            this.actionDispatcher
+                .setViewPort(viewport)
+                .setControllerManager(this.controllerManager)
+                .setMediator(mediator)
+                .setLogger(logger);
 
             for (var i = 0, l = controllers.length; i < l; i++) {
                 this.controllerManager.registerController(
@@ -137,6 +113,15 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
             }
 
             this.controllerManager.boot();
+            this.actionDispatcher.bindViewScreens(
+                viewscreensManager.getViewScreens()
+            );
+
+            if (viewport.getCurrentViewScreen()) {
+                this.controllerManager.buildController(
+                    viewport.getCurrentViewScreen()
+                );
+            }
 
             return this;
 
@@ -179,9 +164,11 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
         value: function () {
             window.addEventListener('beforeunload', function (event) {
                 try {
+                    var evt = new Sy.Event.AppShutdownEvent(event);
+
                     this.container.get('sy::core::mediator').publish(
-                        'app::shutdown',
-                        event
+                        evt.KEY,
+                        evt
                     );
                 } catch (error) {
                     return error.message;

@@ -14,6 +14,7 @@ Sy.HTTP.Manager = function () {
     this.requests = null;
     this.parser = null;
     this.generator = null;
+    this.logger = null;
 
 };
 
@@ -82,18 +83,44 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Init a new HTTP request
+     * Set the logger
+     *
+     * @param {Sy.Lib.Logger.Interface} logger
+     *
+     * @return {Sy.HTTP.Manager}
+     */
+
+    setLogger: {
+        value: function (logger) {
+
+            if (!(logger instanceof Sy.Lib.Logger.Interface)) {
+                throw new TypeError('Invalid logger');
+            }
+
+            this.logger = logger;
+
+            return this;
+
+        }
+    },
+
+    /**
+     * Prepare a new HTTP request
      *
      * @param {Sy.HTTP.RequestInterface} request
      *
      * @return {string} Identifier of the request
      */
 
-    launch: {
+    prepare: {
         value: function (request) {
 
             if (!(request instanceof Sy.HTTP.RequestInterface)) {
                 throw new TypeError('Invalid request type');
+            }
+
+            if (this.logger) {
+                this.logger.info('Preparing a new HTTP request...', request);
             }
 
             var uuid = this.generator.generate(),
@@ -138,11 +165,63 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
                 }
             }
 
-            req.xhr.send(requestData);
+            req.data = requestData;
 
             this.requests.set(uuid, req);
 
+            if (this.logger) {
+                this.logger.info('HTTP request prepared', req);
+            }
+
             return uuid;
+
+        }
+    },
+
+    /**
+     * Return the XMLHttpRequest instance for the specified uuid
+     *
+     * @param {String} uuid
+     *
+     * @return {XMLHttpRequest}
+     */
+
+    getXHR: {
+        value: function (uuid) {
+
+            var req = this.requests.get(uuid);
+
+            return req.xhr;
+
+        }
+    },
+
+    /**
+     * Launch the specified request
+     * If it's a uuid, it will send the previously prepared request
+     * If it's a request object, it will automatically prepare it
+     *
+     * @param {String|Sy.HTTP.RequestInterface} request
+     *
+     * @return {string} Identifier of the request
+     */
+
+    launch: {
+        value: function (request) {
+
+            if (typeof request === 'string') {
+                var req = this.requests.get(request);
+
+                if (this.logger) {
+                    this.logger.info('Launching a HTTP request...', req);
+                }
+
+                req.xhr.send(req.data);
+
+                return req.uuid;
+            } else {
+                return this.launch(this.prepare(request));
+            }
 
         }
     },
@@ -171,6 +250,7 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
                     response;
 
                 if (
+                    headers['Content-Type'] !== undefined &&
                     headers['Content-Type'].indexOf('application/json') !== -1 &&
                     request.obj.getType() === 'json'
                 ) {
@@ -178,6 +258,7 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
                     response = new Sy.HTTP.JSONResponse();
 
                 } else if (
+                    headers['Content-Type'] !== undefined &&
                     headers['Content-Type'].indexOf('text/html') !== -1 &&
                     request.obj.getType() === 'html'
                 ) {
@@ -198,7 +279,11 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
                 this.requests.remove(event.target.UUID);
 
-                if (lstn !== undefined) {
+                if (lstn instanceof Function) {
+
+                    if (this.logger) {
+                        this.logger.info('Notifying the request is finished...', response);
+                    }
 
                     lstn(response);
 
@@ -224,6 +309,10 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
             request.xhr.abort();
             this.requests.remove(identifier);
+
+            if (this.logger) {
+                this.logger.info('HTTP request aborted', identifier);
+            }
 
             return this;
 

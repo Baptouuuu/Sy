@@ -23,7 +23,7 @@ module.exports = function (grunt) {
         'src/View/TemplateEngineInterface.js',
         'src/View/ViewScreenFactoryInterface.js',
         /* kernel */
-        'src/Kernel/ActionBinder.js',
+        'src/Kernel/ActionDispatcher.js',
         'src/Kernel/AppParser.js',
         'src/Kernel/ControllerManager.js',
         'src/Kernel/Core.js',
@@ -45,6 +45,7 @@ module.exports = function (grunt) {
         'src/HTTP/REST.js',
         /* storage */
         'src/Storage/Core.js',
+        'src/Storage/Event/LifecycleEvent.js',
         'src/Storage/Engine/IndexedDB.js',
         'src/Storage/Engine/Localstorage.js',
         'src/Storage/Engine/Rest.js',
@@ -63,6 +64,7 @@ module.exports = function (grunt) {
         'src/Storage/UnitOfWork.js',
         'src/Storage/UnitOfWorkFactory.js',
         /* view */
+        'src/View/Event/ViewPortEvent.js',
         'src/View/NodeWrapper.js',
         'src/View/Layout.js',
         'src/View/LayoutFactory.js',
@@ -74,6 +76,9 @@ module.exports = function (grunt) {
         'src/View/ViewPort.js',
         'src/View/ViewScreen.js',
         'src/View/ViewScreenFactory.js',
+        /* events */
+        'src/Event/AppShutdownEvent.js',
+        'src/Event/ControllerEvent.js',
         /* top objects */
         'src/Configurator.js',
         'src/Controller.js',
@@ -133,6 +138,9 @@ module.exports = function (grunt) {
                             break;
                         case 'kernel':
                             path = 'kernel';
+                            break;
+                        case 'event':
+                            path = 'event';
                             break;
                         case 'topLevel':
                             path = [

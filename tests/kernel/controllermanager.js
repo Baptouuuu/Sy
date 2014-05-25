@@ -12,7 +12,7 @@
  * @venus-include ../../src/ServiceContainer.js
  * @venus-include ../../src/View/NodeWrapper.js
  * @venus-include ../../src/View/ViewScreen.js
- * @venus-include ../../src/Kernel/ActionBinder.js
+ * @venus-include ../../src/View/Event/ViewPortEvent.js
  * @venus-code ../../src/Kernel/ControllerManager.js
  */
 
@@ -29,6 +29,7 @@ describe('kernel controller manager', function () {
     var manager = new Sy.Kernel.ControllerManager(),
         mockVS = function () {},
         mockVS2 = function () {},
+        mockInvalidVS = function () {},
         mockController = function () {},
         destroyed = false;
 
@@ -46,6 +47,15 @@ describe('kernel controller manager', function () {
             value: function () {
                 var n = document.createElement('section');
                 n.dataset.syController = 'foo::baz';
+                return n;
+            }
+        }
+    });
+    mockInvalidVS.prototype = Object.create(Sy.View.ViewScreen.prototype, {
+        getNode: {
+            value: function () {
+                var n = document.createElement('section');
+                n.dataset.syController = 'unknown';
                 return n;
             }
         }
@@ -112,38 +122,49 @@ describe('kernel controller manager', function () {
         expect(manager.setCacheLength(3)).toEqual(manager);
     });
 
-    it('should throw if trying to set invalid action binder', function () {
-        expect(function () {
-            manager.setActionBinder({});
-        }).toThrow('Invalid action binder');
-    });
-
-    it('should set the action binder', function () {
-        var ab = new Sy.Kernel.ActionBinder();
-
-        ab.setMediator(new Sy.Lib.Mediator());
-
-        expect(manager.setActionBinder(ab)).toEqual(manager);
-    });
-
     it('should add the controller to the loaded controllers', function () {
-        var vs = new mockVS();
+        var vs = new mockVS(),
+            evt = new Sy.View.Event.ViewPortEvent(vs);
 
         manager.registerController('foo::bar', mockController);
-        manager.onDisplayListener(vs);
+        manager.onDisplayListener(evt);
 
         expect(manager.loaded.has('foo::bar')).toBe(true);
     });
 
     it('should load a new controller and destroy the hold one', function () {
-         var vs = new mockVS2();
+        var vs = new mockVS2(),
+            evt = new Sy.View.Event.ViewPortEvent(vs);
 
         manager.registerController('foo::baz', mockController);
-        manager.setCache(false);
-        manager.onDisplayListener(vs);
 
-        expect(manager.loaded.has('foo::baz')).toBe(true);
-        expect(manager.loaded.has('foo::bar')).toBe(false);
+        expect(manager.isControllerBuilt('foo::baz')).toBe(false);
+
+        manager.setCache(false);
+        manager.onDisplayListener(evt);
+
+        expect(manager.isControllerBuilt('foo::baz')).toBe(true);
+        expect(manager.isControllerBuilt('foo::bar')).toBe(false);
+    });
+
+    it('should built a controller', function () {
+        var vs = new mockVS2();
+
+        expect(manager.buildController(vs)).toEqual(manager);
+        expect(manager.isControllerBuilt('foo::baz')).toBe(true);
+        expect(manager.getController('foo::baz') instanceof Sy.Controller).toBe(true);
+    });
+
+    it('should throw if trying to build a controller from invalid viewscreen', function () {
+        expect(function () {
+            manager.buildController({});
+        }).toThrow('Invalid viewscreen');
+    });
+
+    it('should throw if unknown controller for the viewscreen', function () {
+        expect(function () {
+            manager.buildController(new mockInvalidVS());
+        }).toThrow('The controller with the alias "unknown" is undefined');
     });
 
 });

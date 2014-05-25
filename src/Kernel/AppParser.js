@@ -13,7 +13,6 @@ Sy.Kernel.AppParser = function () {
     this.controllers = [];
     this.entities = [];
     this.viewscreens = [];
-    this.services = [];
 };
 Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
 
@@ -163,20 +162,22 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Return the list of services
+     * Walk through the app services definitions object
+     * and call them to register them
      *
-     * @return {Array}
+     * @param {Sy.ServiceContainerInterface} $container
+     *
+     * @return {Sy.Kernel.AppParser}
      */
 
-    getServices: {
-        value: function () {
+    buildServices: {
+        value: function (container) {
 
-            if (this.services.length > 0) {
-                return this.services;
+            if (!(container instanceof Sy.ServiceContainerInterface)) {
+                throw new TypeError('Invalid service container');
             }
 
-            var bundleConfig,
-                services;
+            var bundleConfig;
 
             for (var i = 0, l = this.bundles.length; i < l; i++) {
                 bundleConfig = App.Bundle[this.bundles[i]].Config;
@@ -186,10 +187,44 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
                 }
 
                 bundleConfig = new bundleConfig.Service();
-                this.services = this.services.concat(bundleConfig.define());
+                bundleConfig.define(container);
             }
 
-            return this.services;
+            return this;
+
+        }
+    },
+
+    /**
+     * Walk through the app config definitions object
+     * and call them to register them
+     *
+     * @param {Sy.ConfiguratorInterface} $config
+     *
+     * @return {Sy.Kernel.AppParser}
+     */
+
+    buildConfig: {
+        value: function (config) {
+
+            if (!(config instanceof Sy.ConfiguratorInterface)) {
+                throw new TypeError('Invalid configurator');
+            }
+
+            var bundleConfig;
+
+            for (var i = 0, l = this.bundles.length; i < l; i++) {
+                bundleConfig = App.Bundle[this.bundles[i]].Config;
+
+                if (!bundleConfig || !bundleConfig.Configuration) {
+                    continue;
+                }
+
+                bundleConfig = new bundleConfig.Configuration();
+                bundleConfig.define(config);
+            }
+
+            return this;
 
         }
     }

@@ -4,6 +4,7 @@
  * @venus-include ../../src/View/Manager.js
  * @venus-include ../../src/View/NodeWrapper.js
  * @venus-include ../../src/View/ViewScreen.js
+ * @venus-include ../../src/View/Event/ViewPortEvent.js
  * @venus-code ../../src/View/ViewPort.js
  */
 
@@ -67,6 +68,10 @@ describe('viewport', function () {
         expect(viewportNode.childElementCount).toEqual(1);
         expect(viewportNode.children[0]).toEqual(viewport.getViewManager().getViewScreen('name').getNode());
 
+    });
+
+    it('should return the current viewscreen', function () {
+        expect(viewport.getCurrentViewScreen() instanceof Sy.View.ViewScreen).toBe(true);
     });
 
 });

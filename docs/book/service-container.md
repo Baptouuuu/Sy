@@ -1,6 +1,6 @@
 # Service container
 
-[< Previous chapter (Storage)](storage.md)
+[< Previous chapter (Storage)](storage.md) | [Next chapter (Config) >](config.md)
 
 The service container is one of the biggest part of the framework. Every dependency management inside the core is done via a single instance of the `ServiceContainer`. And you should leverage it to organize your code inside your bundles to loose coupling. As you've seen in the controller chapter you have an easy access to it via `this.container` wherever inside your controllers.
 
@@ -24,23 +24,20 @@ App.Bundle.Foo.Config.Service = function () {};
 App.Bundle.Foo.Config.Service.prototype = Object.create(Object.prototype, {
 
     define: {
-        value: function () {
+        value: function (container) {
 
-            return [
-                {
-                    name: 'listener::repo::task',
+            container.set({
+                'listener::repo::task': {
                     constructor: 'App.Bundle.Foo.Service.Bar',
                     calls: [
                         ['setRest', ['@some::service']]
                     ]
                 }
-            ];
+            });
 
         }
     }
 
 });
 ```
-If the framework find this class, it will instanciate it and call the `define` method and register each service defined in the returned array inside the service container.
-
-If you want to use a *creator* instead of the *constructor* to define your service, replace `constructor: 'Class.Path'` by `creator: function () {return service;}`; obviously in this case the `calls` array won't be taken into account.
+If the framework find this class, it will instanciate it and call the `define` method, passing the global service container so you can esaily define your services.

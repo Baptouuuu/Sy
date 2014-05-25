@@ -12,6 +12,7 @@ Sy.View.ViewPort = function () {
     this.node = null;
     this.manager = null;
     this.mediator = null;
+    this.current = null;
 };
 Sy.View.ViewPort.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
@@ -94,6 +95,26 @@ Sy.View.ViewPort.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
     },
 
     /**
+     * Return the current viewscreen being displayed
+     *
+     * @return {Sy.View.ViewScreen}
+     */
+
+    getCurrentViewScreen: {
+        value: function () {
+
+            if (this.current === null && this.node.childElementCount === 1) {
+                this.current = this.manager.getViewScreen(
+                    this.node.firstElementChild.dataset.syView
+                );
+            }
+
+            return this.current;
+
+        }
+    },
+
+    /**
      * Set the specified view screen name as the current one in the view port
      *
      * @param {string} name ViewScreen name
@@ -105,10 +126,11 @@ Sy.View.ViewPort.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
         value: function (name) {
 
             var viewscreen = this.manager.getViewScreen(name),
-                node = viewscreen.getNode();
+                node = viewscreen.getNode(),
+                event = new Sy.View.Event.ViewPortEvent(viewscreen);
 
             if (this.mediator) {
-                this.mediator.publish('view::on::pre::display', viewscreen);
+                this.mediator.publish(event.PRE_DISPLAY, event);
             }
 
             switch (this.node.childElementCount) {
@@ -122,8 +144,10 @@ Sy.View.ViewPort.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
                     throw new Error('Viewport in weird state (more than 1 child)');
             }
 
+            this.current = viewscreen;
+
             if (this.mediator) {
-                this.mediator.publish('view::on::post::display', viewscreen);
+                this.mediator.publish(event.POST_DISPLAY, event);
             }
 
             return this;

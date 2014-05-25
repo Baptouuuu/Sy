@@ -196,7 +196,7 @@ Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.p
     flush: {
         value: function () {
 
-            this.uow.flush();
+            this.uow.commit();
 
             return this;
 

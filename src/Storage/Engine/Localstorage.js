@@ -204,14 +204,18 @@ Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterf
                 throw new ReferenceError('Unknown store');
             }
 
-            var store = this.stores[storeName];
-
-            var key = store.key;
+            var store = this.stores[storeName],
+                key = store.key,
+                evt = new Sy.Storage.Event.LifecycleEvent(
+                    this.storageKey,
+                    storeName,
+                    null,
+                    object
+                );
 
             this.mediator.publish(
-                this.storageKey + '::on::pre::create',
-                storeName,
-                object
+                evt.PRE_CREATE,
+                evt
             );
 
             this.data[store.path][object[key]] = object;
@@ -219,9 +223,8 @@ Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterf
             this.flush();
 
             this.mediator.publish(
-                this.storageKey + '::on::post::create',
-                storeName,
-                object
+                evt.POST_CREATE,
+                evt
             );
 
             setTimeout(
@@ -246,13 +249,17 @@ Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterf
                 throw new ReferenceError('Unknown store');
             }
 
-            var store = this.stores[storeName];
+            var store = this.stores[storeName],
+                evt = new Sy.Storage.Event.LifecycleEvent(
+                    this.storageKey,
+                    storeName,
+                    identifier,
+                    object
+                );
 
             this.mediator.publish(
-                this.storageKey + '::on::pre::update',
-                storeName,
-                identifier,
-                object
+                evt.PRE_UPDATE,
+                evt
             );
 
             this.data[store.path][identifier] = object;
@@ -260,10 +267,8 @@ Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterf
             this.flush();
 
             this.mediator.publish(
-                this.storageKey + '::on::post::update',
-                storeName,
-                identifier,
-                object
+                evt.POST_UPDATE,
+                evt
             );
 
             setTimeout(
@@ -288,14 +293,18 @@ Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterf
                 throw new ReferenceError('Unknown store');
             }
 
-            var store = this.stores[storeName];
-
-            var key = store.key;
+            var store = this.stores[storeName],
+                key = store.key,
+                evt = new Sy.Storage.Event.LifecycleEvent(
+                    this.storageKey,
+                    storeName,
+                    identifier,
+                    null
+                );
 
             this.mediator.publish(
-                this.storageKey + '::on::pre::remove',
-                storeName,
-                identifier
+                evt.PRE_REMOVE,
+                evt
             );
 
             delete this.data[store.path][identifier];
@@ -303,9 +312,8 @@ Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterf
             this.flush();
 
             this.mediator.publish(
-                this.storageKey + '::on::post::remove',
-                storeName,
-                identifier
+                evt.POST_REMOVE,
+                evt
             );
 
             setTimeout(

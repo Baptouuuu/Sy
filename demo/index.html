@@ -8,32 +8,33 @@
 		<link rel="stylesheet" href="css/app.css">
 	</head>
 	<body>
-		<section class="viewport"></section>
-		<section id="todoapp" data-sy-view="Todo::Main" data-sy-controller="Todo::Main">
-			<header id="header" data-sy-layout="header">
-				<h1>todos</h1>
-				<input id="new-todo" placeholder="What needs to be done?" autofocus data-sy-action="new|keyup">
-			</header>
-			<section id="main" data-sy-layout="main">
-				<input id="toggle-all" type="checkbox" data-sy-action="markAllAsRead|change">
-				<label for="toggle-all">Mark all as complete</label>
-				<form action="#" data-sy-action="listChanges|change|submit|click|dblclick">
-					<ul id="todo-list" data-sy-list="tasks">
-						<li class="{{ status }}" data-uuid="{{ uuid }}">
-							<div class="view">
-								<input class="toggle" type="checkbox" data-uuid="{{ uuid }}">
-								<label data-uuid="{{uuid}}">{{ name }}</label>
-								<button class="destroy" data-uuid="{{ uuid }}"></button>
-							</div>
-							<input class="edit" value="{{ name }}" data-uuid="{{ uuid }}">
-						</li>
-					</ul>
-				</form>
+		<section class="viewport">
+			<section id="todoapp" data-sy-view="Todo::Main" data-sy-controller="Todo::Main">
+				<header id="header" data-sy-layout="header">
+					<h1>todos</h1>
+					<input id="new-todo" placeholder="What needs to be done?" autofocus data-sy-action="new|keyup">
+				</header>
+				<section id="main" data-sy-layout="main">
+					<input id="toggle-all" type="checkbox" data-sy-action="markAllAsRead|change">
+					<label for="toggle-all">Mark all as complete</label>
+					<form action="#" data-sy-action="listChanges|change|submit|click|dblclick">
+						<ul id="todo-list" data-sy-list="tasks">
+							<li class="{{ status }}" data-uuid="{{ uuid }}">
+								<div class="view">
+									<input class="toggle" type="checkbox" data-uuid="{{ uuid }}">
+									<label data-uuid="{{uuid}}">{{ name }}</label>
+									<button class="destroy" data-uuid="{{ uuid }}"></button>
+								</div>
+								<input class="edit" value="{{ name }}" data-uuid="{{ uuid }}">
+							</li>
+						</ul>
+					</form>
+				</section>
+				<footer id="footer" class="hidden" data-sy-layout="footer">
+					<span id="todo-count"><strong>{{ left }}</strong> item left</span>
+					<button id="clear-completed" data-sy-action="removeAll|click">Clear completed ({{ completed }})</button>
+				</footer>
 			</section>
-			<footer id="footer" class="hidden" data-sy-layout="footer">
-				<span id="todo-count"><strong>{{ left }}</strong> item left</span>
-				<button id="clear-completed" data-sy-action="removeAll|click">Clear completed ({{ completed }})</button>
-			</footer>
 		</section>
 		<footer id="info">
 			<p>Double-click to edit a todo</p>
