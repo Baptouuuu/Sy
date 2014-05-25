@@ -29,6 +29,7 @@ describe('kernel controller manager', function () {
     var manager = new Sy.Kernel.ControllerManager(),
         mockVS = function () {},
         mockVS2 = function () {},
+        mockInvalidVS = function () {},
         mockController = function () {},
         destroyed = false;
 
@@ -46,6 +47,15 @@ describe('kernel controller manager', function () {
             value: function () {
                 var n = document.createElement('section');
                 n.dataset.syController = 'foo::baz';
+                return n;
+            }
+        }
+    });
+    mockInvalidVS.prototype = Object.create(Sy.View.ViewScreen.prototype, {
+        getNode: {
+            value: function () {
+                var n = document.createElement('section');
+                n.dataset.syController = 'unknown';
                 return n;
             }
         }
@@ -127,11 +137,34 @@ describe('kernel controller manager', function () {
             evt = new Sy.View.Event.ViewPortEvent(vs);
 
         manager.registerController('foo::baz', mockController);
+
+        expect(manager.isControllerBuilt('foo::baz')).toBe(false);
+
         manager.setCache(false);
         manager.onDisplayListener(evt);
 
-        expect(manager.loaded.has('foo::baz')).toBe(true);
-        expect(manager.loaded.has('foo::bar')).toBe(false);
+        expect(manager.isControllerBuilt('foo::baz')).toBe(true);
+        expect(manager.isControllerBuilt('foo::bar')).toBe(false);
+    });
+
+    it('should built a controller', function () {
+        var vs = new mockVS2();
+
+        expect(manager.buildController(vs)).toEqual(manager);
+        expect(manager.isControllerBuilt('foo::baz')).toBe(true);
+        expect(manager.getController('foo::baz') instanceof Sy.Controller).toBe(true);
+    });
+
+    it('should throw if trying to build a controller from invalid viewscreen', function () {
+        expect(function () {
+            manager.buildController({});
+        }).toThrow('Invalid viewscreen');
+    });
+
+    it('should throw if unknown controller for the viewscreen', function () {
+        expect(function () {
+            manager.buildController(new mockInvalidVS());
+        }).toThrow('The controller with the alias "unknown" is undefined');
     });
 
 });
