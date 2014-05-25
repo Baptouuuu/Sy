@@ -1,4 +1,4 @@
-/*! sy#0.5.0 - 2014-04-12 */function namespace(ns) {
+/*! sy#0.5.0 - 2014-05-25 */function namespace(ns) {
     var namespaces = null, referer = this;
     if ("string" == typeof ns) namespaces = ns.split("."); else {
         if (!(ns instanceof Array && ns.length > 0)) return referer;
@@ -664,38 +664,62 @@ Sy.Lib.Logger.Handler.Interface.prototype = Object.create(Object.prototype, {
     setViewScreenWrapper: {
         value: function() {}
     }
-}), namespace("Sy.Kernel"), Sy.Kernel.ActionBinder = function() {
-    this.mediator = null, this.controllers = [];
-}, Sy.Kernel.ActionBinder.prototype = Object.create(Object.prototype, {
+}), namespace("Sy.Kernel"), Sy.Kernel.ActionDispatcher = function() {
+    this.viewport = null, this.controllerManager = null, this.mediator = null, this.logger = null;
+}, Sy.Kernel.ActionDispatcher.prototype = Object.create(Object.prototype, {
+    setViewPort: {
+        value: function(viewport) {
+            if (!(viewport instanceof Sy.View.ViewPort)) throw new TypeError("Invalid viewport");
+            return this.viewport = viewport, this;
+        }
+    },
+    setControllerManager: {
+        value: function(manager) {
+            if (!(manager instanceof Sy.Kernel.ControllerManager)) throw new TypeError("Invalid controller manager");
+            return this.controllerManager = manager, this;
+        }
+    },
     setMediator: {
         value: function(mediator) {
             if (!(mediator instanceof Sy.Lib.Mediator)) throw new TypeError("Invalid mediator");
             return this.mediator = mediator, this;
         }
     },
-    bind: {
-        value: function(controller, viewscreen) {
-            if (!(controller instanceof Sy.ControllerInterface)) throw new TypeError("Invalid controller");
+    setLogger: {
+        value: function(logger) {
+            if (!(logger instanceof Sy.Lib.Logger.Interface)) throw new TypeError("Invalid logger");
+            return this.logger = logger, this;
+        }
+    },
+    bindViewScreens: {
+        value: function(viewscreens) {
+            for (var i = 0, l = viewscreens.length; l > i; i++) this.bindViewScreen(viewscreens[i]);
+            return this;
+        }
+    },
+    bindViewScreen: {
+        value: function(viewscreen) {
             if (!(viewscreen instanceof Sy.View.ViewScreen)) throw new TypeError("Invalid viewscreen");
-            for (var actionNode, action, events, node = viewscreen.getNode(), actions = node.querySelectorAll("[data-sy-action]"), refl = new ReflectionObject(controller), i = 0, l = actions.length; l > i; i++) {
-                if (actionNode = actions[i], action = actionNode.dataset.syAction.split("|")[0] + "Action", 
-                !refl.hasMethod(action)) throw new ReferenceError('Undefined method "' + action + '"');
-                actionNode.dataset.syControllerIndex = this.controllers.push(controller) - 1, actionNode.dataset.syActionName = action, 
-                events = actionNode.dataset.syAction.split("|"), events.splice(0, 1);
+            var actionNode, events, node = viewscreen.getNode(), actions = node.querySelectorAll("[data-sy-action]");
+            this.logger && this.logger.info('Binding the viewscreen "' + node.dataset.syView + '" actions to the dispatcher...', viewscreen);
+            for (var i = 0, l = actions.length; l > i; i++) {
+                actionNode = actions[i], events = actionNode.dataset.syAction.split("|"), events.splice(0, 1);
                 for (var j = 0, jl = events.length; jl > j; j++) actionNode.addEventListener(events[j], this.eventCallback.bind(this), !1);
             }
         }
     },
     eventCallback: {
         value: function(event) {
-            var target = event.currentTarget, controller = this.controllers[target.dataset.syControllerIndex], action = target.dataset.syActionName;
-            this.mediator.publish("controller::on::pre::action", controller, action), controller[action].call(controller, event), 
-            this.mediator.publish("controller::on::pre::action", controller, action);
+            var controller, evt, target = event.currentTarget, alias = this.viewport.getCurrentViewScreen().getNode().dataset.syController, action = target.dataset.syAction.split("|")[0] + "Action";
+            this.controllerManager.isControllerBuilt(alias) || this.controllerManager.buildController(this.viewport.getCurrentViewScreen()), 
+            controller = this.controllerManager.getController(alias), evt = new Sy.Event.ControllerEvent(controller, action, event), 
+            this.logger && this.logger.info("Firing a controller's method...", [ controller, action ]), 
+            this.mediator.publish(evt.PRE_ACTION, evt), controller[action].call(controller, event), 
+            this.mediator.publish(evt.POST_ACTION, evt);
         }
     }
 }), namespace("Sy.Kernel"), Sy.Kernel.AppParser = function() {
-    this.bundles = [], this.controllers = [], this.entities = [], this.viewscreens = [], 
-    this.services = [];
+    this.bundles = [], this.controllers = [], this.entities = [], this.viewscreens = [];
 }, Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
     getBundles: {
         value: function() {
@@ -739,19 +763,27 @@ Sy.Lib.Logger.Handler.Interface.prototype = Object.create(Object.prototype, {
             return this.viewscreens;
         }
     },
-    getServices: {
-        value: function() {
-            if (this.services.length > 0) return this.services;
+    buildServices: {
+        value: function(container) {
+            if (!(container instanceof Sy.ServiceContainerInterface)) throw new TypeError("Invalid service container");
             for (var bundleConfig, i = 0, l = this.bundles.length; l > i; i++) bundleConfig = App.Bundle[this.bundles[i]].Config, 
             bundleConfig && bundleConfig.Service && (bundleConfig = new bundleConfig.Service(), 
-            this.services = this.services.concat(bundleConfig.define()));
-            return this.services;
+            bundleConfig.define(container));
+            return this;
+        }
+    },
+    buildConfig: {
+        value: function(config) {
+            if (!(config instanceof Sy.ConfiguratorInterface)) throw new TypeError("Invalid configurator");
+            for (var bundleConfig, i = 0, l = this.bundles.length; l > i; i++) bundleConfig = App.Bundle[this.bundles[i]].Config, 
+            bundleConfig && bundleConfig.Configuration && (bundleConfig = new bundleConfig.Configuration(), 
+            bundleConfig.define(config));
+            return this;
         }
     }
 }), namespace("Sy.Kernel"), Sy.Kernel.ControllerManager = function() {
     this.meta = null, this.loaded = null, this.mediator = null, this.container = null, 
-    this.current = null, this.cache = null, this.cacheLength = null, this.cacheOrder = [], 
-    this.actionBinder = null;
+    this.current = null, this.cache = null, this.cacheLength = null, this.cacheOrder = [];
 }, Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
     setMetaRegistry: {
         value: function(registry) {
@@ -793,34 +825,43 @@ Sy.Lib.Logger.Handler.Interface.prototype = Object.create(Object.prototype, {
             return this.cacheLength = length, this;
         }
     },
-    setActionBinder: {
-        value: function(binder) {
-            if (!(binder instanceof Sy.Kernel.ActionBinder)) throw new TypeError("Invalid action binder");
-            return this.actionBinder = binder, this;
-        }
-    },
     onDisplayListener: {
-        value: function(viewscreen) {
-            var instance, bundleName, ctrl = viewscreen.getNode().dataset.syController;
-            if (this.loaded.has(ctrl)) this.current !== ctrl && (this.loaded.get(this.current).sleep(), 
-            this.loaded.get(ctrl).wakeup(), this.current = ctrl); else {
-                if (!this.meta.has(ctrl)) throw new ReferenceError('The controller with the alias "' + ctrl + '" is undefined');
-                bundleName = ctrl.split("::")[0], instance = new (this.meta.get(ctrl))(), instance.setBundle(bundleName).setMediator(this.mediator).setServiceContainer(this.container).setViewScreen(viewscreen).init(), 
-                this.cacheController(ctrl, instance), this.actionBinder.bind(instance, viewscreen), 
-                this.current = ctrl;
-            }
+        value: function(event) {
+            var viewscreen = event.getViewScreen(), alias = viewscreen.getNode().dataset.syController;
+            this.loaded.has(alias) && this.current !== alias ? (this.loaded.get(this.current).sleep(), 
+            this.loaded.get(alias).wakeup(), this.current = alias) : this.buildController(viewscreen);
         }
     },
     cacheController: {
         value: function(alias, instance) {
-            return this.loaded.set(alias, instance), this.cacheOrder.push(alias), (this.cache === !1 || this.cache === !0 && "number" == typeof this.cacheLength && this.loaded.length() > this.cacheLength) && (this.loaded.get(this.cacheOrder[0]).destroy(), 
-            this.loaded.remove(this.cacheOrder[0]), this.cacheOrder.splice(0, 1)), this;
+            return (this.cache === !1 || this.cache === !0 && "number" == typeof this.cacheLength && this.loaded.length() > this.cacheLength) && (this.loaded.get(this.cacheOrder[0]).destroy(), 
+            this.loaded.remove(this.cacheOrder[0]), this.cacheOrder.splice(0, 1)), this.loaded.set(alias, instance), 
+            this.cacheOrder.push(alias), this;
+        }
+    },
+    buildController: {
+        value: function(viewscreen) {
+            if (!(viewscreen instanceof Sy.View.ViewScreen)) throw new TypeError("Invalid viewscreen");
+            var instance, alias = viewscreen.getNode().dataset.syController, bundleName = alias.split("::")[0];
+            if (!this.meta.has(alias)) throw new ReferenceError('The controller with the alias "' + alias + '" is undefined');
+            return instance = new (this.meta.get(alias))(), instance.setBundle(bundleName).setMediator(this.mediator).setServiceContainer(this.container).setViewScreen(viewscreen).init(), 
+            this.cacheController(alias, instance), this.current = alias, this;
+        }
+    },
+    isControllerBuilt: {
+        value: function(alias) {
+            return this.loaded.has(alias);
+        }
+    },
+    getController: {
+        value: function(alias) {
+            return this.loaded.get(alias);
         }
     },
     boot: {
         value: function() {
             this.mediator.subscribe({
-                channel: "view::on::pre::display",
+                channel: Sy.View.Event.ViewPortEvent.prototype.PRE_DISPLAY,
                 fn: this.onDisplayListener,
                 context: this
             });
@@ -828,7 +869,7 @@ Sy.Lib.Logger.Handler.Interface.prototype = Object.create(Object.prototype, {
     }
 }), namespace("Sy.Kernel"), Sy.Kernel.Core = function() {
     this.config = new Sy.Configurator(), this.container = new Sy.ServiceContainer("sy::core"), 
-    this.controllerManager = new Sy.Kernel.ControllerManager(), this.actionBinder = new Sy.Kernel.ActionBinder();
+    this.controllerManager = new Sy.Kernel.ControllerManager(), this.actionDispatcher = new Sy.Kernel.ActionDispatcher();
 }, Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
     getConfig: {
         value: function() {
@@ -848,24 +889,18 @@ Sy.Lib.Logger.Handler.Interface.prototype = Object.create(Object.prototype, {
                 controllers: parser.getControllers(),
                 entities: parser.getEntities(),
                 viewscreens: parser.getViewScreens()
-            }), this.registerServices(parser.getServices()).registerControllers(parser.getControllers()).configureLogger().registerShutdownListener();
-        }
-    },
-    registerServices: {
-        value: function(services) {
-            for (var i = 0, l = services.length; l > i; i++) if (services[i].creator) this.container.set(services[i].name, services[i].creator); else if ("string" == typeof services[i].constructor) {
-                var def = {}, name = services[i].name;
-                delete services[i].name, def[name] = services[i], this.container.set(def);
-            }
-            return this;
+            }), parser.buildServices(this.container).buildConfig(this.config), this.registerControllers(parser.getControllers()).configureLogger().registerShutdownListener();
         }
     },
     registerControllers: {
         value: function(controllers) {
-            var registryFactory = this.container.get("sy::core::registry::factory"), mediator = this.container.get("sy::core::mediator");
-            this.actionBinder.setMediator(mediator), this.controllerManager.setMetaRegistry(registryFactory.make()).setLoadedControllersRegistry(registryFactory.make()).setMediator(mediator).setServiceContainer(this.container).setCache(this.config.get("controllers.cache")).setCacheLength(this.config.get("controllers.cacheLength")).setActionBinder(this.actionBinder);
+            var registryFactory = this.container.get("sy::core::registry::factory"), mediator = this.container.get("sy::core::mediator"), viewport = this.container.get("sy::core::viewport"), logger = this.container.get("sy::core::logger"), viewscreensManager = this.container.get("sy::core::view::manager");
+            this.controllerManager.setMetaRegistry(registryFactory.make()).setLoadedControllersRegistry(registryFactory.make()).setMediator(mediator).setServiceContainer(this.container).setCache(this.config.get("controllers.cache")).setCacheLength(this.config.get("controllers.cacheLength")), 
+            this.actionDispatcher.setViewPort(viewport).setControllerManager(this.controllerManager).setMediator(mediator).setLogger(logger);
             for (var i = 0, l = controllers.length; l > i; i++) this.controllerManager.registerController(controllers[i].name, controllers[i].creator);
-            return this.controllerManager.boot(), this;
+            return this.controllerManager.boot(), this.actionDispatcher.bindViewScreens(viewscreensManager.getViewScreens()), 
+            viewport.getCurrentViewScreen() && this.controllerManager.buildController(viewport.getCurrentViewScreen()), 
+            this;
         }
     },
     configureLogger: {
@@ -879,7 +914,8 @@ Sy.Lib.Logger.Handler.Interface.prototype = Object.create(Object.prototype, {
         value: function() {
             return window.addEventListener("beforeunload", function(event) {
                 try {
-                    this.container.get("sy::core::mediator").publish("app::shutdown", event);
+                    var evt = new Sy.Event.AppShutdownEvent(event);
+                    this.container.get("sy::core::mediator").publish(evt.KEY, evt);
                 } catch (error) {
                     return error.message;
                 }
@@ -1277,7 +1313,7 @@ Sy.HTTP.HTMLResponse = function() {
     Sy.HTTP.Response.call(this);
 }, Sy.HTTP.HTMLResponse.prototype = Object.create(Sy.HTTP.Response.prototype), namespace("Sy.HTTP"), 
 Sy.HTTP.Manager = function() {
-    this.requests = null, this.parser = null, this.generator = null;
+    this.requests = null, this.parser = null, this.generator = null, this.logger = null;
 }, Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
     setParser: {
         value: function(parser) {
@@ -1296,9 +1332,16 @@ Sy.HTTP.Manager = function() {
             return this.requests = registry, this;
         }
     },
-    launch: {
+    setLogger: {
+        value: function(logger) {
+            if (!(logger instanceof Sy.Lib.Logger.Interface)) throw new TypeError("Invalid logger");
+            return this.logger = logger, this;
+        }
+    },
+    prepare: {
         value: function(request) {
             if (!(request instanceof Sy.HTTP.RequestInterface)) throw new TypeError("Invalid request type");
+            this.logger && this.logger.info("Preparing a new HTTP request...", request);
             var uuid = this.generator.generate(), req = {
                 xhr: null,
                 obj: request,
@@ -1316,24 +1359,43 @@ Sy.HTTP.Manager = function() {
             }
             for (var header in headers) headers.hasOwnProperty(header) && req.xhr.setRequestHeader(header, headers[header]);
             for (var k in data) data.hasOwnProperty(k) && requestData.append(k, data[k]);
-            return req.xhr.send(requestData), this.requests.set(uuid, req), uuid;
+            return req.data = requestData, this.requests.set(uuid, req), this.logger && this.logger.info("HTTP request prepared", req), 
+            uuid;
+        }
+    },
+    getXHR: {
+        value: function(uuid) {
+            var req = this.requests.get(uuid);
+            return req.xhr;
+        }
+    },
+    launch: {
+        value: function(request) {
+            if ("string" == typeof request) {
+                var req = this.requests.get(request);
+                return this.logger && this.logger.info("Launching a HTTP request...", req), req.xhr.send(req.data), 
+                req.uuid;
+            }
+            return this.launch(this.prepare(request));
         }
     },
     listener: {
         value: function(event) {
             if (event.target.readyState === event.target.DONE && this.requests.has(event.target.UUID)) {
                 var response, request = this.requests.get(event.target.UUID), lstn = request.obj.getListener(), headers = this.parser.parse(event.target.getAllResponseHeaders());
-                response = -1 !== headers["Content-Type"].indexOf("application/json") && "json" === request.obj.getType() ? new Sy.HTTP.JSONResponse() : -1 !== headers["Content-Type"].indexOf("text/html") && "html" === request.obj.getType() ? new Sy.HTTP.HTMLResponse() : new Sy.HTTP.Response(), 
+                response = void 0 !== headers["Content-Type"] && -1 !== headers["Content-Type"].indexOf("application/json") && "json" === request.obj.getType() ? new Sy.HTTP.JSONResponse() : void 0 !== headers["Content-Type"] && -1 !== headers["Content-Type"].indexOf("text/html") && "html" === request.obj.getType() ? new Sy.HTTP.HTMLResponse() : new Sy.HTTP.Response(), 
                 response.setHeaders(headers), response.setStatusCode(event.target.status), response.setStatusText(event.target.statusText), 
                 response.setBody(event.target.response), this.requests.remove(event.target.UUID), 
-                void 0 !== lstn && lstn(response);
+                lstn instanceof Function && (this.logger && this.logger.info("Notifying the request is finished...", response), 
+                lstn(response));
             }
         }
     },
     abort: {
         value: function(identifier) {
             var request = this.requests.get(identifier);
-            return request.xhr.abort(), this.requests.remove(identifier), this;
+            return request.xhr.abort(), this.requests.remove(identifier), this.logger && this.logger.info("HTTP request aborted", identifier), 
+            this;
         }
     }
 }), namespace("Sy.HTTP"), Sy.HTTP.REST = function() {
@@ -1395,6 +1457,54 @@ Sy.HTTP.Manager = function() {
     getManager: {
         value: function(manager) {
             return manager = manager || "main", this.managers.get(manager);
+        }
+    }
+}), namespace("Sy.Storage.Event"), Sy.Storage.Event.LifecycleEvent = function(storageName, storeName, identifier, object) {
+    this.storageName = storageName, this.storeName = storeName, this.identifier = identifier, 
+    this.object = object;
+}, Sy.Storage.Event.LifecycleEvent.prototype = Object.create(Object.prototype, {
+    PRE_CREATE: {
+        value: "storage::on::pre::create",
+        writable: !1
+    },
+    POST_CREATE: {
+        value: "storage::on::post::create",
+        writable: !1
+    },
+    PRE_UPDATE: {
+        value: "storage::on::pre:update",
+        writable: !1
+    },
+    POST_UPDATE: {
+        value: "storage::on::post::update",
+        writable: !1
+    },
+    PRE_REMOVE: {
+        value: "storage::on::pre::remove",
+        writable: !1
+    },
+    POST_REMOVE: {
+        value: "storage::on::post::remove",
+        writable: !1
+    },
+    getStorageName: {
+        value: function() {
+            return this.storageName;
+        }
+    },
+    getStoreName: {
+        value: function() {
+            return this.storeName;
+        }
+    },
+    getIdentifier: {
+        value: function() {
+            return this.identifier;
+        }
+    },
+    getData: {
+        value: function() {
+            return this.object;
         }
     }
 }), namespace("Sy.Storage.Engine"), Sy.Storage.Engine.IndexedDB = function(version) {
@@ -1487,7 +1597,7 @@ Sy.HTTP.Manager = function() {
                 var transaction = this.storage.transaction([ store.path ], this.transactionModes.READ_ONLY), objectStore = transaction.objectStore(store.path), request = objectStore.get(identifier);
                 request.addEventListener("success", function(event) {
                     callback(event.target.result);
-                }), request.addEventListener("error", function(event) {
+                }.bind(this)), request.addEventListener("error", function(event) {
                     this.logger.error("Read operation failed!", event);
                 }.bind(this));
             } catch (e) {
@@ -1499,12 +1609,12 @@ Sy.HTTP.Manager = function() {
     create: {
         value: function(storeName, object, callback) {
             if (!this.stores[storeName]) throw new ReferenceError("Invalid store");
-            var store = this.stores[storeName];
+            var store = this.stores[storeName], evt = new Sy.Storage.Event.LifecycleEvent(this.name, storeName, null, object);
             try {
-                this.mediator.publish(this.name + "::on::pre::create", storeName, object);
+                this.mediator.publish(evt.PRE_CREATE, evt);
                 var transaction = this.storage.transaction([ store.path ], this.transactionModes.READ_WRITE), objectStore = transaction.objectStore(store.path), request = objectStore.put(object);
                 request.addEventListener("success", function(event) {
-                    callback(event.target.result), this.mediator.publish(this.name + "::on::post::create", storeName, object);
+                    callback(event.target.result), this.mediator.publish(evt.POST_CREATE, evt);
                 }.bind(this)), request.addEventListener("error", function(event) {
                     this.logger.error("Create operation failed!", event);
                 }.bind(this));
@@ -1517,12 +1627,12 @@ Sy.HTTP.Manager = function() {
     update: {
         value: function(storeName, identifier, object, callback) {
             if (!this.stores[storeName]) throw new ReferenceError("Invalid store");
-            var store = this.stores[storeName];
+            var store = this.stores[storeName], evt = new Sy.Storage.Event.LifecycleEvent(this.name, storeName, identifier, object);
             try {
-                this.mediator.publish(this.name + "::on::pre::update", storeName, identifier, object);
+                this.mediator.publish(evt.PRE_UPDATE, evt);
                 var transaction = this.storage.transaction([ store.path ], this.transactionModes.READ_WRITE), objectStore = transaction.objectStore(store.path), request = objectStore.put(object);
                 request.addEventListener("success", function(event) {
-                    callback(event.target.result), this.mediator.publish(this.name + "::on::post::update", storeName, identifier, object);
+                    callback(event.target.result), this.mediator.publish(evt.POST_UPDATE, evt);
                 }.bind(this)), request.addEventListener("error", function(event) {
                     this.logger.error("Update operation failed!", event);
                 }.bind(this));
@@ -1535,13 +1645,13 @@ Sy.HTTP.Manager = function() {
     remove: {
         value: function(storeName, identifier, callback) {
             if (!this.stores[storeName]) throw new ReferenceError("Invalid store");
-            var store = this.stores[storeName];
+            var store = this.stores[storeName], evt = new Sy.Storage.Event.LifecycleEvent(this.name, storeName, identifier, null);
             try {
-                this.mediator.publish(this.name + "::on::pre::remove", storeName, identifier);
+                this.mediator.publish(evt.PRE_REMOVE, evt);
                 var transaction = this.storage.transaction([ store.path ], this.transactionModes.READ_WRITE), objectStore = transaction.objectStore(store.path), request = objectStore.delete(identifier);
                 request.addEventListener("success", function(event) {
-                    callback(event.target.result), this.mediator.publish(this.name + "::on::post::remove", storeName, identifier);
-                }), request.addEventListener("error", function(event) {
+                    callback(event.target.result), this.mediator.publish(evt.POST_REMOVE, evt);
+                }.bind(this)), request.addEventListener("error", function(event) {
                     this.logger.error("Delete operation failed!", event);
                 }.bind(this));
             } catch (e) {
@@ -1629,31 +1739,28 @@ Sy.HTTP.Manager = function() {
     create: {
         value: function(storeName, object, callback) {
             if (!this.stores[storeName]) throw new ReferenceError("Unknown store");
-            var store = this.stores[storeName], key = store.key;
-            return this.mediator.publish(this.storageKey + "::on::pre::create", storeName, object), 
-            this.data[store.path][object[key]] = object, this.flush(), this.mediator.publish(this.storageKey + "::on::post::create", storeName, object), 
-            setTimeout(callback, 0, object[key]), this;
+            var store = this.stores[storeName], key = store.key, evt = new Sy.Storage.Event.LifecycleEvent(this.storageKey, storeName, null, object);
+            return this.mediator.publish(evt.PRE_CREATE, evt), this.data[store.path][object[key]] = object, 
+            this.flush(), this.mediator.publish(evt.POST_CREATE, evt), setTimeout(callback, 0, object[key]), 
+            this;
         }
     },
     update: {
         value: function(storeName, identifier, object, callback) {
             if (!this.stores[storeName]) throw new ReferenceError("Unknown store");
-            var store = this.stores[storeName];
-            return this.mediator.publish(this.storageKey + "::on::pre::update", storeName, identifier, object), 
-            this.data[store.path][identifier] = object, this.flush(), this.mediator.publish(this.storageKey + "::on::post::update", storeName, identifier, object), 
-            setTimeout(callback, 0, object), this;
+            var store = this.stores[storeName], evt = new Sy.Storage.Event.LifecycleEvent(this.storageKey, storeName, identifier, object);
+            return this.mediator.publish(evt.PRE_UPDATE, evt), this.data[store.path][identifier] = object, 
+            this.flush(), this.mediator.publish(evt.POST_UPDATE, evt), setTimeout(callback, 0, object), 
+            this;
         }
     },
     remove: {
         value: function(storeName, identifier, callback) {
             if (!this.stores[storeName]) throw new ReferenceError("Unknown store");
-            {
-                var store = this.stores[storeName];
-                store.key;
-            }
-            return this.mediator.publish(this.storageKey + "::on::pre::remove", storeName, identifier), 
-            delete this.data[store.path][identifier], this.flush(), this.mediator.publish(this.storageKey + "::on::post::remove", storeName, identifier), 
-            setTimeout(callback, 0, identifier), this;
+            var store = this.stores[storeName], evt = (store.key, new Sy.Storage.Event.LifecycleEvent(this.storageKey, storeName, identifier, null));
+            return this.mediator.publish(evt.PRE_REMOVE, evt), delete this.data[store.path][identifier], 
+            this.flush(), this.mediator.publish(evt.POST_REMOVE, evt), setTimeout(callback, 0, identifier), 
+            this;
         }
     },
     find: {
@@ -1671,7 +1778,7 @@ Sy.HTTP.Manager = function() {
     }
 }), namespace("Sy.Storage.Engine"), Sy.Storage.Engine.Rest = function(version) {
     this.version = version || 1, this.stores = {}, this.manager = null, this.basePath = "", 
-    this.mediator = null, this.headers = {};
+    this.mediator = null, this.headers = {}, this.name = "app::storage";
 }, Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prototype, {
     setPattern: {
         value: function(pattern) {
@@ -1720,14 +1827,13 @@ Sy.HTTP.Manager = function() {
     create: {
         value: function(storeName, object, callback) {
             if (!this.stores[storeName]) throw new ReferenceError("Unknown store");
-            var meta = this.stores[storeName];
-            return this.mediator.publish("app::storage::on::pre::create", this.basePath, storeName, object), 
-            this.manager.post({
+            var meta = this.stores[storeName], evt = new Sy.Storage.Event.LifecycleEvent(this.name, storeName, null, object);
+            return this.mediator.publish(evt.PRE_CREATE, evt), this.manager.post({
                 uri: this.basePath.replace(/{{path}}/, meta.path).replace(/{{key}}/, ""),
                 headers: this.headers,
                 data: object,
                 listener: function(resp) {
-                    callback(resp.getBody()), this.mediator.publish("app::storage::on::post::create", this.basePath, storeName, object);
+                    callback(resp.getBody()), this.mediator.publish(evt.POST_CREATE, evt);
                 }.bind(this)
             }), this;
         }
@@ -1735,14 +1841,13 @@ Sy.HTTP.Manager = function() {
     update: {
         value: function(storeName, identifier, object, callback) {
             if (!this.stores[storeName]) throw new ReferenceError("Unknown store");
-            var meta = this.stores[storeName];
-            return this.mediator.publish("app::storage::on::pre::update", this.basePath, storeName, identifier, object), 
-            this.manager.put({
+            var meta = this.stores[storeName], evt = new Sy.Storage.Event.LifecycleEvent(this.name, storeName, identifier, object);
+            return this.mediator.publish(evt.PRE_UPDATE, evt), this.manager.put({
                 uri: this.basePath.replace(/{{path}}/, meta.path).replace(/{{key}}/, identifier),
                 headers: this.headers,
                 data: object,
                 listener: function(resp) {
-                    callback(resp.getBody()), this.mediator.publish("app::storage::on::post::update", this.basePath, storeName, identifier, object);
+                    callback(resp.getBody()), this.mediator.publish(evt.POST_UPDATE, evt);
                 }.bind(this)
             }), this;
         }
@@ -1750,13 +1855,12 @@ Sy.HTTP.Manager = function() {
     remove: {
         value: function(storeName, identifier, callback) {
             if (!this.stores[storeName]) throw new ReferenceError("Unknown store");
-            var meta = this.stores[storeName];
-            return this.mediator.publish("app::storage::on::pre::remove", this.basePath, storeName, identifier), 
-            this.manager.remove({
+            var meta = this.stores[storeName], evt = new Sy.Storage.Event.LifecycleEvent(this.name, storeName, identifier, null);
+            return this.mediator.publish(evt.PRE_REMOVE, evt), this.manager.remove({
                 uri: this.basePath.replace(/{{path}}/, meta.path).replace(/{{key}}/, identifier),
                 headers: this.headers,
                 listener: function() {
-                    callback(identifier), this.mediator.publish("app::storage::on::post::remove", this.basePath, storeName, identifier);
+                    callback(identifier), this.mediator.publish(evt.POST_REMOVE, evt);
                 }.bind(this)
             }), this;
         }
@@ -1978,7 +2082,7 @@ Sy.HTTP.Manager = function() {
     },
     flush: {
         value: function() {
-            return this.uow.flush(), this;
+            return this.uow.commit(), this;
         }
     },
     findOneBy: {
@@ -2155,7 +2259,7 @@ Sy.Storage.StoreMapper.RestMapper.prototype = Object.create(Sy.Storage.StoreMapp
             return this.isScheduledFor(this.SCHEDULED_FOR_REMOVAL, entity);
         }
     },
-    flush: {
+    commit: {
         value: function() {
             for (var toRemove = this.states.has(this.SCHEDULED_FOR_REMOVAL) ? this.states.get(this.SCHEDULED_FOR_REMOVAL) : [], toUpdate = this.states.has(this.SCHEDULED_FOR_UPDATE) ? this.states.get(this.SCHEDULED_FOR_UPDATE) : [], toCreate = this.states.has(this.SCHEDULED_FOR_CREATION) ? this.states.get(this.SCHEDULED_FOR_CREATION) : [], i = 0, l = toRemove.length; l > i; i++) this.engine.remove(this.name, toRemove[i].get(this.entityKey), this.removalListener.bind(this));
             for (i = 0, l = toUpdate.length; l > i; i++) this.engine.update(this.name, toUpdate[i].get(this.entityKey), this.getEntityData(toUpdate[i]), this.updateListener.bind(this));
@@ -2206,6 +2310,23 @@ Sy.Storage.StoreMapper.RestMapper.prototype = Object.create(Sy.Storage.StoreMapp
             var uow = new Sy.Storage.UnitOfWork();
             return uow.setStateRegistry(this.stateRegistryFactory.make()).setGenerator(this.generator).setName(name).setEntityKey(entityKey), 
             uow;
+        }
+    }
+}), namespace("Sy.View.Event"), Sy.View.Event.ViewPortEvent = function(viewscreen) {
+    if (!(viewscreen instanceof Sy.View.ViewScreen)) throw new TypeError("Invalid viewscreen");
+    this.viewscreen = viewscreen;
+}, Sy.View.Event.ViewPortEvent.prototype = Object.create(Object.prototype, {
+    PRE_DISPLAY: {
+        value: "view::on::pre::display",
+        writable: !1
+    },
+    POST_DISPLAY: {
+        value: "view::on::post::display",
+        writable: !1
+    },
+    getViewScreen: {
+        value: function() {
+            return this.viewscreen;
         }
     }
 }), namespace("Sy.View"), Sy.View.NodeWrapper = function() {
@@ -2415,6 +2536,11 @@ Sy.Storage.StoreMapper.RestMapper.prototype = Object.create(Sy.Storage.StoreMapp
             if (!this.views.has(name)) throw new ReferenceError('The view screen "' + name + '" is not registered');
             return this.views.get(name);
         }
+    },
+    getViewScreens: {
+        value: function() {
+            return this.views.get();
+        }
     }
 }), namespace("Sy.View"), Sy.View.Parser = function() {}, Sy.View.Parser.prototype = Object.create(Object.prototype, {
     get: {
@@ -2501,7 +2627,7 @@ Sy.Storage.StoreMapper.RestMapper.prototype = Object.create(Sy.Storage.StoreMapp
         }
     }
 }), namespace("Sy.View"), Sy.View.ViewPort = function() {
-    this.node = null, this.manager = null, this.mediator = null;
+    this.node = null, this.manager = null, this.mediator = null, this.current = null;
 }, Sy.View.ViewPort.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
     setMediator: {
         value: function(mediator) {
@@ -2526,11 +2652,16 @@ Sy.Storage.StoreMapper.RestMapper.prototype = Object.create(Sy.Storage.StoreMapp
             return this.manager;
         }
     },
+    getCurrentViewScreen: {
+        value: function() {
+            return null === this.current && 1 === this.node.childElementCount && (this.current = this.manager.getViewScreen(this.node.firstElementChild.dataset.syView)), 
+            this.current;
+        }
+    },
     display: {
         value: function(name) {
-            var viewscreen = this.manager.getViewScreen(name), node = viewscreen.getNode();
-            switch (this.mediator && this.mediator.publish("view::on::pre::display", viewscreen), 
-            this.node.childElementCount) {
+            var viewscreen = this.manager.getViewScreen(name), node = viewscreen.getNode(), event = new Sy.View.Event.ViewPortEvent(viewscreen);
+            switch (this.mediator && this.mediator.publish(event.PRE_DISPLAY, event), this.node.childElementCount) {
               case 0:
                 this.node.appendChild(node);
                 break;
@@ -2542,7 +2673,7 @@ Sy.Storage.StoreMapper.RestMapper.prototype = Object.create(Sy.Storage.StoreMapp
               default:
                 throw new Error("Viewport in weird state (more than 1 child)");
             }
-            return this.mediator && this.mediator.publish("view::on::post::display", viewscreen), 
+            return this.current = viewscreen, this.mediator && this.mediator.publish(event.POST_DISPLAY, event), 
             this;
         }
     }
@@ -2639,6 +2770,47 @@ Sy.Storage.StoreMapper.RestMapper.prototype = Object.create(Sy.Storage.StoreMapp
             if (wrapper = this.viewscreens.has(name) ? new (this.viewscreens.get(name))() : new Sy.View.ViewScreen(), 
             !(wrapper instanceof Sy.View.ViewScreen)) throw new TypeError("Invalid viewscreen wrapper");
             return wrapper.setParser(this.parser).setLayoutFactory(this.layoutFactory).setLayoutsRegistry(this.registryFactory.make()).setTemplateEngine(this.engine).setNode(node);
+        }
+    }
+}), namespace("Sy.Event"), Sy.Event.AppShutdownEvent = function(originalEvent) {
+    if (!(originalEvent instanceof BeforeUnloadEvent)) throw new TypeError("Invalid unload event");
+    this.originalEvent = originalEvent;
+}, Sy.Event.AppShutdownEvent.prototype = Object.create(Object.prototype, {
+    KEY: {
+        value: "app::shutdown",
+        writable: !1
+    },
+    getOriginalEvent: {
+        value: function() {
+            return this.originalEvent;
+        }
+    }
+}), namespace("Sy.Event"), Sy.Event.ControllerEvent = function(controller, action, event) {
+    if (!(controller instanceof Sy.ControllerInterface)) throw new TypeError("Invalid controller");
+    if ("string" != typeof action) throw new TypeError("Invalid action");
+    this.controller = controller, this.action = action, this.event = event;
+}, Sy.Event.ControllerEvent.prototype = Object.create(Object.prototype, {
+    PRE_ACTION: {
+        value: "controller::on::pre::action",
+        writable: !1
+    },
+    POST_ACTION: {
+        value: "controller::on::post::action",
+        writable: !1
+    },
+    getController: {
+        value: function() {
+            return this.controller;
+        }
+    },
+    getAction: {
+        value: function() {
+            return this.action;
+        }
+    },
+    getOriginalEvent: {
+        value: function() {
+            return this.event;
         }
     }
 }), namespace("Sy"), Sy.Configurator = function() {
@@ -3199,7 +3371,8 @@ Sy.Storage.StoreMapper.RestMapper.prototype = Object.create(Sy.Storage.StoreMapp
 }).set("sy::core::http", function() {
     var parser = new Sy.HTTP.HeaderParser(), manager = new Sy.HTTP.Manager();
     return manager.setParser(parser), manager.setGenerator(this.get("sy::core::generator::uuid")), 
-    manager.setRegistry(this.get("sy::core::registry::factory").make()), manager;
+    manager.setRegistry(this.get("sy::core::registry::factory").make()), manager.setLogger(this.get("sy::core::logger")), 
+    manager;
 }).set("sy::core::storage::factory::engine::core", function() {
     var factory = new Sy.Storage.EngineFactory.Core(), factories = this.getParameter("storage.engines");
     factory.setRegistry(this.get("sy::core::registry::factory").make());
