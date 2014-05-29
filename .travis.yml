@@ -5,9 +5,7 @@ before_script:
     - npm install -g yo
     - npm install -g venus
     - bower install
-script:
-    - grunt jscs
-    - venus run -t tests/ -c -n --singleton
+script: ./travis.sh
 notifications:
   webhooks:
     urls:
