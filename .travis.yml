@@ -4,7 +4,9 @@ node_js:
 before_script:
     - npm install -g yo
     - bower install
-script: ./test.sh
+script:
+    - grunt jscs
+    - ./node_modules/venus/bin/venus run -t tests/ -c -n --singleton
 notifications:
   webhooks:
     urls:
