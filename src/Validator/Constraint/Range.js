@@ -27,7 +27,7 @@ Sy.Validator.Constraint.Range.prototype = Object.create(Sy.Validator.AbstractCon
         value: function () {
             return 'Sy.Validator.Constraint.RangeValidator';
         }
-    }
+    },
 
     /**
      * Return the lower bound

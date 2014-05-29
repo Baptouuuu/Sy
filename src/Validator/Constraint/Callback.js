@@ -12,7 +12,11 @@ namespace('Sy.Validator.Constraint');
 Sy.Validator.Constraint.Callback = function (options) {
     Sy.Validator.AbstratConstraint.call(this, options);
 
-    this.callback = options.callback || throw new ReferenceError('Undefined constraint callback');
+    if (options.callback === undefined) {
+        throw new ReferenceError('Undefined constraint callback');
+    }
+
+    this.callback = options.callback;
 };
 Sy.Validator.Constraint.Callback.prototype = Object.create(Sy.Validator.AbstratConstraint.prototype, {
 
