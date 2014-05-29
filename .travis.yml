@@ -3,10 +3,11 @@ node_js:
     - '0.10'
 before_script:
     - npm install -g yo
+    - npm install -g venus
     - bower install
 script:
     - grunt jscs
-    - ./node_modules/venus/bin/venus run -t tests/ -c -n --singleton
+    - venus run -t tests/ -c -n --singleton
 notifications:
   webhooks:
     urls:
