@@ -268,4 +268,15 @@ Sy.kernel.getServiceContainer()
 
         return manager;
 
+    })
+    .set('sy::core::validator', function () {
+        var validator = new Sy.Validator.Core(),
+            contextFactory = new Sy.Validator.ExecutionContextFactory();
+
+        contextFactory.setConstraintValidatorFactory(new Sy.Validator.ConstraintValidatorFactory());
+
+        return validator
+            .setRulesRegistry(this.get('sy::core::registry::factory').make())
+            .setContextFactory(contextFactory)
+            .setConstraintFactory(new Sy.Validator.ConstraintFactory());
     });
