@@ -26,7 +26,7 @@ Sy.Validator.Constraint.UrlValidator.prototype = Object.create(Sy.Validator.Abst
             }
 
             var protocols = constraint.getProtocols().join('|'),
-                regex = new RegExp('^(?:(' + protocols + '):\/\/)?(?:((?:[^\W\s]|\.|-|[:]{1})+)@{1})?((?:www.)?(?:[^\W\s]|\.|-)+[\.][^\W\s]{2,4}|localhost(?=\/)|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::(\d*))?([\/]?[^\s\?]*[\/]{1})*(?:\/?([^\s\n\?\[\]\{\}\#]*(?:(?=\.)){1}|[^\s\n\?\[\]\{\}\.\#]*)?([\.]{1}[^\s\?\#]*)?)?(?:\?{1}([^\s\n\#\[\]]*))?([\#][^\s\n]*)?$');
+                regex = new RegExp('^(' + protocols + ')://[a-z\-\_\.]+(?:\.[a-z]{2,})?.*$', 'i');
 
             if (!regex.test(value)) {
                 this.context.addViolation(constraint.getMessage());
