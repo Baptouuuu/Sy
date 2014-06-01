@@ -26,8 +26,8 @@ Sy.Validator.Constraint.BlankValidator.prototype = Object.create(Sy.Validator.Ab
             }
 
             if (
-                (typeof value === 'string' && value.length === 0) ||
-                value === null
+                (typeof value === 'string' && value.length !== 0) &&
+                value !== null
             ) {
                 this.context.addViolation(constraint.getMessage());
             }
