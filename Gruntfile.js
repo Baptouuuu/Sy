@@ -377,6 +377,9 @@ module.exports = function (grunt) {
         'exec:test:lib',
         'exec:test:storage',
         'exec:test:view',
+        'exec:test:kernel',
+        'exec:test:event',
+        'exec:test:validator',
         'exec:test:topLevel'
     ]);
 
