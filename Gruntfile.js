@@ -205,7 +205,7 @@ module.exports = function (grunt) {
                             path = 'event';
                             break;
                         case 'validator':
-                            path = 'vaidator/';
+                            path = 'validator/';
                             break;
                         case 'topLevel':
                             path = [
