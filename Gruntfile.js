@@ -221,7 +221,7 @@ module.exports = function (grunt) {
                             break;
                     }
 
-                    return './node_modules/venus/bin/venus run -t tests/' + path + ' -c -n --singleton';
+                    return './node_modules/venus/bin/venus run -t tests/' + path + ' -c -n';
                 }
             }
         },
