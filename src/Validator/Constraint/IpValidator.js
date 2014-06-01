@@ -29,7 +29,6 @@ Sy.Validator.Constraint.IpValidator.prototype = Object.create(Sy.Validator.Abstr
                 maskRegex = '\\/(?:[12][0-9]|3[0-2]|[0-9])',
                 regex = '^(?:[01]?[0-9]?[0-9]\.|2[0-4][0-9]\.|25[0-5]\.){3}(?:[01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5]){1}';
 
-
             if (constraint.hasPort()) {
                 regex += portRegex;
             }
