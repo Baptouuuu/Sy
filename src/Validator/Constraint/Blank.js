@@ -1,7 +1,7 @@
 namespace('Sy.Validator.Constraint');
 
 /**
- * Contraint to check if a value is an empty string or is null
+ * Constraint to check if a value is an empty string or is null
  *
  * @package Sy
  * @subpackage Validator
@@ -9,12 +9,12 @@ namespace('Sy.Validator.Constraint');
  * @extends {Sy.Validator.AbstractConstraint}
  */
 
-Sy.Validator.Contraint.Blank = function (options) {
+Sy.Validator.Constraint.Blank = function (options) {
     Sy.Validator.AbstractConstraint.call(this, options);
 
     this.message = options.message || 'This value must be blank';
 };
-Sy.Validator.Contraint.Blank.prototype = Object.create(Sy.Validator.AbstractConstraint.prototype, {
+Sy.Validator.Constraint.Blank.prototype = Object.create(Sy.Validator.AbstractConstraint.prototype, {
 
     /**
      * @inheritDoc

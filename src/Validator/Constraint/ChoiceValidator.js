@@ -6,13 +6,13 @@ namespace('Sy.Validator.Constraint');
  * @package Sy
  * @subpackage Validator
  * @class
- * @extends {Sy.Validator.AbstractContraintValidator}
+ * @extends {Sy.Validator.AbstractConstraintValidator}
  */
 
 Sy.Validator.Constraint.ChoiceValidator = function () {
-    Sy.Validator.AbstractContraintValidator.call(this);
+    Sy.Validator.AbstractConstraintValidator.call(this);
 };
-Sy.Validator.Constraint.ChoiceValidator.prototype = Object.create(Sy.Validator.AbstractContraintValidator.prototype, {
+Sy.Validator.Constraint.ChoiceValidator.prototype = Object.create(Sy.Validator.AbstractConstraintValidator.prototype, {
 
     /**
      * @inheritDoc
