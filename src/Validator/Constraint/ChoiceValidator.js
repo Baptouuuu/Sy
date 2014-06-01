@@ -46,11 +46,11 @@ Sy.Validator.Constraint.ChoiceValidator.prototype = Object.create(Sy.Validator.A
                     }
                 }
 
-                if (constraint.hasMin() && choices.length < constraint.getMin()) {
+                if (constraint.hasMin() && value.length < constraint.getMin()) {
                     this.context.addViolation(constraint.getMinMessage());
                 }
 
-                if (constraint.hasMax() && choices.length > constraint.getMax()) {
+                if (constraint.hasMax() && value.length > constraint.getMax()) {
                     this.context.addViolation(constraint.getMaxMessage());
                 }
             } else if (choices.indexOf(value) === -1) {
