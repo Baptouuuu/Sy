@@ -12,7 +12,6 @@ namespace('Sy.Validator.Constraint');
 Sy.Validator.Constraint.Ip = function (options) {
     Sy.Validator.AbstractConstraint.call(this, options);
 
-    this.v6 = !!options.v6;
     this.port = !!options.port;
     this.mask = !!options.mask;
     this.message = options.message || 'The value is not a valid IP address';
@@ -26,18 +25,6 @@ Sy.Validator.Constraint.Ip.prototype = Object.create(Sy.Validator.AbstractConstr
     validatedBy: {
         value: function () {
             return 'Sy.Validator.Constraint.IpValidator';
-        }
-    },
-
-    /**
-     * Is it an IP v6 address
-     *
-     * @return {Boolean}
-     */
-
-    isIpV6: {
-        value: function () {
-            return this.v6;
         }
     },
 
