@@ -25,8 +25,10 @@ Sy.Validator.Constraint.DateValidator.prototype = Object.create(Sy.Validator.Abs
                 throw new TypeError('Invalid constraint');
             }
 
-            if (typeof value === 'string' && (new Date(value)).toDateString() === 'Invalid Date') {
-                this.context.addViolation(constraint.getMessage());
+            if (typeof value === 'string') {
+                if ((new Date(value)).toDateString() === 'Invalid Date') {
+                    this.context.addViolation(constraint.getMessage());
+                }
             } else if (!(value instanceof Date)) {
                 this.context.addViolation(constraint.getMessage());
             }
