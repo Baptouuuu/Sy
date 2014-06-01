@@ -25,11 +25,12 @@ Sy.Validator.Constraint.TypeValidator.prototype = Object.create(Sy.Validator.Abs
                 throw new TypeError('Invalid constraint');
             }
 
-            var expected = constraint.getType();
+            var expected = constraint.getType(),
+                constructor = objectGetter(expected) || function () {};
 
             if (
                 typeof value !== expected &&
-                !(value instanceof objectGetter(expected))
+                !(value instanceof constructor)
             ) {
                 this.context.addViolation(constraint.getMessage());
             }
