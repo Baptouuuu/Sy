@@ -7,13 +7,7 @@ before_script:
     - bower install
 script:
     - grunt jscs
-    - grunt exec:test:lib
-    - grunt exec:test:storage
-    - grunt exec:test:view
-    - grunt exec:test:kernel
-    - grunt exec:test:event
-    - grunt exec:test:validator
-    - grunt exec:test:topLevel
+    - venus run -t tests/ -c -n
 notifications:
   webhooks:
     urls:
