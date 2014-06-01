@@ -1,7 +1,7 @@
 namespace('Sy.Validator.Constraint');
 
 /**
- * true constraint validator
+ * True constraint validator
  *
  * @package Sy
  * @subpackage Validator
@@ -9,10 +9,10 @@ namespace('Sy.Validator.Constraint');
  * @extends {Sy.Validator.AbstractConstraintValidator}
  */
 
-Sy.Validator.Constraint.trueValidator = function () {
+Sy.Validator.Constraint.TrueValidator = function () {
     Sy.Validator.AbstractConstraintValidator.call(this);
 };
-Sy.Validator.Constraint.trueValidator.prototype = Object.create(Sy.Validator.AbstractConstraintValidator.prototype, {
+Sy.Validator.Constraint.TrueValidator.prototype = Object.create(Sy.Validator.AbstractConstraintValidator.prototype, {
 
     /**
      * @inheritDoc
@@ -21,7 +21,7 @@ Sy.Validator.Constraint.trueValidator.prototype = Object.create(Sy.Validator.Abs
     validate: {
         value: function (value, constraint) {
 
-            if (!(constraint instanceof Sy.Validator.Constraint.true)) {
+            if (!(constraint instanceof Sy.Validator.Constraint.True)) {
                 throw new TypeError('Invalid constraint');
             }
 

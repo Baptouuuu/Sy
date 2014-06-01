@@ -9,10 +9,10 @@ namespace('Sy.Validator.Constraint');
  * @extends {Sy.Validator.AbstractConstraintValidator}
  */
 
-Sy.Validator.Constraint.NotNullValidator = function () {
+Sy.Validator.Constraint.NullValidator = function () {
     Sy.Validator.AbstractConstraintValidator.call(this);
 };
-Sy.Validator.Constraint.NotNullValidator.prototype = Object.create(Sy.Validator.AbstractConstraintValidator.prototype, {
+Sy.Validator.Constraint.NullValidator.prototype = Object.create(Sy.Validator.AbstractConstraintValidator.prototype, {
 
     /**
      * @inheritDoc

@@ -10,7 +10,7 @@ namespace('Sy.Validator.Constraint');
  */
 
 Sy.Validator.Constraint.Choice = function (options) {
-    sy.Validator.AbstractConstraint.call(this, options);
+    Sy.Validator.AbstractConstraint.call(this, options);
 
     this.choices = options.choices || [];
     this.multiple = !!options.multiple;

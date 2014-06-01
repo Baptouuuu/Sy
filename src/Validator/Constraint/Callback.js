@@ -6,11 +6,11 @@ namespace('Sy.Validator.Constraint');
  * @package Sy
  * @subpackage Validator
  * @class
- * @extends {Sy.Validator.AbstratConstraint}
+ * @extends {Sy.Validator.AbstractConstraint}
  */
 
 Sy.Validator.Constraint.Callback = function (options) {
-    Sy.Validator.AbstratConstraint.call(this, options);
+    Sy.Validator.AbstractConstraint.call(this, options);
 
     if (options.callback === undefined) {
         throw new ReferenceError('Undefined constraint callback');
@@ -18,7 +18,7 @@ Sy.Validator.Constraint.Callback = function (options) {
 
     this.callback = options.callback;
 };
-Sy.Validator.Constraint.Callback.prototype = Object.create(Sy.Validator.AbstratConstraint.prototype, {
+Sy.Validator.Constraint.Callback.prototype = Object.create(Sy.Validator.AbstractConstraint.prototype, {
 
     /**
      * @inheritDoc
