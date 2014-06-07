@@ -160,13 +160,19 @@ Sy.Validator.ExecutionContext.prototype = Object.create(Object.prototype, {
 
             var validator = this.constraintValidatorFactory.make(constraint);
 
-            for (var i = 0, l = groups.length; i < l; i++) {
-                if (constraint.hasGroup(groups[i])) {
-                    validator
-                        .setContext(this)
-                        .validate(value, constraint);
-                    break;
+            if (groups instanceof Array && groups.length > 0) {
+                for (var i = 0, l = groups.length; i < l; i++) {
+                    if (constraint.hasGroup(groups[i])) {
+                        validator
+                            .setContext(this)
+                            .validate(value, constraint);
+                        break;
+                    }
                 }
+            } else {
+                validator
+                    .setContext(this)
+                    .validate(value, constraint);
             }
 
         }
