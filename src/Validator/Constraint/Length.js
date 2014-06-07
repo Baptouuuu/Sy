@@ -10,6 +10,8 @@ namespace('Sy.Validator.Constraint');
  */
 
 Sy.Validator.Constraint.Length = function (options) {
+    options = options || {};
+
     Sy.Validator.AbstractConstraint.call(this, options);
 
     this.min = options.min;

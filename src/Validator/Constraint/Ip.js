@@ -10,6 +10,8 @@ namespace('Sy.Validator.Constraint');
  */
 
 Sy.Validator.Constraint.Ip = function (options) {
+    options = options || {};
+
     Sy.Validator.AbstractConstraint.call(this, options);
 
     this.port = !!options.port;

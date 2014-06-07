@@ -10,6 +10,8 @@ namespace('Sy.Validator.Constraint');
  */
 
 Sy.Validator.Constraint.Email = function (options) {
+    options = options || {};
+
     Sy.Validator.AbstractConstraint.call(this, options);
 
     this.message = options.message || 'The value is not a valid email';

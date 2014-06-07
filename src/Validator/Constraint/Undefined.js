@@ -10,6 +10,8 @@ namespace('Sy.Validator.Constraint');
  */
 
 Sy.Validator.Constraint.Undefined = function (options) {
+    options = options || {};
+
     Sy.Validator.AbstractConstraint.call(this, options);
 
     this.message = options.message || 'The value must be undefined';

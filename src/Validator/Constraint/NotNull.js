@@ -10,6 +10,8 @@ namespace('Sy.Validator.Constraint');
  */
 
 Sy.Validator.Constraint.NotNull = function (options) {
+    options = options || {};
+
     Sy.Validator.AbstractConstraint.call(this, options);
 
     this.message = options.message || 'The value must not be null';
