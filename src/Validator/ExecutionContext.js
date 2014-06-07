@@ -123,9 +123,9 @@ Sy.Validator.ExecutionContext.prototype = Object.create(Object.prototype, {
     addViolation: {
         value: function (message) {
             if (this.path) {
-                this.violations.addViolation(message);
-            } else {
                 this.violations.addViolationAt(this.path, message);
+            } else {
+                this.violations.addViolation(message);
             }
         }
     },
