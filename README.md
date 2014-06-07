@@ -1,7 +1,8 @@
 Sy Javascript Framework
 =======================
 
-[![Build Status](https://travis-ci.org/Baptouuuu/Sy.png?branch=develop)](https://travis-ci.org/Baptouuuu/Sy)
+[![Build Status](https://travis-ci.org/Baptouuuu/Sy.png?branch=develop)](https://travis-ci.org/Baptouuuu/Sy) [develop]
+[![Build Status](https://travis-ci.org/Baptouuuu/Sy.png?branch=master)](https://travis-ci.org/Baptouuuu/Sy) [master]
 
 ## Philosophy
 
