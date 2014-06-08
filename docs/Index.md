@@ -14,3 +14,4 @@ At this time find documentation for these components:
 * [Translator](Translator.md)
 * [Storage](Storage.md)
 * [View engine](View-engine.md)
+* [Validation](Validation.md)

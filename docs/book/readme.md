@@ -8,3 +8,4 @@ This book will guide you through the different framework's components and how th
 * [Storage](storage.md)
 * [Service container](service-container.md)
 * [Configuration](config.md)
+* [Validation](validation.md)
