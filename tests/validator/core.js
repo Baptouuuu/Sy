@@ -1,5 +1,6 @@
 /**
  * @venus-library jasmine
+ * @venus-include ../../vendor/Reflection.js/reflection.js
  * @venus-include ../../src/functions.js
  * @venus-include ../../src/RegistryInterface.js
  * @venus-include ../../src/Registry.js
@@ -59,6 +60,11 @@ describe('validator', function () {
         isTrue: {
             value: function () {
                 return this.trueProp;
+            }
+        },
+        getBar: {
+            value: function () {
+                return this.bar;
             }
         }
     });
@@ -163,6 +169,53 @@ describe('validator', function () {
             violations;
 
         v.registerRules(rules);
+
+        violations = v.validate(o);
+
+        expect(violations.length).toEqual(0);
+
+        o.bar = null;
+        o.trueProp = false;
+
+        violations = v.validate(o);
+
+        expect(violations.length).toEqual(2);
+        expect(violations.toJSON()).toEqual([
+            {message: 'the getter does not return true', path: 'isTrue'},
+            {message: 'bar should not be blank', path: 'bar'}
+        ]);
+
+        violations = v.validate(o, 'only_getter');
+
+        expect(violations.length).toEqual(1);
+        expect(violations.toJSON()).toEqual([
+            {message: 'the getter does not return true', path: 'isTrue'}
+        ]);
+
+        violations = v.validate(o, ['only_getter']);
+
+        expect(violations.length).toEqual(1);
+        expect(violations.toJSON()).toEqual([
+            {message: 'the getter does not return true', path: 'isTrue'}
+        ]);
+    });
+
+    it('should set the use of reflection to false', function () {
+        expect(v.disableReflection()).toEqual(v);
+        expect(v.useReflection).toBe(false);
+    });
+
+    it('should set the use of reflection to true', function () {
+        expect(v.enableReflection()).toEqual(v);
+        expect(v.useReflection).toBe(true);
+    });
+
+    it('should validate an object without reflection', function () {
+        var o = new Foo(),
+            violations;
+
+        v.registerRules(rules);
+        v.disableReflection();
 
         violations = v.validate(o);
 

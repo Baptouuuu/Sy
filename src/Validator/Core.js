@@ -12,6 +12,7 @@ Sy.Validator.Core = function () {
     this.rules = null;
     this.contextFactory = null;
     this.constraintFactory = null;
+    this.useReflection = true;
 };
 Sy.Validator.Core.prototype = Object.create(Object.prototype, {
 
@@ -70,6 +71,36 @@ Sy.Validator.Core.prototype = Object.create(Object.prototype, {
             }
 
             this.constraintFactory = factory;
+
+            return this;
+        }
+    },
+
+    /**
+     * Activate the use of reflection to get property
+     * value out of an object when validating
+     *
+     * @return {Sy.Validator.Code} self
+     */
+
+    enableReflection: {
+        value: function () {
+            this.useReflection = true;
+
+            return this;
+        }
+    },
+
+    /**
+     * Deactivate the use of reflection to get property
+     * value out of an object when validating
+     *
+     * @return {Sy.Validator.Code} self
+     */
+
+    disableReflection: {
+        value: function () {
+            this.useReflection = false;
 
             return this;
         }
@@ -174,7 +205,10 @@ Sy.Validator.Core.prototype = Object.create(Object.prototype, {
 
             var rules = this.resolve(object),
                 context = this.contextFactory.make(),
-                constraint;
+                constraint,
+                value,
+                refl,
+                propGetter;
 
             groups = groups || [];
 
@@ -207,10 +241,25 @@ Sy.Validator.Core.prototype = Object.create(Object.prototype, {
                 if (rules.properties.hasOwnProperty(property)) {
                     context.setPath(property);
 
+                    if (this.useReflection) {
+                        refl = new ReflectionObject(object);
+                        propGetter = 'get' + property.charAt(0).toUpperCase() + property.substr(1);
+
+                        if (refl.hasMethod(propGetter)) {
+                            value = refl.getMethod(propGetter).call()
+                        } else if (refl.hasMethod('get')) {
+                            value = refl.getMethod('get').call(property);
+                        } else {
+                            value = refl.getProperty(property).getValue();
+                        }
+                    } else {
+                        value = object[property];
+                    }
+
                     for (constraint in rules.properties[property]) {
                         if (rules.properties[property].hasOwnProperty(constraint)) {
                             context.validate(
-                                object[property],
+                                value,
                                 this.constraintFactory.make(
                                     constraint,
                                     rules.properties[property][constraint]
