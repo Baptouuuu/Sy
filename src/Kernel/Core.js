@@ -54,6 +54,10 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
             tester.testBrowser();
 
+            if (this.config.get('env') !== 'prod') {
+                parser.setLogger(this.container.get('sy::core::logger'));
+            }
+
             this.config.set('parameters.app.meta', {
                 bundles: parser.getBundles(),
                 controllers: parser.getControllers(),

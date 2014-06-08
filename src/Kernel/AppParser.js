@@ -13,8 +13,25 @@ Sy.Kernel.AppParser = function () {
     this.controllers = [];
     this.entities = [];
     this.viewscreens = [];
+    this.logger = null;
 };
 Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set the logger
+     *
+     * @param {Sy.Lib.Logger.Interface} logger
+     *
+     * @return {Sy.Kernle.AppParser}
+     */
+
+    setLogger: {
+        value: function (logger) {
+            this.logger = logger;
+
+            return this;
+        }
+    },
 
     /**
      * Return the list of defined bundles
@@ -32,6 +49,7 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
             for (var bundle in App.Bundle) {
                 if (App.Bundle.hasOwnProperty(bundle)) {
                     this.bundles.push(bundle);
+                    this.logger && this.logger.debug('Bundle found', bundle);
                 }
             }
 
@@ -59,6 +77,7 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
                 bundleCtrl = App.Bundle[this.bundles[i]].Controller;
 
                 if (!bundleCtrl) {
+                    this.logger && this.logger.debug('No controller found in', this.bundles[i]);
                     continue;
                 }
 
@@ -68,6 +87,7 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
                             name: this.bundles[i] + '::' + ctrl,
                             creator: bundleCtrl[ctrl]
                         });
+                        this.logger && this.logger.debug('Controller found', this.bundles[i] + '::' + ctrl);
                     }
                 }
             }
@@ -100,6 +120,7 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
                 bundleRepositories = App.Bundle[this.bundles[i]].Repository || {};
 
                 if (!bundleEntities) {
+                    this.logger && this.logger.debug('No entity found in', this.bundles[i]);
                     continue;
                 }
 
@@ -115,6 +136,12 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
                             indexes: (new entity()).indexes,
                             uuid: entity.prototype.UUID
                         });
+
+                        this.logger && this.logger.debug('Entity found ' + alias + (
+                            bundleRepositories[name] ?
+                                ' with custom repository' :
+                                ''
+                        ));
                     }
                 }
             }
@@ -143,6 +170,7 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
                 bundleViewScreens = App.Bundle[this.bundles[i]].ViewScreen;
 
                 if (!bundleViewScreens) {
+                    this.logger && this.logger.debug('No viewscreen wrapper found in', this.bundles[i]);
                     continue;
                 }
 
@@ -152,6 +180,7 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
                             name: this.bundles[i] + '::' + name,
                             creator: bundleViewScreens[name]
                         });
+                        this.logger && this.logger.debug('ViewScreen wrapper found', this.bundles[i] + '::' + name);
                     }
                 }
             }
@@ -188,6 +217,8 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
 
                 bundleConfig = new bundleConfig.Service();
                 bundleConfig.define(container);
+
+                this.logger && this.logger.debug('Services loaded from ' + this.bundles[i] + ' bundle');
             }
 
             return this;
@@ -222,6 +253,8 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
 
                 bundleConfig = new bundleConfig.Configuration();
                 bundleConfig.define(config);
+
+                this.logger && this.logger.debug('Configuration loaded from ' + this.bundles[i] + ' bundle');
             }
 
             return this;
@@ -260,6 +293,8 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
 
                 bundleConfig = new bundleConfig.Validation();
                 bundleConfig.define(validator);
+
+                this.logger && this.logger.debug('Validation rules loaded from ' + this.bundles[i] + ' bundle');
             }
 
             return this;
