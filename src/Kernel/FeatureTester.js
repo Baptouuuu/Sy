@@ -13,27 +13,6 @@ Sy.Kernel.FeatureTester = function () {};
 Sy.Kernel.FeatureTester.prototype = Object.create(Object.prototype, {
 
     /**
-     * Test for json support
-     *
-     * @private
-     * @throws {ReferenceError} If JSON is undefined or parse|stringify methods are not defined
-     */
-
-    testJSON: {
-        value: function () {
-
-            if (typeof JSON !== 'object') {
-                throw new ReferenceError('JSON is not supported');
-            }
-
-            if (typeof JSON.parse !== 'function' || typeof JSON.stringify !== 'function') {
-                throw new ReferenceError('JSON methods are not defined');
-            }
-
-        }
-    },
-
-    /**
      * Test for XMLHttpRequest and FormData support
      *
      * @private
@@ -117,7 +96,6 @@ Sy.Kernel.FeatureTester.prototype = Object.create(Object.prototype, {
     testBrowser: {
         value: function () {
 
-            this.testJSON();
             this.testXHR();
             this.testHTMLAttributes();
             this.testBind();
