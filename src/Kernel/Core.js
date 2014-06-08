@@ -63,7 +63,8 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
             parser
                 .buildServices(this.container)
-                .buildConfig(this.config);
+                .buildConfig(this.config)
+                .registerValidationRules(this.container);
 
             this
                 .registerControllers(parser.getControllers())

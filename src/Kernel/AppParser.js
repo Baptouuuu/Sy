@@ -227,6 +227,43 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
             return this;
 
         }
+    },
+
+    /**
+     * Walk through the app validation rules definitions object
+     * and call them to register them in the validator
+     *
+     * @param {Sy.ServiceContainerInterface} container
+     *
+     * @return {Sy.Kernel.AppParser}
+     */
+
+    registerValidationRules: {
+        value: function (container) {
+            if (!(container instanceof Sy.ServiceContainerInterface)) {
+                throw new TypeError('Invalid service container');
+            }
+
+            var validator = container.get('sy::core::validator'),
+                bundleConfig;
+
+            if (!(validator instanceof Sy.Validator.Core)) {
+                throw new TypeError('Invalid validator');
+            }
+
+            for (var i = 0, l = this.bundles.length; i < l; i++) {
+                bundleConfig = App.Bundle[this.bundles[i]].Config;
+
+                if (!bundleConfig || !bundleConfig.Validation) {
+                    continue;
+                }
+
+                bundleConfig = new bundleConfig.Validation();
+                bundleConfig.define(validator);
+            }
+
+            return this;
+        }
     }
 
 });
