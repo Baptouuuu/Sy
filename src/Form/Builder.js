@@ -132,6 +132,13 @@ Sy.Form.Builder.prototype = Object.create(Object.prototype, {
 
                 builder.setObject(new dataClass());
             } else if (object && typeof object === 'object') {
+                if (
+                    config.has('dataClass') &&
+                    !(object instanceof objectGetter(config.get('dataClass')))
+                ) {
+                    throw new TypeError('The object is not an instance of "' + config.get('dataClass') + '"');
+                }
+
                 builder.setObject(object);
             }
 
