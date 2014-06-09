@@ -135,6 +135,12 @@ Sy.kernel.getServiceContainer()
                 ['setUOWFactory', ['@sy::core::storage::unitofwork::factory']],
                 ['setMeta', ['%app.meta.entities%']]
             ]
+        },
+        'sy::core::form': {
+            constructor: 'Sy.Form.Builder',
+            calls: [
+                ['setValidator', ['@sy::core::validator']]
+            ]
         }
     })
     .set('sy::core::logger', function () {
