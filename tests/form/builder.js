@@ -85,7 +85,7 @@ describe('form builder', function () {
     it('should create a form from a registered form type', function () {
         builder.registerFormType(new abstractType());
 
-        var form = builder.createForm('typeName', {
+        var form = builder.createForm('typeName', null, {
             someKey: 'value'
         });
 
@@ -98,7 +98,7 @@ describe('form builder', function () {
     });
 
     it('should create a form from the form type instance', function () {
-        var form = builder.createForm(new abstractType(), {
+        var form = builder.createForm(new abstractType(), null, {
             someKey: 'value'
         });
 
@@ -110,9 +110,17 @@ describe('form builder', function () {
         expect(form.getObject() instanceof User).toBe(true);
     });
 
+    it('should create a form with the given object as data holder', function () {
+        var form = builder.createForm(new abstractType(), {isItMe: true}, {
+            someKey: 'value'
+        });
+
+        expect(form.getObject()).toEqual({isItMe: true});
+    });
+
     it('should throw if data class is undefined', function () {
         expect(function () {
-            builder.createForm(new abstractType(), {
+            builder.createForm(new abstractType(), null, {
                 dataClass: 'Unknown'
             });
         }).toThrow('Data class "Unknown" is undefined');

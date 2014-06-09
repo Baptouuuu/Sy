@@ -238,6 +238,7 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
      * Shortcut to create a form from a form type
      *
      * @param {Sy.Form.FormTypeInterface|String} formType
+     * @param {Object} object Optional
      * @param {Object} options
      *
      * @return {Sy.Form.FormInterface}

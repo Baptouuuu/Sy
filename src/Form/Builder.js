@@ -88,13 +88,14 @@ Sy.Form.Builder.prototype = Object.create(Object.prototype, {
      * Create a form based on the form type
      *
      * @param {Sy.Form.FormTypeInterface|String} formType
+     * @param {Object} object Optional, object that will hold form data
      * @param {Object} options
      *
      * @return {Sy.Form.FormInterface}
      */
 
     createForm: {
-        value: function (formType, options) {
+        value: function (formType, object, options) {
             if (typeof formType === 'string') {
                 if (!this.types[formType]) {
                     throw new ReferenceError('Form type "' + formType + '" is undefined');
@@ -122,7 +123,7 @@ Sy.Form.Builder.prototype = Object.create(Object.prototype, {
 
             builder.setOptions(config);
 
-            if (config.has('dataClass')) {
+            if (!object && config.has('dataClass')) {
                 dataClass = objectGetter(config.get('dataClass'));
 
                 if (!dataClass) {
@@ -130,6 +131,8 @@ Sy.Form.Builder.prototype = Object.create(Object.prototype, {
                 }
 
                 builder.setObject(new dataClass());
+            } else if (object && typeof object === 'object') {
+                builder.setObject(object);
             }
 
             if (this.validator) {
