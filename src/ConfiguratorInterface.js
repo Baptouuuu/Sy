@@ -7,11 +7,7 @@ namespace('Sy');
  * @interface
  */
 
-Sy.ConfiguratorInterface = function () {
-
-    this.name = '';
-
-};
+Sy.ConfiguratorInterface = function () {};
 
 Sy.ConfiguratorInterface.prototype = Object.create(Object.prototype, {
 
@@ -25,11 +21,7 @@ Sy.ConfiguratorInterface.prototype = Object.create(Object.prototype, {
      */
 
     set: {
-        value: function (key, value) {
-
-            return this;
-
-        }
+        value: function (key, value) {}
     },
 
     /**
@@ -41,11 +33,7 @@ Sy.ConfiguratorInterface.prototype = Object.create(Object.prototype, {
      */
 
     get: {
-        value: function (key) {
-
-            return value;
-
-        }
+        value: function (key) {}
     },
 
     /**
@@ -69,13 +57,7 @@ Sy.ConfiguratorInterface.prototype = Object.create(Object.prototype, {
      */
 
     setName: {
-        value: function (name) {
-
-            this.name = name;
-
-            return this;
-
-        }
+        value: function (name) {}
     },
 
     /**
@@ -85,11 +67,7 @@ Sy.ConfiguratorInterface.prototype = Object.create(Object.prototype, {
      */
 
     getName: {
-        value: function () {
-
-            return this.name;
-
-        }
+        value: function () {}
     }
 
 });
