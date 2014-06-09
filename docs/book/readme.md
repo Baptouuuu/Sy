@@ -9,3 +9,4 @@ This book will guide you through the different framework's components and how th
 * [Service container](service-container.md)
 * [Configuration](config.md)
 * [Validation](validation.md)
+* [Form](form.md)
