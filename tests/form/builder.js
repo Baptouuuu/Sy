@@ -111,11 +111,18 @@ describe('form builder', function () {
     });
 
     it('should create a form with the given object as data holder', function () {
-        var form = builder.createForm(new abstractType(), {isItMe: true}, {
-            someKey: 'value'
-        });
+        var user = new User(),
+            form = builder.createForm(new abstractType(), user, {
+                someKey: 'value'
+            });
 
-        expect(form.getObject()).toEqual({isItMe: true});
+        expect(form.getObject()).toEqual(user);
+    });
+
+    it('should throw if trying to use a data holder that is not an instance of the data class', function () {
+        expect(function () {
+            builder.createForm(new abstractType(), {});
+        }).toThrow('The object is not an instance of "User"');
     });
 
     it('should throw if data class is undefined', function () {
