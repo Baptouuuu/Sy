@@ -128,6 +128,10 @@ Sy.Form.Form.prototype = Object.create(Sy.Form.FormInterface.prototype, {
                 throw new ReferenceError('Form element not found');
             }
 
+            if (!this.object) {
+                return;
+            }
+
             var refl = new ReflectionObject(this.object),
                 els = this.elements,
                 setter,
