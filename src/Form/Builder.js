@@ -23,7 +23,7 @@ Sy.Form.Builder.prototype = Object.create(Object.prototype, {
 
     setValidator: {
         value: function (validator) {
-            if (!(validator insatnceof Sy.Validator.Core)) {
+            if (!(validator instanceof Sy.Validator.Core)) {
                 throw new TypeError('Invalid validator');
             }
 
