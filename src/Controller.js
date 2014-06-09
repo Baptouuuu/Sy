@@ -245,10 +245,10 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
      */
 
     createForm: {
-        value: function (formType, options) {
+        value: function (formType, object, options) {
             return this.container
                 .get('sy::core::form')
-                .createForm(formType, options);
+                .createForm(formType, object, options);
         }
     }
 
