@@ -115,6 +115,14 @@ module.exports = function (grunt) {
             'src/Validator/ExecutionContext.js',
             'src/Validator/ExecutionContextFactory.js'
         ],
+        form = [
+            'src/Form/FormInterface.js',
+            'src/Form/FormBuilderInterface.js',
+            'src/Form/FormTypeInterface.js',
+            'src/Form/Form.js',
+            'src/Form/FormBuilder.js',
+            'src/Form/Builder.js',
+        ],
         view = [
             'src/View/LayoutFactoryInterface.js',
             'src/View/ListFactoryInterface.js',
@@ -208,6 +216,9 @@ module.exports = function (grunt) {
     validator = factory
         .concat(registry)
         .concat(validator);
+    form = form
+        .concat(configurator)
+        .concat(validator);
     view = factory
         .concat(registry)
         .concat(generator)
@@ -235,6 +246,7 @@ module.exports = function (grunt) {
         .concat(http)
         .concat(storage)
         .concat(validator)
+        .concat(form)
         .concat(view)
         .concat(configurator)
         .concat(registry)
@@ -328,6 +340,9 @@ module.exports = function (grunt) {
                             break;
                         case 'validator':
                             path = 'validator/';
+                            break;
+                        case 'form':
+                            path = 'form/';
                             break;
                         case 'topLevel':
                             path = [
@@ -508,6 +523,7 @@ module.exports = function (grunt) {
         'exec:test:kernel',
         'exec:test:event',
         'exec:test:validator',
+        'exec:test:form',
         'exec:test:topLevel'
     ]);
 

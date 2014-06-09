@@ -215,6 +215,41 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
             return this;
 
         }
+    },
+
+    /**
+     * Shortcut to create a form builder
+     *
+     * @param {Object} object Object that will hold form data
+     * @param {Object} options
+     *
+     * @return {Sy.Form.FormBuilderInterface}
+     */
+
+    createFormBuilder: {
+        value: function (object, options) {
+            return this.container
+                .get('sy::core::form')
+                .createFormBuilder(object, options);
+        }
+    },
+
+    /**
+     * Shortcut to create a form from a form type
+     *
+     * @param {Sy.Form.FormTypeInterface|String} formType
+     * @param {Object} object Optional
+     * @param {Object} options
+     *
+     * @return {Sy.Form.FormInterface}
+     */
+
+    createForm: {
+        value: function (formType, object, options) {
+            return this.container
+                .get('sy::core::form')
+                .createForm(formType, object, options);
+        }
     }
 
 });

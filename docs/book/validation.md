@@ -1,6 +1,6 @@
 # Validation
 
-[< Previous chapter (Configuration)](config.md)
+[< Previous chapter (Configuration)](config.md) | [Next chapter (Form) >](form.md)
 
 The data validation is an important part inside an application, that's why Sy comes with a component dedicated to this. In order to understand how the component works, please refer to its [documentation](../Validation.md).
 
