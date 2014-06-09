@@ -126,7 +126,7 @@ Sy.Form.Builder.prototype = Object.create(Object.prototype, {
                 dataClass = objectGetter(config.get('dataClass'));
 
                 if (!dataClass) {
-                    throw new ReferenceError('Data class "' + config.get('dataClass') +'" is undefined');
+                    throw new ReferenceError('Data class "' + config.get('dataClass') + '" is undefined');
                 }
 
                 builder.setObject(new dataClass());
