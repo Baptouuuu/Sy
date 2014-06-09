@@ -487,13 +487,19 @@ module.exports = function (grunt) {
                     requireParamTypes: true
                 }
             }
+        },
+        compare_size: {
+            files: [
+                'dist/framework.js',
+                'dist/framework.min.js'
+            ]
         }
     });
 
     require('load-grunt-tasks')(grunt);
 
     grunt.registerTask('default', ['bower-install']);
-    grunt.registerTask('build', ['jscs', 'uglify']);
+    grunt.registerTask('build', ['jscs', 'uglify', 'compare_size']);
     grunt.registerTask('test', [
         'jscs',
         'exec:test:lib',
