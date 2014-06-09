@@ -124,7 +124,7 @@ Sy.Form.Form.prototype = Object.create(Sy.Form.FormInterface.prototype, {
                 this.form = document.querySelector('form[id=' + this.getName() + ']');
             }
 
-            if (!this.form) {
+            if (!this.form && !(this.form instanceof HTMLFormElement)) {
                 throw new ReferenceError('Form element not found');
             }
 
