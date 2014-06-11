@@ -288,27 +288,63 @@ module.exports = function (grunt) {
                     'dist/service-container.min.js': serviceContainer,
                     'dist/translator.min.js': translator
                 }
+            }
+        },
+        concat: {
+            options: {
+                banner: '/*! <%= pkg.name %>#<%= pkg.version %> - <%= grunt.template.today("yyyy-mm-dd") %> */\n'
             },
-            concat: {
-                files: {
-                    'dist/framework.js': framework,
-                    'dist/generator.js': generator,
-                    'dist/logger.js': logger,
-                    'dist/mediator.js': mediator,
-                    'dist/http.js': http,
-                    'dist/storage.js': storage,
-                    'dist/validator.js': validator,
-                    'dist/view.js': view,
-                    'dist/configurator.js': configurator,
-                    'dist/registry.js': registry,
-                    'dist/state-registry.js': stateRegistry,
-                    'dist/service-container.js': serviceContainer,
-                    'dist/translator.js': translator
-                },
-                options: {
-                    mangle: false,
-                    beautify: true
-                }
+            framework: {
+                src: framework,
+                dest: 'dist/framework.js'
+            },
+            generator: {
+                src: generator,
+                dest: 'dist/generator.js'
+            },
+            logger: {
+                src: logger,
+                dest: 'dist/logger.js'
+            },
+            mediator: {
+                src: mediator,
+                dest: 'dist/mediator.js'
+            },
+            http: {
+                src: http,
+                dest: 'dist/http.js'
+            },
+            storage: {
+                src: storage,
+                dest: 'dist/storage.js'
+            },
+            validator: {
+                src: validator,
+                dest: 'dist/validator.js'
+            },
+            view: {
+                src: view,
+                dest: 'dist/view.js'
+            },
+            configurator: {
+                src: configurator,
+                dest: 'dist/configurator.js'
+            },
+            registry: {
+                src: registry,
+                dest: 'dist/registry.js'
+            },
+            stateRegistry: {
+                src: stateRegistry,
+                dest: 'dist/state-registry.js'
+            },
+            serviceContainer: {
+                src: serviceContainer,
+                dest: 'dist/service-container.js'
+            },
+            translator: {
+                src: translator,
+                dest: 'dist/translator.js'
             }
         },
         'bower-install': {
@@ -514,7 +550,7 @@ module.exports = function (grunt) {
     require('load-grunt-tasks')(grunt);
 
     grunt.registerTask('default', ['bower-install']);
-    grunt.registerTask('build', ['jscs', 'uglify', 'compare_size']);
+    grunt.registerTask('build', ['jscs', 'uglify', 'concat', 'compare_size']);
     grunt.registerTask('test', [
         'jscs',
         'exec:test:lib',
