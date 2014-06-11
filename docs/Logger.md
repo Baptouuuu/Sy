@@ -23,7 +23,7 @@ var logger = new Sy.Lib.Logger.CoreLogger('name');
 
 The name specified in the constructor is used afterward in the handler, in the case of the `Console` one it prints this name alongside of the log level to identify more easily where it comes from.
 
-**Note**: If you decide to create your own logger you should implement `Sy.Lib.Logger.Interface` to keep the same logic as the framework.
+**Note**: If you decide to create your own logger you should implement [`Sy.Lib.Logger.Interface`](../src/Lib/Logger/Interface.js) to keep the same logic as the framework.
 
 ## Attaching a handler
 
@@ -36,7 +36,7 @@ Like said before a handler handles only one log level, the one specified in the 
 
 When setting the handler into the logger, you specify once again the level so the logger knows the handler is specific to the specified level.
 
-**Note**: If you decide to write your own handler for the `CoreLogger` it must implement `Sy.Lib.Logger.Handler.Interface`, otherwise the `setHandler` will fail.
+**Note**: If you decide to write your own handler for the `CoreLogger` it must implement [`Sy.Lib.Logger.Handler.Interface`](../src/Lib/Logger/Handler/Interface.js), otherwise the `setHandler` will fail.
 
 ## Usage
 

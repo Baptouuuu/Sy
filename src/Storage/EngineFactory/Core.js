@@ -43,7 +43,7 @@ Sy.Storage.EngineFactory.Core.prototype = Object.create(Sy.FactoryInterface.prot
      * @param {Sy.FactoryInterface} factory Engine factory
      * @param {Sy.Storage.StoreMapperInterface} mapper
      *
-     * @return {Sy.Storage.EngineFatory.Core}
+     * @return {Sy.Storage.EngineFactory.Core}
      */
 
     setEngineFactory: {

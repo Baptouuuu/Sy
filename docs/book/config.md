@@ -1,6 +1,6 @@
 # Configuration
 
-[< Previous chapter (Service container)](service-container.md)
+[< Previous chapter (Service container)](service-container.md) | [Next chapter (Validation) >](validation.md)
 
 Another important point of the framework is the global config object. It's there that you put all your global variables used afterward by your services. It's a really useful features, as you can easily declare some sort of flags so you can quickly change the behaviour of your app when switching environments. An example of that is the `env` key used by the framework, in normal case the logger used by the framework handles every log level, but in the case where `env` is set to `prod` the framework kernel will disable all levels except the `ERROR` one, as you only care about errors happening in your prod environment.
 
@@ -21,7 +21,7 @@ You should keep the config here to a minimal, avoid setting variables directly r
 
 ## In your bundle
 
-It use the same principle as the service container one, at boot time the framework parse your app and will look for an object `Config.Configuration` inside your bundle. If it find one, it will instanciate it and call the method `define` and passing the config object (`Sy.ConfiguratorInterface` instance).
+It use the same principle as the service container one, at boot time the framework parse your app and will look for an object `Config.Configuration` inside your bundle. If it find one, it will instanciate it and call the method `define` and passing the config object ([`Sy.ConfiguratorInterface`](../../src/ConfiguratorInterface.js) instance).
 
 Here's how you define such class:
 ```js

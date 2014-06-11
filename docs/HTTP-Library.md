@@ -21,7 +21,7 @@ Not using the request object to directly send the request allows you to reuse th
 
 ## Request
 
-This object wraps the creation of a http request; it must implement `Sy.HTTP.RequestInterface`. It is a representation of a request, so by itself the object does nothing, got to the [`Manager`](#manager) to see how to use them.
+This object wraps the creation of a http request; it must implement [`Sy.HTTP.RequestInterface`](../src/HTTP/RequestInterface.js). It is a representation of a request, so by itself the object does nothing, got to the [`Manager`](#manager) to see how to use them.
 
 ### Creation
 
@@ -76,7 +76,7 @@ request.setListener(function (response) {
   // do whatever you want here with the response
 });
 ```
-This function will be called once when the request is finished no matter what the result is, it's up to you to determine if the result is acceptable or not. The `response` argument is an instance of `Sy.HTTP.Response`.
+This function will be called once when the request is finished no matter what the result is, it's up to you to determine if the result is acceptable or not. The `response` argument is an instance of [`Sy.HTTP.Response`](../src/HTTP/Response.js).
 
 ### Typing
 
@@ -86,12 +86,12 @@ request.setType('json');
 ```
 This method only accept `html` and `json`. The first will give you a DOM object as response's body; and the second one will parse the response as a JSON document so you don't have to use `JSON.parse` before you use your data.
 
-The library come with two typed requests: `Sy.HTTP.HTMLRequest` and `Sy.HTTP.JSONRequest`. Those two automatically set the appropriate type (with the method described above), and set the `Accept` header key with respectively `text/html,application/xhtml+xml` and `application/json`.
+The library come with two typed requests: [`Sy.HTTP.HTMLRequest`](../src/HTTP/HTMLRequest.js) and [`Sy.HTTP.JSONRequest`](../src/HTTP/JSONRequest.js). Those two automatically set the appropriate type (with the method described above), and set the `Accept` header key with respectively `text/html,application/xhtml+xml` and `application/json`.
 
 
 ## Response
 
-In normal workflow you will never have to construct this kind of object. You should encounter this kind of object inside a [request listener](#callback). it will always implement `Sy.HTTP.ResponseInterface`.
+In normal workflow you will never have to construct this kind of object. You should encounter this kind of object inside a [request listener](#callback). it will always implement [`Sy.HTTP.ResponseInterface`](../src/HTTP/ResponseInterface.js).
 
 ### Status code
 
@@ -120,7 +120,7 @@ The response body is accessible through:
 ```js
 response.getBody();
 ```
-By default this will return a string. However if you made a `HTMLRequest` or `JSONRequest` it will return a DOM node or a parsed JSON; those requests also mean that the response is also typed by being, respectively, an instance of `Sy.HTTP.HTMLResponse` and `Sy.HTTP.JSONResponse`.
+By default this will return a string. However if you made a `HTMLRequest` or `JSONRequest` it will return a DOM node or a parsed JSON; those requests also mean that the response is also typed by being, respectively, an instance of [`Sy.HTTP.HTMLResponse`](../src/HTTP/HTMLResponse.js) and [`Sy.HTTP.JSONResponse`](../src/HTTP/JSONResponse.js).
 
 
 ## Manager
@@ -144,7 +144,7 @@ manager
 The manager depends on two other objects. The first allows to extract from the string return by `XMLHttpRequest.getAllResponseHeaders()` the list of key/value header pairs.
 
 The second dependency is a generator used when initiating a new request. At this step, the manager associate a unique identifier to the request, so it can access it more easily in the state change listener. The identifier is also used to abort a request.
-In the example above, we use an instance of the generator interface, obviously this won't work as the interface does not generate content. You will need to use an instance that return real content, you can use `Sy.Lib.Generator.UUID` (the framework use this generator for the manager) but you can build your own if you want (though remember that it must implement the above interface).
+In the example above, we use an instance of the generator interface, obviously this won't work as the interface does not generate content. You will need to use an instance that return real content, you can use [`Sy.Lib.Generator.UUID`](../src/Lib/Generator/UUID.js) (the framework use this generator for the manager) but you can build your own if you want (though remember that it must implement the above interface).
 
 ### Initiate a request
 

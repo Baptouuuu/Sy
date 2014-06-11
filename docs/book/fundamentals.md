@@ -41,7 +41,7 @@ That's where namespacing shines. With this framework, your global footprint is r
 * `App`: where all *your* code is put
 * `Sy`: where all the framework code is contained
 
-Everything inside `App` is only classes declarations, every object instanciation will be contained inside `Sy.kernel` which is the instanciation of `Sy.Kernel.Core`.
+Everything inside `App` is only classes declarations, every object instanciation will be contained inside `Sy.kernel` which is the instanciation of [`Sy.Kernel.Core`](../../src/Kernel/Core.js).
 
 To resume, by using namespaces you can avoid the problem of global variables **and** avoid the heavy memory cost of closures (and its impact on garbage collection).
 

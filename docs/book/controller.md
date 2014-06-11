@@ -106,7 +106,7 @@ By using the feature offered by the framework, it gives you access to 2 new chan
 * `controller::on::pre::action`
 * `controller::on::post::action`
 
-Each one is published with an instance of `Sy.Event.ControllerEvent`. It can help you listen to events on your controller from elsewhere in your app, without adding code inside the controller method.
+Each one is published with an instance of [`Sy.Event.ControllerEvent`](../../src/Event/ControllerEvent.js). It can help you listen to events on your controller from elsewhere in your app, without adding code inside the controller method.
 
 **Important**: there's a restriction with `data-sy-action` you can't place one on elements inside a list. This behaviour is intended to prevent creating to many listeners. Instead you should place one listener on the list container and then filter the element click (or something else) inside the controller action.
 
