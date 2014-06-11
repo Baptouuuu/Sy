@@ -13,7 +13,7 @@ mediator.setGenerator(generator);
 mediator.setLogger(logger); // the logger is optional
 ```
 
-The generator is an object creating unique identifiers, here it's used to give a unique id to each subscribers. It must implement `Sy.Lib.Generator.Interface`; by default the framework use `Sy.Lib.Generator.UUID`.
+The generator is an object creating unique identifiers, here it's used to give a unique id to each subscribers. It must implement [`Sy.Lib.Generator.Interface`](../src/Lib/Generator/Interface.js); by default the framework use [`Sy.Lib.Generator.UUID`](../src/Lib/Generator/UUID.js).
 
 ## Subscribe to a channel
 

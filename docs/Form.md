@@ -51,13 +51,13 @@ The data object can be either a POJO (`{}`) or your own custom object (say an en
 
 Here the option object is useful in the case you use the framework validator, in the object you can specify the validation groups used whan calling `form.isValid()`. To specify one, just pass an object like this `{validationGroups: ['group_name']}`.
 
-Once you have called `createFormBuilder`, you have an instance of `Sy.Form.FormBuilderInterface`. At this point, there's only 3 methods you need to care about: `add`, `setName` and `getForm`.
+Once you have called `createFormBuilder`, you have an instance of [`Sy.Form.FormBuilderInterface`](../src/Form/FormBuilderInterface.js). At this point, there's only 3 methods you need to care about: `add`, `setName` and `getForm`.
 
 The `add` method is used to define the name of an input inside the form. Inputs defined will have their values injected in the object defined earlier. This method only takes one argument, the input name.
 
 The `setName` method define the CSS id of the form. You can omit this call in the case you pass the form element whan calling `form.handle()`.
 
-`getForm`, as its name indicates, return the instance of the form wrapper (`Sy.Form.FormInterface`).
+`getForm`, as its name indicates, return the instance of the form wrapper ([`Sy.Form.FormInterface`](../src/Form/FormInterface.js)).
 
 Let's have a full example:
 ```js
@@ -98,7 +98,7 @@ form.getObject().pwd; //=== undefined
 
 Using the form builder is simple, but not really DRY if you want to reuse a form elsewhere in your app. A form type is a class where you define the elements that should be used in the form, validation groups and the path string to the class that should be used to hold the form data.
 
-First when creating a form type, it must implement `Sy.Form.FormTypeInterface`.
+First when creating a form type, it must implement [`Sy.Form.FormTypeInterface`](../src/Form/FormTypeInterface.js).
 
 Example:
 ```js

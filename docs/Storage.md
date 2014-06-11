@@ -98,7 +98,7 @@ repository.findBy({
 
 ## Entity
 
-An entity is a representation of your data. In order to work your entities MUST inherit from the object `Sy.Entity`.
+An entity is a representation of your data. In order to work your entities MUST inherit from the object [`Sy.Entity`](../src/Entity.js).
 
 ### Definition
 
@@ -162,9 +162,9 @@ entity.getRaw();
 
 ## Engine
 
-An engine is an interface between the repository and the actual storage engine api. Sy comes by default with 3 engines: `rest`, `indexeddb` and `localstorage`. Each one implements the `Sy.Storage.EngineInterface` interface.
+An engine is an interface between the repository and the actual storage engine api. Sy comes by default with 3 engines: `rest`, `indexeddb` and `localstorage`. Each one implements the [`Sy.Storage.EngineInterface`](../src/Storage/EngineInterface.js) interface.
 
-You can create your own engine by creating a factory (must implement `Sy.FactoryInterface`) generating it and then registering it by adding an object to the array defined in the configurator under `parameters.storage.engines`:
+You can create your own engine by creating a factory (must implement [`Sy.FactoryInterface`](../src/FactoryInterface.js)) generating it and then registering it by adding an object to the array defined in the configurator under `parameters.storage.engines`:
 ```js
 Sy.kernel.getConfig().get('parameters.storage.engines').push({
   name: 'your engine name',
@@ -172,7 +172,7 @@ Sy.kernel.getConfig().get('parameters.storage.engines').push({
   mapper: 'storemapper::service'
 });
 ```
-The `mapper` defined above must be an object implementing `Sy.Storage.StoreMapperInterface`. It's used to transform entities metadata into store metada. take for example the entity metadata below:
+The `mapper` defined above must be an object implementing [`Sy.Storage.StoreMapperInterface`](../src/Storage/StoreMapperInterface.js). It's used to transform entities metadata into store metada. take for example the entity metadata below:
 ```js
 {
   name: 'BundleName::EntityName',
@@ -216,4 +216,4 @@ Channels name are:
 * `storage::on::pre::remove`
 * `storage::on::post::remove`
 
-Each one of them is stored inside the object `Sy.Storage.Event.LifecycleEvent`. An instance of this object is passed as argument of these channels.
+Each one of them is stored inside the object [`Sy.Storage.Event.LifecycleEvent`](../src/Storage/Event/LifecycleEvent.js). An instance of this object is passed as argument of these channels.

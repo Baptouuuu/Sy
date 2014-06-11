@@ -21,11 +21,11 @@ validator
     .setConstraintFactory(new Sy.Validator.ConstraintFactory());
 ```
 
-`Sy.Validator.Core` is the validator by itself. `Sy.Validator.ExecutionContextFactory` is used to generate a new execution context each time a validation occurs, so we're sure constraint violations don't overlap when validating multiple times.
+[`Sy.Validator.Core`](../src/Validator/Core.js) is the validator by itself. [`Sy.Validator.ExecutionContextFactory`](../src/Validator/ExecutionContextFactory.js) is used to generate a new execution context each time a validation occurs, so we're sure constraint violations don't overlap when validating multiple times.
 
 ## Constraints
 
-A constraint is an assertion that a data must comply with. All constraints are located into `Sy.Validator.Constraint`, each one implements `Sy.Validator.ContraintInterface.`
+A constraint is an assertion that a data must comply with. All constraints are located into [`Sy.Validator.Constraint`](../src/Validator/Constraint/), each one implements [`Sy.Validator.ConstraintInterface`](../src/Validator/ConstraintInterface.js).
 
 Constraints are only representations of assertions, the component use a validator for eah one of them; those are declared alongside the constraint and usually are named like so: `Sy.Validator.Constraint.ConstraintNameValidator`.
 
@@ -149,13 +149,13 @@ You can disable the use of reflection to get the property value by calling `vali
 
 ## Constraint violation
 
-As said earlier, the 2 methods used to validate data always return ans instance of `Sy.Validator.ConstraintViolationList`. This object holds all the violation found during the validation.
+As said earlier, the 2 methods used to validate data always return ans instance of [`Sy.Validator.ConstraintViolationList`](../src/Validator/ConstraintViolationList.js). This object holds all the violation found during the validation.
 
 It expose a set of useful methods for you.
 
 ### `getViolations`
 
-This method return the array of all the violations. Each element of this array is an instance of `Sy.Validator.ConstraintViolation`.
+This method return the array of all the violations. Each element of this array is an instance of [`Sy.Validator.ConstraintViolation`](../src/Validator/ConstraintViolation.js).
 
 ### `forEach`
 
@@ -192,7 +192,7 @@ For example, by calling `violations.toJSON()` may return an array like this:
 
 ### `ConstraintViolation`
 
-As said in the introduction, the constraint violation list holds instances of `Sy.Validator.ConstraintViolation`. This class expose 3 methods to get data about the violation.
+As said in the introduction, the constraint violation list holds instances of [`Sy.Validator.ConstraintViolation`](../src/Validator/ConstraintViolation.js). This class expose 3 methods to get data about the violation.
 
 #### `toString`
 

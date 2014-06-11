@@ -21,7 +21,7 @@ You should keep the config here to a minimal, avoid setting variables directly r
 
 ## In your bundle
 
-It use the same principle as the service container one, at boot time the framework parse your app and will look for an object `Config.Configuration` inside your bundle. If it find one, it will instanciate it and call the method `define` and passing the config object (`Sy.ConfiguratorInterface` instance).
+It use the same principle as the service container one, at boot time the framework parse your app and will look for an object `Config.Configuration` inside your bundle. If it find one, it will instanciate it and call the method `define` and passing the config object ([`Sy.ConfiguratorInterface`](../../src/ConfiguratorInterface.js) instance).
 
 Here's how you define such class:
 ```js

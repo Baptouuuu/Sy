@@ -44,7 +44,7 @@ You can access to your ViewScreen as follows:
 ```js
 var viewscreen = viewport.getViewManager().getViewScreen('your-view-name');
 ```
-The code above will return a `Sy.View.ViewScreen` wrapper for the node.
+The code above will return a [`Sy.View.ViewScreen`](../src/View/ViewScreen.js) wrapper for the node.
 
 To put your ViewScreen in the viewport:
 ```js
@@ -67,7 +67,7 @@ Wrapper.prototype = Object.create(Sy.View.ViewScreen.prototype);
 factory.setViewScreenWrapper('name', Wrapper);
 ```
 
-With this code when the engine will create a wrapper for a viewscreen node, if the defined name on the node matches the one you registered, the factory will instanciate `Wrapper` instead of `Sy.View.ViewScreen`. So you can add your custom methods to a wrapper.
+With this code when the engine will create a wrapper for a viewscreen node, if the defined name on the node matches the one you registered, the factory will instanciate `Wrapper` instead of [`Sy.View.ViewScreen`](../src/View/ViewScreen.js). So you can add your custom methods to a wrapper.
 
 ## Layout
 
@@ -196,7 +196,7 @@ The code and markup above will result in this:
 
 ## Template engine
 
-The rendering of the layers described above is based on the object `Sy.View.TemplateEngine` which is available via the service `sy::core::view::template::engine`. This meschanism is totally agnostic of the previous objects.
+The rendering of the layers described above is based on the object [`Sy.View.TemplateEngine`](../src/View/TemplateEngine.js) which is available via the service `sy::core::view::template::engine`. This meschanism is totally agnostic of the previous objects.
 
 > Its sole purpose is to replace placeholders in the DOM.
 

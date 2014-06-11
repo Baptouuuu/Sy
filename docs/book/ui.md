@@ -39,7 +39,7 @@ This code will inject the viewscreen node inside the viewport (or replace the pr
 * `view::on::pre::display`
 * `view::on::post::display`
 
-Those channels are published, like I'm sure you've understood, before the new viewscreen is injected or replacing the old one and after this operation. There're fired with an instance of `Sy.View.Event.ViewPortEvent` holding the viewscreen wrapper of the one being displayed (you don't have access to the old one).
+Those channels are published, like I'm sure you've understood, before the new viewscreen is injected or replacing the old one and after this operation. There're fired with an instance of [`Sy.View.Event.ViewPortEvent`](../../src/View/Event/ViewPortEvent.js) holding the viewscreen wrapper of the one being displayed (you don't have access to the old one).
 
 ## Viewscreen
 
