@@ -1,110 +1,347 @@
-/*! sy#0.6.0 - 2014-06-08 */
-function namespace(ns) {
-    var namespaces = null, referer = this;
-    if ("string" == typeof ns) namespaces = ns.split("."); else {
-        if (!(ns instanceof Array && ns.length > 0)) return referer;
+/*! sy#0.6.0 - 2014-06-11 */
+/**
+ * Transform a dotted string to a multi level object.
+ * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
+ * If object exists it is not transformed.
+ * You can modify the root object by doing namespace.call(rootObject, nsString).
+ *
+ * @param {string} ns
+ *
+ * @return {object} Last object created
+ */
+
+function namespace (ns) {
+
+    var namespaces = null,
+        referer = this;
+
+    if (typeof ns === 'string') {
+        namespaces = ns.split('.');
+    } else if (ns instanceof Array && ns.length > 0) {
         namespaces = ns;
-    }
-    return referer[namespaces[0]] = referer[namespaces[0]] || {}, ns = namespaces.shift(), 
-    namespace.call(referer[ns], namespaces);
-}
-
-function objectSetter(ns, value) {
-    var namespaces = "", attr = "", referer = this, idx = ns.lastIndexOf(".");
-    idx >= 0 ? (attr = ns.substr(idx + 1), namespaces = ns.substr(0, idx), referer = namespace.call(referer, namespaces)) : attr = ns, 
-    referer[attr] = value;
-}
-
-function objectGetter(ns) {
-    var namespaces = null, referer = this;
-    if ("string" == typeof ns) {
-        if (namespaces = ns.split("."), 1 === namespaces.length) return referer[ns];
     } else {
-        if (!(ns instanceof Array && ns.length > 1)) return ns instanceof Array && 1 === ns.length ? referer[ns[0]] : void 0;
-        namespaces = ns;
+        return referer;
     }
-    return ns = namespaces.shift(), objectGetter.call(referer[ns], namespaces);
+
+    referer[namespaces[0]] = referer[namespaces[0]] || {};
+
+    ns = namespaces.shift();
+
+    return namespace.call(referer[ns], namespaces);
+
 }
 
-function capitalize(string) {
+/**
+ * Set a value into objects, where the chain of object is defined as a dotted string.
+ * The last element of the string represent the attribute.
+ * The root object can be changed by doing objectSetter.call(rootObject, nsString, value).
+ *
+ * @param {string} ns
+ * @param {mixed} value
+ */
+
+function objectSetter (ns, value) {
+
+    var namespaces = '',
+        attr = '',
+        referer = this,
+        idx = ns.lastIndexOf('.');
+
+    if (idx >= 0) {
+
+        attr = ns.substr(idx + 1);
+        namespaces = ns.substr(0, idx);
+
+        referer = namespace.call(referer, namespaces);
+
+    } else {
+
+        attr = ns;
+
+    }
+
+    referer[attr] = value;
+
+}
+
+/**
+ * Retrieve the attribute in objects, where the chain of object is defined as a dotted string.
+ * The last element of the string represent the attribute.
+ * The root object can be changed by doing objectGetter.call(rootObject, nsString).
+ *
+ * @param {string} ns
+ *
+ * @return {mixed}
+ */
+
+function objectGetter (ns) {
+
+    var namespaces = null,
+        referer = this;
+
+    if (typeof ns === 'string') {
+        namespaces = ns.split('.');
+
+        if (namespaces.length === 1) {
+            return referer[ns];
+        }
+
+    } else if (ns instanceof Array && ns.length > 1) {
+        namespaces = ns;
+    } else if (ns instanceof Array && ns.length === 1) {
+        return referer[ns[0]];
+    } else {
+        return undefined;
+    }
+
+    ns = namespaces.shift();
+
+    return objectGetter.call(referer[ns], namespaces);
+
+}
+
+/**
+ * Capitalize the first letter of a string
+ *
+ * @param {String} string
+ *
+ * @return {String}
+ */
+
+function capitalize (string) {
     return string.substr(0, 1).toUpperCase() + string.substr(1);
 }
 
-function reflectedObjectGetter(ns) {
-    var namespaces = null, referer = this;
-    if ("string" == typeof ns) {
-        if (namespaces = ns.split("."), 1 === namespaces.length) return getReflectedValue.call(referer, ns);
-    } else {
-        if (!(ns instanceof Array && ns.length > 1)) return ns instanceof Array && 1 === ns.length ? getReflectedValue.call(referer, ns[0]) : void 0;
+/**
+ * Use reflection to discover nested objects
+ * For an element of the object path (ie: 'foo')
+ * the reflection will look in this exact order:
+ *     .getFoo()
+ *     .get() //and 'foo' will be passed to this method
+ *     .foo
+ *
+ * @param {String} ns
+ *
+ * @return {mixed}
+ */
+
+function reflectedObjectGetter (ns) {
+
+    var namespaces = null,
+        referer = this;
+
+    if (typeof ns === 'string') {
+        namespaces = ns.split('.');
+
+        if (namespaces.length === 1) {
+            return getReflectedValue.call(referer, ns);
+        }
+
+    } else if (ns instanceof Array && ns.length > 1) {
         namespaces = ns;
+    } else if (ns instanceof Array && ns.length === 1) {
+        return getReflectedValue.call(referer, ns[0]);
+    } else {
+        return undefined;
     }
-    return ns = namespaces.shift(), reflectedObjectGetter.call(getReflectedValue.call(referer, ns), namespaces);
+
+    ns = namespaces.shift();
+
+    return reflectedObjectGetter.call(getReflectedValue.call(referer, ns), namespaces);
+
 }
 
-function getReflectedValue(property) {
+function getReflectedValue (property) {
     var referer = new ReflectionObject(this);
-    return referer.hasMethod("get" + capitalize(property)) ? referer.getMethod("get" + capitalize(property)).call() : referer.hasMethod("get") ? referer.getMethod("get").call(property) : referer.hasProperty(property) ? referer.getProperty(property).getValue() : void 0;
-}
 
-namespace("Sy"), Sy.ConfiguratorInterface = function() {
-    this.name = "";
-}, Sy.ConfiguratorInterface.prototype = Object.create(Object.prototype, {
-    set: {
-        value: function() {
-            return this;
-        }
-    },
-    get: {
-        value: function() {
-            return value;
-        }
-    },
-    has: {
-        value: function() {}
-    },
-    setName: {
-        value: function(name) {
-            return this.name = name, this;
-        }
-    },
-    getName: {
-        value: function() {
-            return this.name;
-        }
+    if (referer.hasMethod('get' + capitalize(property))) {
+        return referer.getMethod('get' + capitalize(property)).call();
+    } else if (referer.hasMethod('get')) {
+        return referer.getMethod('get').call(property);
+    } else if (referer.hasProperty(property)) {
+        return referer.getProperty(property).getValue();
+    } else {
+        return undefined;
     }
-}), namespace("Sy"), Sy.Configurator = function() {
-    this.name = "", this.config = {};
-}, Sy.Configurator.prototype = Object.create(Sy.ConfiguratorInterface.prototype, {
+};
+namespace('Sy');
+
+/**
+ * Wrapper to set/retrieve key/value pairs
+ *
+ * @package Sy
+ * @interface
+ */
+
+Sy.ConfiguratorInterface = function () {};
+
+Sy.ConfiguratorInterface.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set a new key/value pair
+     *
+     * @param {string} key
+     * @param {mixed} value
+     *
+     * @return {Sy.ConfiguratorInterface}
+     */
+
     set: {
-        value: function(key, value) {
-            return key instanceof Object && void 0 === value ? this.config = _.extend(this.config, key) : objectSetter.call(this.config, key, value), 
-            this;
-        }
+        value: function (key, value) {}
     },
+
+    /**
+     * Return a previously set value through its key
+     *
+     * @param {string} key
+     *
+     * @return {mixed}
+     */
+
     get: {
-        value: function(key) {
-            var value;
-            return void 0 === key ? value = this.config : this.has(key) && (value = objectGetter.call(this.config, key)), 
-            value;
-        }
+        value: function (key) {}
     },
+
+    /**
+     * Check if a key is set in the configuration
+     *
+     * @param {string} key
+     *
+     * @return {boolean}
+     */
+
     has: {
-        value: function(key) {
-            try {
-                return objectGetter.call(this.config, key), !0;
-            } catch (error) {
-                if (error instanceof ReferenceError) return !1;
+        value: function (key) {}
+    },
+
+    /**
+     * Set a name for configuration object
+     *
+     * @param {string} name
+     *
+     * @return {Sy.ConfiguratorInterface}
+     */
+
+    setName: {
+        value: function (name) {}
+    },
+
+    /**
+     * Return the configuration name
+     *
+     * @return {string}
+     */
+
+    getName: {
+        value: function () {}
+    }
+
+});
+namespace('Sy');
+
+/**
+ * Wrapper to set/retrieve key/value pairs
+ *
+ * @package Sy
+ * @class
+ * @implements {Sy.ConfiguratorInterface}
+ */
+
+Sy.Configurator = function () {
+
+    this.name = '';
+    this.config = {};
+
+};
+
+Sy.Configurator.prototype = Object.create(Sy.ConfiguratorInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
+
+    set: {
+        value: function (key, value) {
+
+            if (key instanceof Object && value === undefined) {
+                this.config = _.extend(this.config, key);
+            } else {
+                objectSetter.call(this.config, key, value);
             }
+
+            return this;
+
         }
     },
+
+    /**
+     * @inheritDoc
+     */
+
+    get: {
+        value: function (key) {
+
+            var value;
+
+            if (key === undefined) {
+                value = this.config;
+            } else if (this.has(key)) {
+                value = objectGetter.call(this.config, key);
+            }
+
+            return value;
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    has: {
+        value: function (key) {
+
+            try {
+
+                objectGetter.call(this.config, key);
+
+                return true;
+
+            } catch (error) {
+
+                if (error instanceof ReferenceError) {
+                    return false;
+                }
+
+            }
+
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
     setName: {
-        value: function(name) {
-            return this.name = name, this;
+        value: function (name) {
+
+            this.name = name;
+
+            return this;
+
         }
     },
+
+    /**
+     * @inheritDoc
+     */
+
     getName: {
-        value: function() {
+        value: function () {
+
             return this.name;
+
         }
     }
+
 });
