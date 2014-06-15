@@ -7,10 +7,7 @@ namespace('Sy');
  * @interface
  */
 
-Sy.ServiceContainerInterface = function () {
-
-};
-
+Sy.ServiceContainerInterface = function () {};
 Sy.ServiceContainerInterface.prototype = Object.create(Object.prototype, {
 
     /**
@@ -22,9 +19,7 @@ Sy.ServiceContainerInterface.prototype = Object.create(Object.prototype, {
      */
 
     setParameters: {
-        value: function (params) {
-            return this;
-        }
+        value: function (params) {}
     },
 
     /**
@@ -48,11 +43,7 @@ Sy.ServiceContainerInterface.prototype = Object.create(Object.prototype, {
      */
 
     setName: {
-        value: function (name) {
-
-            return this;
-
-        }
+        value: function (name) {}
     },
 
     /**
@@ -76,11 +67,7 @@ Sy.ServiceContainerInterface.prototype = Object.create(Object.prototype, {
      */
 
     set: {
-        value: function (name, constructor, tags) {
-
-            return this;
-
-        }
+        value: function (name, constructor, tags) {}
     },
 
     /**
