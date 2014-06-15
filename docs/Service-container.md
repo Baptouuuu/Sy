@@ -65,18 +65,6 @@ The other advantage is that it won't load a whole service if it's never used in 
 To ease the process of injecting other services, the `this` variable of the service constructor is set to the service container instance. So you can do something like `this.get('otherService')` in the constructor.
 You also have access to the parameter object through the method `getParameter` taking your variable path string as argument.
 
-A 3rd argument is possible to the `set` method, it accept an array. This one will be used as a list of arguments to the service constructor function.
-
-Example:
-```js
-myContainer.set('app:serviceName', function (defaultAnswer) {
-  var service = new App.GreatQuestion();
-  service.setAnswer(defaultAnswer);
-  return service;
-}, [42]);
-```
-This possibility can be useful to dynamically generate services (ie: from a config object) and using variables without creating closures.
-
 **Restrictions**:
 
 * the container will prevent you from overriding an existing service if you try to reuse a service name
@@ -90,4 +78,59 @@ Those restrictions are shared by the two ways of defining services.
 Example:
 ```js
 var service = myContainer.get('app::serviceName');
+```
+
+## Tags
+
+Sometimes you'll want to flag certain types of services (ie: all event subscribers). For that purpose, the service container has a notion of tags. It's simply an array of objects that is attached to a service, each object must have a name to identify them (multiple objects can have the same name).
+
+### By definition
+
+```js
+container.set({
+  'foo': {
+    constructor: 'Class.Path',
+    tags: [
+      {name: 'event_subscriber', event: 'foo'},
+      {name: 'event_subscriber', event: 'bar'}
+    ]
+  }
+});
+```
+
+### By creator
+
+```js
+container.set(
+  'foo',
+  function () {
+    return new Class.Path();
+  },
+  [
+    {name: 'event_subscriber', event: 'foo'},
+    {name: 'event_subscriber', event: 'bar'}
+  ]
+);
+```
+
+### Filtering
+
+You can retrieve a list of the services defined with one of the tags name set to a wished value, like so:
+```js
+var serviceNames = container.filter('event_subscriber');
+```
+With the services defined above, `serviceNames` would look like this `['foo']`.
+
+### Service tags
+
+You can also retrieve all the tags attached to a service.
+```js
+var tags = container.getTags('foo');
+```
+With the services defined above, `tags` would look like this:
+```js
+[
+  {name: 'event_subscriber', event: 'foo'},
+  {name: 'event_subscriber', event: 'bar'}
+]
 ```
