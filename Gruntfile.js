@@ -182,6 +182,7 @@ module.exports = function (grunt) {
             'src/Controller.js',
             'src/EntityInterface.js',
             'src/Entity.js',
+            'src/EventSubscriberInterface.js'
         ],
         unique = function (el, idx, array) {
             if (array.indexOf(el) !== idx && array.indexOf(el) < idx) {
