@@ -74,7 +74,8 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                 .registerControllers(parser.getControllers())
                 .configureLogger()
                 .registerShutdownListener()
-                .registerFormTypes();
+                .registerFormTypes()
+                .registerEventSubscribers();
 
         }
     },
@@ -201,6 +202,47 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                         .registerFormType(
                             this.container.get(name)
                         );
+                }, this);
+
+            return this;
+        }
+    },
+
+    /**
+     * Retrieve services tagged as event subscriber and register them
+     * in the mediator
+     *
+     * @return {Sy.Kernel.Core} self
+     */
+
+    registerEventSubscribers: {
+        value: function () {
+            this.container
+                .filter('event.subscriber')
+                .forEach(function (name) {
+                    var subscriber = this.container.get(name),
+                        events;
+
+                    if (!(subscriber instanceof Sy.EventSubscriberInterface)) {
+                        throw new TypeError('Invalid event subscriber');
+                    }
+
+                    events = subscriber.getSubscribedEvents();
+
+                    for (var evt in events) {
+                        if (events.hasOwnProperty(evt)) {
+                            this.container
+                                .get('sy::core::mediator')
+                                .subscribe({
+                                    channel: evt,
+                                    fn: subscriber[events[evt].method],
+                                    context: subscriber,
+                                    priority: subscriber[events[evt].priority],
+                                    async: subscriber[events[evt].async]
+                                });
+                        }
+                    }
+
                 }, this);
 
             return this;

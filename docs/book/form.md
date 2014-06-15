@@ -1,6 +1,6 @@
 # Form
 
-[< Previous chapter (Validation)](validation.md)
+[< Previous chapter (Validation)](validation.md) | [Next chapter (Event subscribers) >](event-subscribers.md)
 
 Please refer to the component [documentation](../Form.md) for full understanding.
 

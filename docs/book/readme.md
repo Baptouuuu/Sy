@@ -10,3 +10,4 @@ This book will guide you through the different framework's components and how th
 * [Configuration](config.md)
 * [Validation](validation.md)
 * [Form](form.md)
+* [Event subscribers](event-subscribers.md)
