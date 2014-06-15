@@ -65,18 +65,6 @@ The other advantage is that it won't load a whole service if it's never used in 
 To ease the process of injecting other services, the `this` variable of the service constructor is set to the service container instance. So you can do something like `this.get('otherService')` in the constructor.
 You also have access to the parameter object through the method `getParameter` taking your variable path string as argument.
 
-A 3rd argument is possible to the `set` method, it accept an array. This one will be used as a list of arguments to the service constructor function.
-
-Example:
-```js
-myContainer.set('app:serviceName', function (defaultAnswer) {
-  var service = new App.GreatQuestion();
-  service.setAnswer(defaultAnswer);
-  return service;
-}, [42]);
-```
-This possibility can be useful to dynamically generate services (ie: from a config object) and using variables without creating closures.
-
 **Restrictions**:
 
 * the container will prevent you from overriding an existing service if you try to reuse a service name
