@@ -79,3 +79,58 @@ Example:
 ```js
 var service = myContainer.get('app::serviceName');
 ```
+
+## Tags
+
+Sometimes you'll want to flag certain types of services (ie: all event subscribers). For that purpose, the service container has a notion of tags. It's simply an array of objects that is attached to a service, each object must have a name to identify them (multiple objects can have the same name).
+
+### By definition
+
+```js
+container.set({
+  'foo': {
+    constructor: 'Class.Path',
+    tags: [
+      {name: 'event_subscriber', event: 'foo'},
+      {name: 'event_subscriber', event: 'bar'}
+    ]
+  }
+});
+```
+
+### By creator
+
+```js
+container.set(
+  'foo',
+  function () {
+    return new Class.Path();
+  },
+  [
+    {name: 'event_subscriber', event: 'foo'},
+    {name: 'event_subscriber', event: 'bar'}
+  ]
+);
+```
+
+### Filtering
+
+You can retrieve a list of the services defined with one of the tags name set to a wished value, like so:
+```js
+var serviceNames = container.filter('event_subscriber');
+```
+With the services defined above, `serviceNames` would look like this `['foo']`.
+
+### Service tags
+
+You can also retrieve all the tags attached to a service.
+```js
+var tags = container.getTags('foo');
+```
+With the services defined above, `tags` would look like this:
+```js
+[
+  {name: 'event_subscriber', event: 'foo'},
+  {name: 'event_subscriber', event: 'bar'}
+]
+```
