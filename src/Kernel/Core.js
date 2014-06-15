@@ -73,7 +73,8 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
             this
                 .registerControllers(parser.getControllers())
                 .configureLogger()
-                .registerShutdownListener();
+                .registerShutdownListener()
+                .registerFormTypes();
 
         }
     },
@@ -179,6 +180,28 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                     return error.message;
                 }
             }.bind(this), false);
+
+            return this;
+        }
+    },
+
+    /**
+     * Retrieve services tagged as form type and register them in the form builder
+     *
+     * @return {Sy.Kernel.Core} self
+     */
+
+    registerFormTypes: {
+        value: function () {
+            this.container
+                .filter('form.type')
+                .forEach(function (name) {
+                    this.container
+                        .get('sy::core::form')
+                        .registerFormType(
+                            this.container.get(name)
+                        );
+                }, this);
 
             return this;
         }
