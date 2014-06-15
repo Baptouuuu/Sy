@@ -17,11 +17,11 @@ Sy.ServiceContainer = function (name) {
     this.definitions = {};
     this.proxy = new Sy.ParamProxy();
     this.proxy.setServiceContainer(this);
+    this.tags = [];
 
     this.setName(name);
 
 };
-
 Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.prototype, {
 
     PATTERN: {
@@ -154,12 +154,12 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
 
     set: {
 
-        value: function (serviceName, creator) {
+        value: function (serviceName, creator, tags) {
 
             if (serviceName instanceof Object) {
                 this.setPrototypes(serviceName);
             } else {
-                this.setCreator(serviceName, creator);
+                this.setCreator(serviceName, creator, tags);
             }
 
             return this;
@@ -174,10 +174,11 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
      * @private
      * @param {string} serviceName
      * @param {funtcion} creator
+     * @param {Array} tags
      */
 
     setCreator: {
-        value: function (serviceName, creator) {
+        value: function (serviceName, creator, tags) {
 
             var regex = new RegExp(this.PATTERN, 'gi');
 
@@ -185,8 +186,12 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
                 throw new SyntaxError('Service name "' + serviceName + '" does not follow pattern convention');
             }
 
-            if (typeof creator !== 'function'){
+            if (typeof creator !== 'function') {
                 throw new TypeError('Invalid creator type');
+            }
+
+            if (tags && !(tags instanceof Array)) {
+                throw new TypeError('Invalid tag array');
             }
 
             if (this.has(serviceName)) {
@@ -197,6 +202,13 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
                 fn: creator,
                 type: 'creator'
             };
+
+            if (tags) {
+                this.tags.push({
+                    service: serviceName,
+                    tags: tags || []
+                });
+            }
 
         }
     },
@@ -212,22 +224,33 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
         value: function (definitions) {
 
             for (var name in definitions) {
-                    if (definitions.hasOwnProperty(name)) {
+                if (definitions.hasOwnProperty(name)) {
 
-                        var regex = new RegExp(this.PATTERN, 'gi');
+                    var regex = new RegExp(this.PATTERN, 'gi');
 
-                        if (!regex.test(name)) {
-                            throw new SyntaxError('Service name "' + name + '" does not follow pattern convention');
-                        }
+                    if (!regex.test(name)) {
+                        throw new SyntaxError('Service name "' + name + '" does not follow pattern convention');
+                    }
 
-                        if (this.has(name)) {
-                            throw new TypeError('Service name "' + name + '" already used');
-                        }
+                    if (definitions[name].tags && !(definitions[name].tags instanceof Array)) {
+                        throw new TypeError('Invalid tag array');
+                    }
 
-                        this.definitions[name] = definitions[name];
-                        this.definitions[name].type = 'prototype';
+                    if (this.has(name)) {
+                        throw new TypeError('Service name "' + name + '" already used');
+                    }
+
+                    this.definitions[name] = definitions[name];
+                    this.definitions[name].type = 'prototype';
+
+                    if (definitions[name].tags) {
+                        this.tags.push({
+                            service: name,
+                            tags: definitions[name].tags
+                        });
                     }
                 }
+            }
 
         }
     },
@@ -273,6 +296,38 @@ Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.proto
 
             return this;
 
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    filter: {
+        value: function (tag) {
+            var reduced = this.tags.filter(function (el) {
+                for (var i = 0, l = el.tags.length; i < l; i++) {
+                    if (el.tags[i].name === tag) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }, this);
+
+            return reduced.map(function (el) {
+                return el.service;
+            });
+        }
+    },
+
+    getTags: {
+        value: function (service) {
+            var reduced = this.tags.filter(function (el) {
+                return el.service === service;
+            }, this);
+
+            return reduced.length === 1 ? reduced[0].tags : [];
         }
     }
 

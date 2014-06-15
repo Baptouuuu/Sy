@@ -8,7 +8,11 @@
 
 describe('service container', function () {
 
-    var container = new Sy.ServiceContainer('test');
+    var container;
+
+    beforeEach(function () {
+        container = new Sy.ServiceContainer('test');
+    });
 
     it('should return name', function () {
 
@@ -208,6 +212,53 @@ describe('service container', function () {
 
         expect(container.getParameter('foo.bar')).toEqual(42);
 
+    });
+
+    it('should throw if trying to set a service with invalid tags array', function () {
+        expect(function () {
+            container.set('foo', function () {}, {});
+        }).toThrow('Invalid tag array');
+        expect(function () {
+            container.set({
+                'foo': {
+                    constructor: 'foo',
+                    tags: {}
+                }
+            });
+        }).toThrow('Invalid tag array');
+    });
+
+    it('should set service with tags by creator', function () {
+        container.set('foo', function () {return {};}, [{name: 'foo'}]);
+        container.set('bar', function () {return {};}, [{name: 'bar'}]);
+
+        expect(container.getTags('foo')).toEqual([{name: 'foo'}]);
+    });
+
+    it('should set service with tags by definition', function () {
+        container.set({
+            'foo': {
+                constructor: 'A',
+                tags: [
+                    {name: 'foo'}
+                ]
+            },
+            'bar': {
+                constructor: 'A',
+                tags: [
+                    {name: 'bar'}
+                ]
+            }
+        });
+
+        expect(container.getTags('foo')).toEqual([{name: 'foo'}]);
+    });
+
+    it('should return the list of services having the specified tag name', function () {
+        container.set('foo', function () {}, [{name: 'foo'}]);
+        container.set('bar', function () {}, [{name: 'bar'}]);
+
+        expect(container.filter('foo')).toEqual(['foo']);
     });
 
 });
