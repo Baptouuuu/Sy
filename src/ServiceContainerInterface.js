@@ -70,12 +70,13 @@ Sy.ServiceContainerInterface.prototype = Object.create(Object.prototype, {
      *
      * @param {string} name Name of the service (must follow the pattern: "/(\w+::)|(\w+)/i")
      * @param {function} constructor Function that must return the object that will act as a service
+     * @param {Array} tags List of objects defining tags
      *
      * @return {Sy.ServiceContainerInterface}
      */
 
     set: {
-        value: function (name, constructor) {
+        value: function (name, constructor, tags) {
 
             return this;
 
@@ -104,6 +105,30 @@ Sy.ServiceContainerInterface.prototype = Object.create(Object.prototype, {
 
     has: {
         value: function (name) {}
+    },
+
+    /**
+     * Return the list of services that match a tag name
+     *
+     * @param {String} tag Tag name
+     *
+     * @return {Array}
+     */
+
+    filter: {
+        value: function (tag) {}
+    },
+
+    /**
+     * Return the array of tags defined for a service
+     *
+     * @param {String} service Service name
+     *
+     * @return {Array}
+     */
+
+    getTags: {
+        value: function (service) {}
     }
 
 });
