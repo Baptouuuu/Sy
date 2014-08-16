@@ -205,7 +205,7 @@ Sy.ServiceContainer.Definition.prototype = Object.create(Object.prototype, {
      */
 
     addCall: {
-        value: function(method, args) {
+        value: function (method, args) {
             this.calls.push([method, args]);
 
             return this;
