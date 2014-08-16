@@ -233,6 +233,8 @@ Sy.ServiceContainer.Definition.prototype = Object.create(Object.prototype, {
     setPrivate: {
         value: function () {
             this.public = false;
+
+            return this;
         }
     },
 
