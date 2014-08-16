@@ -1,4 +1,4 @@
-namespace('St.ServiceContainer');
+namespace('Sy.ServiceContainer');
 
 /**
  * Alias to another service
