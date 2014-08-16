@@ -1,7 +1,7 @@
 /**
  * @venus-library jasmine
  * @venus-include ../src/functions.js
- * @venus-include ../vendor/reflection.js/reflection.js
+ * @venus-include ../vendor/Reflection.js/reflection.js
  * @venus-code ../src/PropertyAccessor.js
  */
 
