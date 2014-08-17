@@ -306,13 +306,13 @@ The example above at compilation time look for every service tagged with `storag
 
 This would allow to easily create a storage engine and share it with the rest of the world, and people could easily add their own adapters.
 
-The `addPass` method allow a second parameter named `type`. The passes are devided into 5 groups, you can see them as constants of the `[CompilerPassInterface](../src/ServiceContainer/CompilerPassInterface.js)` interface.
+The `addPass` method allow a second parameter named `type`. The passes are devided into 5 groups, you can see them as constants of the [`CompilerPassInterface`](../src/ServiceContainer/CompilerPassInterface.js) interface.
 
-* `[BEFORE_OPTIMIZATION](../src/ServiceContainer/CompilerPassInterface.js#L17)`, the default if no type specified when calling `addPass`
-* `[OPTIMIZE](../src/ServiceContainer/CompilerPassInterface.js#L22)`
-* `[BEFORE_REMOVING](../src/ServiceContainer/CompilerPassInterface.js#L27)`
-* `[REMOVE](../src/ServiceContainer/CompilerPassInterface.js#L32)`
-* `[AFTER_REMOVING](../src/ServiceContainer/CompilerPassInterface.js#L37)`
+* [`BEFORE_OPTIMIZATION`](../src/ServiceContainer/CompilerPassInterface.js#L17), the default if no type specified when calling `addPass`
+* [`OPTIMIZE`](../src/ServiceContainer/CompilerPassInterface.js#L22)
+* [`BEFORE_REMOVING`](../src/ServiceContainer/CompilerPassInterface.js#L27)
+* [`REMOVE`](../src/ServiceContainer/CompilerPassInterface.js#L32)
+* [`AFTER_REMOVING`](../src/ServiceContainer/CompilerPassInterface.js#L37)
 
 Internally the component use the second and fourth ones. When optimizing, it replace parameters and services placeholders and apply the parent definitions to the childs. And then remove the abstract definitions and replace alias definitions by the real service definition behind it.
 
