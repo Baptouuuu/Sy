@@ -77,6 +77,8 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                 .registerFormTypes()
                 .registerEventSubscribers();
 
+            this.container.compile();
+
         }
     },
 
