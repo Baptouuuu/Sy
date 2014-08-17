@@ -19,6 +19,7 @@ Sy.ServiceContainer.Definition = function () {
     this.tags = [];
     this.abstract = false;
     this.parent = null;
+    this.proto = false;
 };
 
 Sy.ServiceContainer.Definition.prototype = Object.create(Object.prototype, {
@@ -363,6 +364,33 @@ Sy.ServiceContainer.Definition.prototype = Object.create(Object.prototype, {
     getParent: {
         value: function () {
             return this.parent;
+        }
+    },
+
+    /**
+     * Set the service as prototype, meaning a new one
+     * is built each time the service is accessed
+     *
+     * @return {Sy.ServiceContainer.Definition} self
+     */
+
+    setPrototype: {
+        value: function () {
+            this.proto = true;
+
+            return this;
+        }
+    },
+
+    /**
+     * Check if the service is a prototype
+     *
+     * @return {Boolean}
+     */
+
+    isPrototype: {
+        value: function () {
+            return this.proto;
         }
     }
 

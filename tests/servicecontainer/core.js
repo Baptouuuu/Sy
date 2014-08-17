@@ -84,6 +84,7 @@ describe('service container', function () {
                 ],
                 private: null,
                 abstract: null,
+                prototype: null,
                 parent: 'parentService',
                 tags: [
                     {name: 'tag', some: 'value'}
@@ -105,6 +106,7 @@ describe('service container', function () {
         expect(def.getCalls()).toEqual([['setA', ['A']]]);
         expect(def.isPublic()).toBe(false);
         expect(def.isAbstract()).toBe(true);
+        expect(def.isPrototype()).toBe(true);
         expect(def.getParent().toString()).toEqual('parentService');
         expect(def.getTags()).toEqual([['tag', {name: 'tag', some: 'value'}]]);
     });

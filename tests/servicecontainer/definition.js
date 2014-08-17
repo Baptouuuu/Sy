@@ -139,4 +139,10 @@ describe('service container definition', function () {
         }).toThrow('Invalid reference');
     });
 
+    it('should set the service as prototype', function () {
+        expect(d.isPrototype()).toBe(false);
+        expect(d.setPrototype()).toEqual(d);
+        expect(d.isPrototype()).toBe(true);
+    });
+
 });

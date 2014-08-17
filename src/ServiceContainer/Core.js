@@ -79,6 +79,10 @@ Sy.ServiceContainer.Core.prototype = Object.create(Object.prototype, {
                             service.setAbstract();
                         }
 
+                        if (def.hasOwnProperty('prototype')) {
+                            service.setPrototype();
+                        }
+
                         if (def.hasOwnProperty('parent')) {
                             service.setParent(new Sy.ServiceContainer.Reference(def.parent));
                         }
