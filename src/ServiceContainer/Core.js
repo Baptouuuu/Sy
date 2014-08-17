@@ -207,6 +207,22 @@ Sy.ServiceContainer.Core.prototype = Object.create(Object.prototype, {
     },
 
     /**
+     * Remove a service definition
+     *
+     * @param {String} id
+     *
+     * @return {Sy.ServiceContainer.Core} self
+     */
+
+    remove: {
+        value: function (id) {
+            delete this.services[id];
+
+            return this;
+        }
+    },
+
+    /**
      * Return all the services ids
      *
      * @return {Array}
@@ -313,6 +329,47 @@ Sy.ServiceContainer.Core.prototype = Object.create(Object.prototype, {
             }
 
             return this.services[id];
+        }
+    },
+
+    /**
+     * Set a service definition
+     *
+     * @param {String} id
+     * @param {Sy.ServiceContainer.Definition} definition
+     *
+     * @return {Sy.ServiceContainer.Core} self
+     */
+
+    setDefinition: {
+        value: function (id, definition) {
+            if (!(definition instanceof Sy.ServiceContainer.Definition)) {
+                throw new TypeError('Invalid definition');
+            }
+
+            this.services[id] = definition;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the compiler
+     *
+     * @param {Sy.ServiceContainer.Compiler} compiler
+     *
+     * @return {Sy.ServiceContainer.Core} self
+     */
+
+    setCompiler: {
+        value: function (compiler) {
+            if (!(compiler instanceof Sy.ServiceContainer.Compiler)) {
+                throw new TypeError('Invalid compiler');
+            }
+
+            this.compiler = compiler;
+
+            return this;
         }
     },
 

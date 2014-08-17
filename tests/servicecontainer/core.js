@@ -335,4 +335,28 @@ describe('service container', function () {
         expect(bar[0][1]).toEqual([['bar', {name: 'bar', foo: 'bar'}]]);
     });
 
+    it('shoud remove a service definition', function () {
+        sc.set({
+            'foo': {}
+        });
+
+        expect(sc.has('foo')).toBe(true);
+        expect(sc.remove('foo')).toEqual(sc);
+        expect(sc.has('foo')).toBe(false);
+        expect(sc.isInitialized('foo')).toBe(false);
+    });
+
+    it('should set a definition', function () {
+        expect(sc.has('foo')).toBe(false);
+        expect(sc.setDefinition('foo', new Sy.ServiceContainer.Definition())).toEqual(sc);
+        expect(sc.has('foo')).toBe(true);
+        expect(sc.isInitialized('foo')).toBe(false);
+    });
+
+    it('should throw is setting non Definition object', function () {
+        expect(function () {
+            sc.setDefinition('foo', {});
+        }).toThrow('Invalid definition');
+    });
+
 });
