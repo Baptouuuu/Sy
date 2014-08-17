@@ -34,7 +34,7 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
      * @return {Sy.ServiceContainer}
      */
 
-    getServiceContainer: {
+    getContainer: {
         value: function () {
             return this.container;
         }

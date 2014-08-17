@@ -16,7 +16,7 @@
     try {
         Sy.kernel.boot();
 
-        Sy.kernel.getServiceContainer()
+        Sy.kernel.getContainer()
             .get('listener::repo::task')
             .boot();
     } catch (e) {

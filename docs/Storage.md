@@ -16,7 +16,7 @@ This is the main object to access the whole mechanism; it holds your managers. I
 ### Usage
 
 ```js
-var storage = Sy.kernel.getServiceContainer().get('sy::core::storage');
+var storage = Sy.kernel.getContainer().get('sy::core::storage');
 storage.getManager('myManagerName');
 ```
 **Note**: If no manager name specified it will look for a default one named `main`.

@@ -231,7 +231,7 @@ The `stores` is an array of definition that will be handled by this engine. It c
 
 Now that all the classes has been defined, let's register all this in the framework. First you need to define your factory and store mapper as services:
 ```js
-Sy.kernel.getServiceContainer()
+Sy.kernel.getContainer()
     .set({
         'factory::service::name': {
             constructor: 'Wherever.You.Want.MyFactory'

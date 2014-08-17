@@ -34,7 +34,7 @@ Sy.kernel.getConfig().set({
     }
 });
 
-Sy.kernel.getServiceContainer()
+Sy.kernel.getContainer()
     .setParameters(Sy.kernel.getConfig().get('parameters'))
     .set({
         'sy::core::generator::uuid': {
