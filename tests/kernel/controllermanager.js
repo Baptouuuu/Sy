@@ -8,8 +8,7 @@
  * @venus-include ../../src/Controller.js
  * @venus-include ../../src/Lib/Mediator.js
  * @venus-include ../../src/ParamProxy.js
- * @venus-include ../../src/ServiceContainerInterface.js
- * @venus-include ../../src/ServiceContainer.js
+ * @venus-include ../../src/ServiceContainer/Core.js
  * @venus-include ../../src/View/NodeWrapper.js
  * @venus-include ../../src/View/ViewScreen.js
  * @venus-include ../../src/View/Event/ViewPortEvent.js
@@ -111,7 +110,7 @@ describe('kernel controller manager', function () {
     });
 
     it('should set the service container', function () {
-        expect(manager.setServiceContainer(new Sy.ServiceContainer())).toEqual(manager);
+        expect(manager.setServiceContainer(new Sy.ServiceContainer.Core())).toEqual(manager);
     });
 
     it('should set the whether or not to cache controllers', function () {

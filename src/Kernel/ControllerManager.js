@@ -112,7 +112,7 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
     /**
      * Set the service container that will be injected in each controller
      *
-     * @param {Sy.ServiceContainerInterface} container
+     * @param {Sy.ServiceContainer.Core} container
      *
      * @return {Sy.Kernel.ControllerManager}
      */
@@ -120,7 +120,7 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
     setServiceContainer: {
         value: function (container) {
 
-            if (!(container instanceof Sy.ServiceContainerInterface)) {
+            if (!(container instanceof Sy.ServiceContainer.Core)) {
                 throw new TypeError('Invalid service container');
             }
 

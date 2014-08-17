@@ -11,7 +11,7 @@
  * @venus-include ../../src/Controller.js
  * @venus-include ../../src/RegistryInterface.js
  * @venus-include ../../src/Registry.js
- * @venus-include ../../src/ServiceContainerInterface.js
+ * @venus-include ../../src/ServiceContainer/Core.js
  * @venus-include ../../src/Event/ControllerEvent.js
  * @venus-code ../../src/Kernel/ActionDispatcher.js
  */
@@ -72,7 +72,7 @@ describe('action dispatcher', function () {
     controllerManager
         .setMetaRegistry(new Sy.Registry())
         .setLoadedControllersRegistry(new Sy.Registry())
-        .setServiceContainer(new Sy.ServiceContainerInterface())
+        .setServiceContainer(new Sy.ServiceContainer.Core())
         .setMediator(new Sy.Lib.Mediator())
         .registerController('foo::bar', mockController);
 
