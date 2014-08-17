@@ -277,4 +277,29 @@ describe('service container', function () {
         expect(s.dep).toEqual('bar');
     });
 
+    it('should set a service as initialized once built', function () {
+        sc.set({
+            service: {
+                constructor: 'Foo'
+            }
+        });
+
+        expect(sc.isInitialized('service')).toBe(false);
+        sc.get('service');
+        expect(sc.isInitialized('service')).toBe(true);
+    });
+
+    it('should not set a service as initialized once built if it is a prototype', function () {
+        sc.set({
+            service: {
+                constructor: 'Foo',
+                prototype: null
+            }
+        });
+
+        expect(sc.isInitialized('service')).toBe(false);
+        sc.get('service');
+        expect(sc.isInitialized('service')).toBe(false);
+    });
+
 });
