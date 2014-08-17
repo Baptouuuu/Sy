@@ -1,6 +1,7 @@
 /**
  * @venus-library jasmine
  * @venus-include ../../src/functions.js
+ * @venus-include ../../src/PropertyAccessor.js
  * @venus-include ../../src/View/NodeWrapper.js
  * @venus-include ../../src/View/ViewPort.js
  * @venus-include ../../src/View/ViewScreen.js
