@@ -376,15 +376,17 @@ Sy.ServiceContainer.Core.prototype = Object.create(Object.prototype, {
     /**
      * Add a compiler pass
      *
-     * @param {String} event
      * @param {Sy.ServiceContainer.CompilerPassInterface} pass
+     * @param {String} type
      *
      * @return {Sy.ServiceContainer.Core} self
      */
 
     addPass: {
-        value: function (event, pass) {
+        value: function (pass, type) {
+            this.compiler.addPass(pass, type);
 
+            return this;
         }
     },
 
@@ -394,7 +396,10 @@ Sy.ServiceContainer.Core.prototype = Object.create(Object.prototype, {
 
     compile: {
         value: function () {
+            this.compiler.compile(this);
 
+            Object.freeze(this.services);
+            this.compiled = true;
         }
     },
 
