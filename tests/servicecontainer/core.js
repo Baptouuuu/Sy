@@ -322,17 +322,17 @@ describe('service container', function () {
             bar = sc.findTaggedServiceIds('bar');
 
         expect(foo.length).toEqual(1);
-        expect(foo[0][0]).toEqual('a');
-        expect(foo[0][1]).toEqual([['foo', {name: 'foo', data: ['foo']}]]);
+        expect(foo[0].id).toEqual('a');
+        expect(foo[0].tags).toEqual([['foo', {name: 'foo', data: ['foo']}]]);
 
         expect(bar.length).toEqual(2);
-        expect(bar[1][0]).toEqual('b');
-        expect(bar[1][1]).toEqual([
+        expect(bar[1].id).toEqual('b');
+        expect(bar[1].tags).toEqual([
             ['bar', {name: 'bar', data: ['bar']}],
             ['bar', {name: 'bar', foo: 'foobar'}]
         ]);
-        expect(bar[0][0]).toEqual('a');
-        expect(bar[0][1]).toEqual([['bar', {name: 'bar', foo: 'bar'}]]);
+        expect(bar[0].id).toEqual('a');
+        expect(bar[0].tags).toEqual([['bar', {name: 'bar', foo: 'bar'}]]);
     });
 
     it('shoud remove a service definition', function () {

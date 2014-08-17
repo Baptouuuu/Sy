@@ -420,7 +420,7 @@ Sy.ServiceContainer.Core.prototype = Object.create(Object.prototype, {
                 var filtered = this.services[id].getTag(tag);
 
                 if (filtered.length > 0) {
-                    matched.push([id, filtered]);
+                    matched.push({id: id, tags: filtered});
                 }
             }, this);
 

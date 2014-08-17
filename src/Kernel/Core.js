@@ -10,7 +10,7 @@ namespace('Sy.Kernel');
 
 Sy.Kernel.Core = function () {
     this.config = new Sy.Configurator();
-    this.container = new Sy.ServiceContainer('sy::core');
+    this.container = new Sy.ServiceContainer.Core();
     this.controllerManager = new Sy.Kernel.ControllerManager();
     this.actionDispatcher = new Sy.Kernel.ActionDispatcher();
 };
@@ -195,12 +195,12 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
     registerFormTypes: {
         value: function () {
             this.container
-                .filter('form.type')
-                .forEach(function (name) {
+                .findTaggedServiceIds('form.type')
+                .forEach(function (el) {
                     this.container
                         .get('sy::core::form')
                         .registerFormType(
-                            this.container.get(name)
+                            this.container.get(el.id)
                         );
                 }, this);
 
@@ -218,9 +218,9 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
     registerEventSubscribers: {
         value: function () {
             this.container
-                .filter('event.subscriber')
-                .forEach(function (name) {
-                    var subscriber = this.container.get(name),
+                .findTaggedServiceIds('event.subscriber')
+                .forEach(function (el) {
+                    var subscriber = this.container.get(el.id),
                         events;
 
                     if (!(subscriber instanceof Sy.EventSubscriberInterface)) {
