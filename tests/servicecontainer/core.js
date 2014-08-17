@@ -302,4 +302,37 @@ describe('service container', function () {
         expect(sc.isInitialized('service')).toBe(false);
     });
 
+    it('should return the list of services having the specified tag', function () {
+        sc.set({
+            a: {
+                tags: [
+                    {name: 'foo', data: ['foo']},
+                    {name: 'bar', foo: 'bar'}
+                ]
+            },
+            b: {
+                tags: [
+                    {name: 'bar', data: ['bar']},
+                    {name: 'bar', foo: 'foobar'}
+                ]
+            }
+        });
+
+        var foo = sc.findTaggedServiceIds('foo'),
+            bar = sc.findTaggedServiceIds('bar');
+
+        expect(foo.length).toEqual(1);
+        expect(foo[0][0]).toEqual('a');
+        expect(foo[0][1]).toEqual([['foo', {name: 'foo', data: ['foo']}]]);
+
+        expect(bar.length).toEqual(2);
+        expect(bar[1][0]).toEqual('b');
+        expect(bar[1][1]).toEqual([
+            ['bar', {name: 'bar', data: ['bar']}],
+            ['bar', {name: 'bar', foo: 'foobar'}]
+        ]);
+        expect(bar[0][0]).toEqual('a');
+        expect(bar[0][1]).toEqual([['bar', {name: 'bar', foo: 'bar'}]]);
+    });
+
 });

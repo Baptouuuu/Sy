@@ -351,7 +351,18 @@ Sy.ServiceContainer.Core.prototype = Object.create(Object.prototype, {
 
     findTaggedServiceIds: {
         value: function (tag) {
+            var ids = this.getServiceIds(),
+                matched = [];
 
+            ids.forEach(function (id) {
+                var filtered = this.services[id].getTag(tag);
+
+                if (filtered.length > 0) {
+                    matched.push([id, filtered]);
+                }
+            }, this);
+
+            return matched;
         }
     }
 
