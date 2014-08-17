@@ -4,14 +4,14 @@
 	Sy.kernel.getConfig()
         .set('env', 'dev')
         .set('name', 'TodoMVC')
-        .set('parameters.storage.managers', {
+        .set('storage.managers', {
             main: {
                 type: 'localstorage',
                 version: 1,
                 mapping: []
             }
         })
-        .set('parameters.api.basePath', '/api/path');
+        .set('api.basePath', '/api/path');
 
     try {
         Sy.kernel.boot();

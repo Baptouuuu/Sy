@@ -3,31 +3,29 @@ namespace('Sy');
 Sy.kernel = new Sy.Kernel.Core();
 Sy.kernel.getConfig().set({
     env: 'prod',
-    parameters: {
-        app: {
-            meta: {
-                viewscreens: [] //array of objects containing `name` and `creator` attributes
-            }
-        },
-        storage: {
-            engines: [
-                {
-                    name: 'indexeddb',
-                    factory: 'sy::core::storage::factory::engine::indexeddb',
-                    mapper: 'sy::core::storage::storemapper::indexeddb'
-                },
-                {
-                    name: 'localstorage',
-                    factory: 'sy::core::storage::factory::engine::localstorage',
-                    mapper: 'sy::core::storage::storemapper::localstorage'
-                },
-                {
-                    name: 'rest',
-                    factory: 'sy::core::storage::factory::engine::rest',
-                    mapper: 'sy::core::storage::storemapper::rest'
-                }
-            ]
+    app: {
+        meta: {
+            viewscreens: [] //array of objects containing `name` and `creator` attributes
         }
+    },
+    storage: {
+        engines: [
+            {
+                name: 'indexeddb',
+                factory: 'sy::core::storage::factory::engine::indexeddb',
+                mapper: 'sy::core::storage::storemapper::indexeddb'
+            },
+            {
+                name: 'localstorage',
+                factory: 'sy::core::storage::factory::engine::localstorage',
+                mapper: 'sy::core::storage::storemapper::localstorage'
+            },
+            {
+                name: 'rest',
+                factory: 'sy::core::storage::factory::engine::rest',
+                mapper: 'sy::core::storage::storemapper::rest'
+            }
+        ]
     },
     controllers: {
         cache: true
@@ -35,7 +33,7 @@ Sy.kernel.getConfig().set({
 });
 
 Sy.kernel.getContainer()
-    .setParameters(Sy.kernel.getConfig().get('parameters'))
+    .setParameters(Sy.kernel.getConfig())
     .set({
         'sy::core::generator::uuid': {
             constructor: 'Sy.Lib.Generator.UUID'
