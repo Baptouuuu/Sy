@@ -201,13 +201,16 @@ Sy.ServiceContainer.Definition.prototype = Object.create(Object.prototype, {
      *
      * @param {String} method
      * @param {Array} args Array of arguments
+     * @param {Boolean} pos Whether to append or prepend the call (default to append)
      *
      * @return {Sy.ServiceContainer.Definition} self
      */
 
     addCall: {
-        value: function (method, args) {
-            this.calls.push([method, args]);
+        value: function (method, args, pos) {
+            var m = !!pos ? 'unshift' : 'push';
+
+            this.calls[m]([method, args]);
 
             return this;
         }

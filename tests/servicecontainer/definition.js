@@ -145,4 +145,14 @@ describe('service container definition', function () {
         expect(d.isPrototype()).toBe(true);
     });
 
+    it('should prepend a call', function () {
+        d.addCall('setter', [1]);
+        d.addCall('prepend', [2], true);
+
+        expect(d.getCalls()).toEqual([
+            ['prepend', [2]],
+            ['setter', [1]]
+        ]);
+    });
+
 });
