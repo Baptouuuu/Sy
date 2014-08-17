@@ -309,7 +309,7 @@ Sy.ServiceContainer.Core.prototype = Object.create(Object.prototype, {
     getDefinition: {
         value: function (id) {
             if (this.compiled === true) {
-                throw new Error('Can\'t access a definition once container compiled');
+                throw new ReferenceError('Can\'t access a definition once container compiled');
             }
 
             return this.services[id];
