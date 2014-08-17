@@ -197,6 +197,10 @@ Sy.ServiceContainer.Core.prototype = Object.create(Object.prototype, {
                     [def.getConfiguratorMethod()](service);
             }
 
+            if (!def.isPrototype()) {
+                this.initialized[id] = service;
+            }
+
             this.loading.splice(this.loading.indexOf(id), 1);
             return service;
         }
