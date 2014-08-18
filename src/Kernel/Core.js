@@ -196,15 +196,9 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
     registerFormTypes: {
         value: function () {
-            this.container
-                .findTaggedServiceIds('form.type')
-                .forEach(function (el) {
-                    this.container
-                        .get('sy::core::form')
-                        .registerFormType(
-                            this.container.get(el.id)
-                        );
-                }, this);
+            this.container.addPass(
+                new Sy.Kernel.CompilerPass.FormTypePass()
+            );
 
             return this;
         }
@@ -219,33 +213,12 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
     registerEventSubscribers: {
         value: function () {
-            this.container
-                .findTaggedServiceIds('event.subscriber')
-                .forEach(function (el) {
-                    var subscriber = this.container.get(el.id),
-                        events;
+            var pass = new Sy.Kernel.CompilerPass.EventSubscriberPass();
 
-                    if (!(subscriber instanceof Sy.EventSubscriberInterface)) {
-                        throw new TypeError('Invalid event subscriber');
-                    }
-
-                    events = subscriber.getSubscribedEvents();
-
-                    for (var evt in events) {
-                        if (events.hasOwnProperty(evt)) {
-                            this.container
-                                .get('sy::core::mediator')
-                                .subscribe({
-                                    channel: evt,
-                                    fn: subscriber[events[evt].method],
-                                    context: subscriber,
-                                    priority: subscriber[events[evt].priority],
-                                    async: subscriber[events[evt].async]
-                                });
-                        }
-                    }
-
-                }, this);
+            this.container.addPass(
+                pass,
+                pass.AFTER_REMOVING
+            );
 
             return this;
         }
