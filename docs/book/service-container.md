@@ -40,4 +40,4 @@ App.Bundle.Foo.Config.Service.prototype = Object.create(Object.prototype, {
 
 });
 ```
-If the framework find this class, it will instanciate it and call the `define` method, passing the global service container so you can esaily define your services.
+If the framework find this class, it will instanciate it and call the `define` method, passing the global service container so you can easily define your services.
