@@ -9,10 +9,15 @@ namespace('Sy');
 
 Sy.PropertyAccessor = function (disableGetterSetter) {
     this.disableGetterSetter = !!disableGetterSetter;
-    this.prefixes = ['get', 'is', 'has'];
 };
 
 Sy.PropertyAccessor.prototype = Object.create(Object.prototype, {
+
+    prefixes: {
+        value: ['get', 'is', 'has'],
+        writable: false,
+        configurable: false
+    },
 
     /**
      * Return the value for the given object path
