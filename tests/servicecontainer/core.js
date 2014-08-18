@@ -359,4 +359,12 @@ describe('service container', function () {
         }).toThrow('Invalid definition');
     });
 
+    it('should throw if trying to set a service twice', function () {
+        sc.set({foo: {}});
+
+        expect(function () {
+            sc.set({foo: {}});
+        }).toThrow('Service name already used');
+    });
+
 });

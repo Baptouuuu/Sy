@@ -38,6 +38,10 @@ Sy.ServiceContainer.Core.prototype = Object.create(Object.prototype, {
                 alias = /^@.+$/;
 
                 if (services.hasOwnProperty(name)) {
+                    if (this.services[name] instanceof Sy.ServiceContainer.Definition) {
+                        throw new TypeError('Service name already used');
+                    }
+
                     def = services[name];
 
                     if (typeof def === 'string' && alias.test(def)) {
