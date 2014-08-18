@@ -2,7 +2,7 @@
 
 Sy abstract the construction of http request (ajax) via a set of objects. If you're looking to consume a REST api, I suggest to read the documentation of the [REST](REST.md) object (based on this library).
 
-The framework expose this library through the `sy::core::http` [service](Service-container.md).
+The framework expose this library through the `http` [service](Service-container.md) (alias of `sy::core::http`).
 
 The library is composed of 3 types of objects:
 
@@ -133,7 +133,7 @@ All requests handling is done through this object, meaning:
 
 ### Creation
 
-If you use the library inside the framework, you can omit this section and access the object via the `sy::core::http` service.
+If you use the library inside the framework, you can omit this section and access the object via the `http` service (alias of `sy::core::http`).
 
 ```js
 var manager = new Sy.HTTP.Manager();

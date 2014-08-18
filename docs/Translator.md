@@ -45,7 +45,7 @@ translator.translate('key', 'domain', 'en');
 
 ## Create
 
-By default the translator comes as a service under the name `sy::core::translator`. But you can build your own if you want.
+By default the translator comes as a service under the name `translator` (alias of `sy::core::translator`). But you can build your own if you want.
 ```js
 var translator = new Sy.Translator();
 translator.setRegistry(new Sy.Registry());
