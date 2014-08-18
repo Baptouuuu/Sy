@@ -29,6 +29,14 @@ Sy.kernel.getConfig().set({
     },
     controllers: {
         cache: true
+    },
+    logger: {
+        level: {
+            info: Sy.Lib.Logger.CoreLogger.prototype.INFO,
+            debug: Sy.Lib.Logger.CoreLogger.prototype.DEBUG,
+            error: Sy.Lib.Logger.CoreLogger.prototype.ERROR,
+            log: Sy.Lib.Logger.CoreLogger.prototype.LOG,
+        }
     }
 });
 
@@ -38,6 +46,7 @@ Sy.kernel.getContainer()
         'sy::core::generator::uuid': {
             constructor: 'Sy.Lib.Generator.UUID'
         },
+        'mediator': '@sy::core::mediator',
         'sy::core::mediator': {
             constructor: 'Sy.Lib.Mediator',
             calls: [
@@ -45,6 +54,7 @@ Sy.kernel.getContainer()
                 ['setLogger', ['@sy::core::logger']]
             ]
         },
+        'rest': '@sy::core::http::rest',
         'sy::core::http::rest': {
             constructor: 'Sy.HTTP.REST',
             calls: [
@@ -54,12 +64,24 @@ Sy.kernel.getContainer()
         'sy::core::registry::factory': {
             constructor: 'Sy.RegistryFactory'
         },
+        'registry': '@sy::core::registry',
+        'sy::core::registry': {
+            constructor: 'Sy.Registry',
+            factory: ['sy::core::registry::factory', 'make'],
+            prototype: true
+        }
         'sy::core::stateregistry::factory': {
             constructor: 'Sy.StateRegistryFactory',
             calls: [
                 ['setRegistryFactory', ['@sy::core::registry::factory']]
             ]
         },
+        'stateregistry': '@sy::core::stateregistry',
+        'sy::core::stateregistry': {
+            constructor: 'Sy.StateRegistry',
+            fatory: ['sy::core::stateregistry::factory', 'make'],
+            prototype: true
+        }
         'sy::core::view::parser': {
             constructor: 'Sy.View.Parser'
         },
@@ -139,35 +161,121 @@ Sy.kernel.getContainer()
             calls: [
                 ['setValidator', ['@sy::core::validator']]
             ]
+        },
+        'logger': '@sy::core::logger',
+        'sy::core::logger': {
+            constructor: 'Sy.Lib.Logger.CoreLogger',
+            calls: [
+                ['setName', ['core']],
+                ['setHandler', ['@sy::core::logger::handler::info', '%logger.level.info%']],
+                ['setHandler', ['@sy::core::logger::handler::debug', '%logger.level.debug%']],
+                ['setHandler', ['@sy::core::logger::handler::error', '%logger.level.error%']],
+                ['setHandler', ['@sy::core::logger::handler::log', '%logger.level.log%']],
+            ]
+        },
+        'sy::core::logger::handler::info': {
+            constructor: 'Sy.Lib.Logger.Handler.Console',
+            calls: [
+                ['setLevel', ['%logger.level.info%']]
+            ],
+            private: true
+        },
+        'sy::core::logger::handler::debug': {
+            constructor: 'Sy.Lib.Logger.Handler.Console',
+            calls: [
+                ['setLevel', ['%logger.level.debug%']]
+            ],
+            private: true
+        },
+        'sy::core::logger::handler::error': {
+            constructor: 'Sy.Lib.Logger.Handler.Console',
+            calls: [
+                ['setLevel', ['%logger.level.error%']]
+            ],
+            private: true
+        },
+        'sy::core::logger::handler::log': {
+            constructor: 'Sy.Lib.Logger.Handler.Console',
+            calls: [
+                ['setLevel', ['%logger.level.log%']]
+            ],
+            private: true
+        },
+        'http': '@sy::core::http',
+        'sy::core::http': {
+            constructor: 'Sy.HTTP.Manager',
+            calls: [
+                ['setParser', ['@sy::core::http::parser']],
+                ['setGenerator', ['@sy::core::generator::uuid']],
+                ['setRegistry', ['@sy::core::registry']],
+                ['setLogger', ['@sy::core::logger']]
+            ]
+        },
+        'sy::core::http::parser': {
+            constructor: 'Sy.HTTP.HeaderParser',
+            private: true
+        },
+        'translator': '@sy::core::translator',
+        'sy::core::translator': {
+            constructor: 'Sy.Translator',
+            calls: [
+                ['setRegistry', ['@sy::core::registry']],
+                ['setStateRegistryFactory', ['@sy::core::stateregistry::factory']]
+            ]
+        },
+        'sy::core::view::template::engine': {
+            constructor: 'Sy.View.TemplateEngine',
+            calls: [
+                ['setRegistry', ['@sy::core::registry']],
+                ['setGenerator', ['@sy::core::generator::uuid']]
+            ]
+        },
+        'sy::core::viewport': {
+            constructor: 'Sy.View.ViewPort',
+            calls: [
+                ['setNode', [document.querySelector('.viewport')]],
+                ['setViewManager', ['@sy::core::view::manager']],
+                ['setMediator', ['@sy::core::mediator']]
+            ]
+        },
+        'sy::core::view::manager': {
+            constructor: 'Sy.View.Manager',
+            configurator: ['sy::core::view::managerconfigurator', 'configure']
+            calls: [
+                ['setViewsRegistry', ['@sy::core::registry']],
+                ['setViewScreenFactory', ['@sy::core::view::factory::viewscreen']]
+            ],
+        },
+        'sy::core::view::managerconfigurator': {
+            constructor: 'Sy.View.ManagerConfigurator',
+            calls: [
+                ['setParser', ['@sy::core::view::parser']]
+            ]
+        },
+        'validator': '@sy::core::validator',
+        'sy::core::validator': {
+            constructor: 'Sy.Validator.Core',
+            calls: [
+                ['setRulesRegistry', ['@sy::core::registry']],
+                ['setContextFactory', ['@sy::core::validator::executioncontextfactory']],
+                ['setConstraintFactory', ['@sy::core::validator::constraintfactory']]
+            ]
+        },
+        'sy::core::validator::executioncontextfactory': {
+            constructor: 'Sy.Validator.ExecutionContextFactory',
+            calls: [
+                ['setConstraintValidatorFactory', ['@sy::core::validator::constraintvalidatorfactory']]
+            ]
+            private: true
+        },
+        'sy::core::validator::constraintvalidatorfactory': {
+            constructor: 'Sy.Validator.ConstraintValidatorFactory',
+            private: true
+        },
+        'sy::core::validator::constraintfactory': {
+            constructor: 'Sy.Validator.ConstraintFactory',
+            private: true
         }
-    })
-    .set('sy::core::logger', function () {
-
-        var logger = new Sy.Lib.Logger.CoreLogger('core'),
-            info = new Sy.Lib.Logger.Handler.Console(logger.INFO),
-            debug = new Sy.Lib.Logger.Handler.Console(logger.DEBUG),
-            error = new Sy.Lib.Logger.Handler.Console(logger.ERROR),
-            log = new Sy.Lib.Logger.Handler.Console(logger.LOG);
-
-        logger.setHandler(info, logger.INFO);
-        logger.setHandler(debug, logger.DEBUG);
-        logger.setHandler(error, logger.ERROR);
-        logger.setHandler(log, logger.LOG);
-
-        return logger;
-
-    })
-    .set('sy::core::http', function () {
-
-        var parser = new Sy.HTTP.HeaderParser(),
-            manager = new Sy.HTTP.Manager();
-
-        manager.setParser(parser);
-        manager.setGenerator(this.get('sy::core::generator::uuid'));
-        manager.setRegistry(this.get('sy::core::registry::factory').make());
-        manager.setLogger(this.get('sy::core::logger'));
-
-        return manager;
     })
     .set('sy::core::storage::factory::engine::core', function () {
 
@@ -213,74 +321,4 @@ Sy.kernel.getContainer()
         }
 
         return storage;
-
-    })
-    .set('sy::core::translator', function () {
-        var translator = new Sy.Translator();
-        translator
-            .setRegistry(this.get('sy::core::registry::factory').make())
-            .setStateRegistryFactory(this.get('sy::core::stateregistry::factory'));
-        return translator;
-    })
-    .set('sy::core::view::template::engine', function () {
-        var engine = new Sy.View.TemplateEngine();
-
-        return engine
-            .setRegistry(
-                this.get('sy::core::registry::factory').make()
-            )
-            .setGenerator(
-                this.get('sy::core::generator::uuid')
-            );
-    })
-    .set('sy::core::viewport', function () {
-
-        var viewport = new Sy.View.ViewPort();
-
-        return viewport
-            .setNode(
-                document.querySelector('.viewport')
-            )
-            .setViewManager(
-                this.get('sy::core::view::manager')
-            )
-            .setMediator(
-                this.get('sy::core::mediator')
-            );
-
-    })
-    .set('sy::core::view::manager', function () {
-
-        var manager = new Sy.View.Manager(),
-            viewscreens = this.get('sy::core::view::parser').getViewScreens();
-
-        manager
-            .setViewsRegistry(
-                this.get('sy::core::registry::factory').make()
-            )
-            .setViewScreenFactory(
-                this.get('sy::core::view::factory::viewscreen')
-            );
-
-        for (var i = 0, l = viewscreens.length; i < l; i++) {
-            manager.setViewScreen(viewscreens[i]);
-
-            if (!DOM(viewscreens[i]).isChildOf('.viewport')){
-                viewscreens[i].parentNode.removeChild(viewscreens[i]);
-            }
-        }
-
-        return manager;
-
-    })
-    .set('sy::core::validator', function () {
-        var validator = new Sy.Validator.Core(),
-            contextFactory = new Sy.Validator.ExecutionContextFactory();
-
-        contextFactory.setConstraintValidatorFactory(new Sy.Validator.ConstraintValidatorFactory());
-
-        return validator
-            .setRulesRegistry(this.get('sy::core::registry::factory').make())
-            .setContextFactory(contextFactory)
-            .setConstraintFactory(new Sy.Validator.ConstraintFactory());
     });
