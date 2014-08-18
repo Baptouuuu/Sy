@@ -18,7 +18,6 @@ Sy.ServiceContainer.Compiler = function () {
     this.beforeRm = [];
     this.rm = [
         new Sy.ServiceContainer.CompilerPass.RemoveAbstractDefinitions(),
-        new Sy.ServiceContainer.CompilerPass.ReplaceAliasByDefinition(),
     ];
     this.afterRm = [];
 };
