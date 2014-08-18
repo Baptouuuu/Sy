@@ -5,7 +5,7 @@ The mediator is an event mechanism, you could also come across it under the name
 
 ## Creation
 
-If you use the full framework you can find a pre-configured mediator as a service under the name `sy::core::mediator`.
+If you use the full framework you can find a pre-configured mediator as a service under the name `mediator` (alias of`sy::core::mediator`).
 
 ```js
 var mediator = new Sy.Lib.Mediator();

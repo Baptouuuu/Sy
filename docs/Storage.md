@@ -16,7 +16,7 @@ This is the main object to access the whole mechanism; it holds your managers. I
 ### Usage
 
 ```js
-var storage = Sy.kernel.getServiceContainer().get('sy::core::storage');
+var storage = Sy.kernel.getContainer().get('sy::core::storage');
 storage.getManager('myManagerName');
 ```
 **Note**: If no manager name specified it will look for a default one named `main`.
@@ -164,9 +164,9 @@ entity.getRaw();
 
 An engine is an interface between the repository and the actual storage engine api. Sy comes by default with 3 engines: `rest`, `indexeddb` and `localstorage`. Each one implements the [`Sy.Storage.EngineInterface`](../src/Storage/EngineInterface.js) interface.
 
-You can create your own engine by creating a factory (must implement [`Sy.FactoryInterface`](../src/FactoryInterface.js)) generating it and then registering it by adding an object to the array defined in the configurator under `parameters.storage.engines`:
+You can create your own engine by creating a factory (must implement [`Sy.FactoryInterface`](../src/FactoryInterface.js)) generating it and then registering it by adding an object to the array defined in the configurator under `storage.engines`:
 ```js
-Sy.kernel.getConfig().get('parameters.storage.engines').push({
+Sy.kernel.getConfig().get('storage.engines').push({
   name: 'your engine name',
   factory: 'engine::factory::name', //the factory is retrieved via a service
   mapper: 'storemapper::service'

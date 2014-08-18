@@ -57,7 +57,7 @@ Now that you know how to declare your entities, let's see how to handle them to 
 A manager is a way to define the storage engine you want to use for a set of entity types. You define one in the global config object:
 ```js
 Sy.kernel.getConfig()
-    .set('parameters.storage.managers', {
+    .set('storage.managers', {
         main: {
             type: 'indexeddb', //or localstorage or http
             storageName: 'app::storage',  //optional
@@ -231,7 +231,7 @@ The `stores` is an array of definition that will be handled by this engine. It c
 
 Now that all the classes has been defined, let's register all this in the framework. First you need to define your factory and store mapper as services:
 ```js
-Sy.kernel.getServiceContainer()
+Sy.kernel.getContainer()
     .set({
         'factory::service::name': {
             constructor: 'Wherever.You.Want.MyFactory'
@@ -246,7 +246,7 @@ Sy.kernel.getServiceContainer()
 Once you registered them, you need to add you engine type to the configuration like so:
 ```js
 Sy.kernel.getConfig()
-    .get('parameters.storage.engines')
+    .get('storage.engines')
     .push({
         name: 'engineName',
         factory: 'factory::service::name',
@@ -255,7 +255,7 @@ Sy.kernel.getConfig()
 ```
 And that's all! Now you can specify `engineName` as the engine type used by your managers.
 
-As you understood, `parameters.storage.engines` is a simple array predefined with the 3 builtin engines. So if you only want to change the store mapper of one of them, you can simply change the value of `mapper` for the engine you want and point it to the mapper service you've built.
+As you understood, `storage.engines` is a simple array predefined with the 3 builtin engines. So if you only want to change the store mapper of one of them, you can simply change the value of `mapper` for the engine you want and point it to the mapper service you've built.
 
 As you can see, you can easily build your own engine and distibute it so it can be reused inside other projects.
 
@@ -272,7 +272,7 @@ storage.getManager().getEngine().setHeaders({
 });
 ```
 
-To work properly you also need to specify the url structure for the engine requests, this one is defined in the kernel config (`Sy.kernel.getConfig()`) under the name `parameters.api.basePath`. Example: `/api/{{version}}/{{path}}/{{key}}`.
+To work properly you also need to specify the url structure for the engine requests, this one is defined in the kernel config (`Sy.kernel.getConfig()`) under the name `api.basePath`. Example: `/api/{{version}}/{{path}}/{{key}}`.
 The `{{path}}` and `{{key}}` placeholders are required; the first one is replaced by the `store.name` as you've seen in the previous section with the store mapper, the second one will be replaced by the entity `uuid`.
 The `{{version}}` placeholder, if defined, will be replaced by the version number defined in the manager configuration.
 

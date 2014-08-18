@@ -61,7 +61,7 @@ Sy.kernel.getConfig()
 try {
     Sy.kernel.boot();
 
-    Sy.kernel.getServiceContainer()
+    Sy.kernel.getContainer()
         .get('sy::core::viewport')
         .display('home');
 } catch (error) {

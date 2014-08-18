@@ -194,7 +194,7 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
      * Walk through the app services definitions object
      * and call them to register them
      *
-     * @param {Sy.ServiceContainerInterface} $container
+     * @param {Sy.ServiceContainer.Core} $container
      *
      * @return {Sy.Kernel.AppParser}
      */
@@ -202,7 +202,7 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
     buildServices: {
         value: function (container) {
 
-            if (!(container instanceof Sy.ServiceContainerInterface)) {
+            if (!(container instanceof Sy.ServiceContainer.Core)) {
                 throw new TypeError('Invalid service container');
             }
 
@@ -266,14 +266,14 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
      * Walk through the app validation rules definitions object
      * and call them to register them in the validator
      *
-     * @param {Sy.ServiceContainerInterface} container
+     * @param {Sy.ServiceContainer.Core} container
      *
      * @return {Sy.Kernel.AppParser}
      */
 
     registerValidationRules: {
         value: function (container) {
-            if (!(container instanceof Sy.ServiceContainerInterface)) {
+            if (!(container instanceof Sy.ServiceContainer.Core)) {
                 throw new TypeError('Invalid service container');
             }
 

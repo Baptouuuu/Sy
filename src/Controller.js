@@ -135,7 +135,7 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
     setServiceContainer: {
         value: function (container) {
 
-            if (!(container instanceof Sy.ServiceContainerInterface)) {
+            if (!(container instanceof Sy.ServiceContainer.Core)) {
                 throw new TypeError('Invalid service container');
             }
 

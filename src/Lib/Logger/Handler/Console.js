@@ -13,7 +13,9 @@ Sy.Lib.Logger.Handler.Console = function (level) {
 
     this.level = null;
 
-    this.setLevel(level);
+    if (level !== undefined) {
+        this.setLevel(level);
+    }
 
 };
 

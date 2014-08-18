@@ -10,7 +10,7 @@ namespace('Sy.Kernel');
 
 Sy.Kernel.Core = function () {
     this.config = new Sy.Configurator();
-    this.container = new Sy.ServiceContainer('sy::core');
+    this.container = new Sy.ServiceContainer.Core();
     this.controllerManager = new Sy.Kernel.ControllerManager();
     this.actionDispatcher = new Sy.Kernel.ActionDispatcher();
 };
@@ -34,7 +34,7 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
      * @return {Sy.ServiceContainer}
      */
 
-    getServiceContainer: {
+    getContainer: {
         value: function () {
             return this.container;
         }
@@ -58,7 +58,7 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                 parser.setLogger(this.container.get('sy::core::logger'));
             }
 
-            this.config.set('parameters.app.meta', {
+            this.config.set('app.meta', {
                 bundles: parser.getBundles(),
                 controllers: parser.getControllers(),
                 entities: parser.getEntities(),
@@ -66,8 +66,8 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
             });
 
             parser
-                .buildServices(this.container)
                 .buildConfig(this.config)
+                .buildServices(this.container)
                 .registerValidationRules(this.container);
 
             this
@@ -76,6 +76,8 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                 .registerShutdownListener()
                 .registerFormTypes()
                 .registerEventSubscribers();
+
+            this.container.compile();
 
         }
     },
@@ -194,15 +196,9 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
     registerFormTypes: {
         value: function () {
-            this.container
-                .filter('form.type')
-                .forEach(function (name) {
-                    this.container
-                        .get('sy::core::form')
-                        .registerFormType(
-                            this.container.get(name)
-                        );
-                }, this);
+            this.container.addPass(
+                new Sy.Kernel.CompilerPass.FormTypePass()
+            );
 
             return this;
         }
@@ -217,33 +213,12 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
     registerEventSubscribers: {
         value: function () {
-            this.container
-                .filter('event.subscriber')
-                .forEach(function (name) {
-                    var subscriber = this.container.get(name),
-                        events;
+            var pass = new Sy.Kernel.CompilerPass.EventSubscriberPass();
 
-                    if (!(subscriber instanceof Sy.EventSubscriberInterface)) {
-                        throw new TypeError('Invalid event subscriber');
-                    }
-
-                    events = subscriber.getSubscribedEvents();
-
-                    for (var evt in events) {
-                        if (events.hasOwnProperty(evt)) {
-                            this.container
-                                .get('sy::core::mediator')
-                                .subscribe({
-                                    channel: evt,
-                                    fn: subscriber[events[evt].method],
-                                    context: subscriber,
-                                    priority: subscriber[events[evt].priority],
-                                    async: subscriber[events[evt].async]
-                                });
-                        }
-                    }
-
-                }, this);
+            this.container.addPass(
+                pass,
+                pass.AFTER_REMOVING
+            );
 
             return this;
         }
