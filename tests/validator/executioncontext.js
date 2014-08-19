@@ -1,6 +1,8 @@
 /**
  * @venus-library jasmine
+ * @venus-include ../../vendor/Reflection.js/reflection.js
  * @venus-include ../../src/functions.js
+ * @venus-include ../../src/PropertyAccessor.js
  * @venus-include ../../src/FactoryInterface.js
  * @venus-include ../../src/Validator/ConstraintValidatorFactory.js
  * @venus-include ../../src/Validator/ConstraintViolation.js

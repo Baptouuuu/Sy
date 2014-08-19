@@ -29,7 +29,7 @@ Sy.Validator.Constraint.TypeValidator.prototype = Object.create(Sy.Validator.Abs
             var expected = constraint.getType(),
                 constructor = function () {};
 
-            if (this.accessor.isReadable(expected)) {
+            if (this.accessor.isReadable(window, expected)) {
                 constructor = this.accessor.getValue(window, expected);
             }
 
