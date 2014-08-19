@@ -11,7 +11,6 @@ namespace('Sy.Form');
 Sy.Form.Builder = function () {
     this.validator = null;
     this.types = {};
-    this.accessor = new Sy.PropertyAccessor(true);
 };
 Sy.Form.Builder.prototype = Object.create(Object.prototype, {
 
@@ -125,17 +124,17 @@ Sy.Form.Builder.prototype = Object.create(Object.prototype, {
             builder.setOptions(config);
 
             if (!object && config.has('dataClass')) {
-                if (!this.accessor.isReadable(window, config.get('dataClass'))) {
+                dataClass = objectGetter(config.get('dataClass'));
+
+                if (!dataClass) {
                     throw new ReferenceError('Data class "' + config.get('dataClass') + '" is undefined');
                 }
-
-                dataClass = this.accessor.getValue(window, config.get('dataClass'));
 
                 builder.setObject(new dataClass());
             } else if (object && typeof object === 'object') {
                 if (
                     config.has('dataClass') &&
-                    !(object instanceof this.accessor.getValue(window, config.get('dataClass')))
+                    !(object instanceof objectGetter(config.get('dataClass')))
                 ) {
                     throw new TypeError('The object is not an instance of "' + config.get('dataClass') + '"');
                 }

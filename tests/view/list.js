@@ -2,7 +2,6 @@
  * @venus-library jasmine
  * @venus-include ../../vendor/Reflection.js/reflection.min.js
  * @venus-include ../../src/functions.js
- * @venus-include ../../src/PropertyAccessor.js
  * @venus-include ../../src/RegistryInterface.js
  * @venus-include ../../src/Registry.js
  * @venus-include ../../src/Lib/Generator/Interface.js

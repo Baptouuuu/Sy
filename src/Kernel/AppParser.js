@@ -14,7 +14,6 @@ Sy.Kernel.AppParser = function () {
     this.entities = [];
     this.viewscreens = [];
     this.logger = null;
-    this.accessor = new Sy.PropertyAccessor(true);
 };
 Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
 
@@ -43,7 +42,7 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
     getBundles: {
         value: function () {
 
-            if (this.bundles.length > 0 || !this.accessor.isReadable(window, 'App.Bundle')) {
+            if (this.bundles.length > 0 || !objectGetter('App.Bundle')) {
                 return this.bundles;
             }
 

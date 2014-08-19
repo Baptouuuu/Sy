@@ -13,7 +13,6 @@ Sy.Validator.Core = function () {
     this.contextFactory = null;
     this.constraintFactory = null;
     this.useReflection = true;
-    this.accessor = new Sy.PropertyAccessor(true);
 };
 Sy.Validator.Core.prototype = Object.create(Object.prototype, {
 
@@ -293,9 +292,7 @@ Sy.Validator.Core.prototype = Object.create(Object.prototype, {
 
             for (var path in mapping) {
                 if (mapping.hasOwnProperty(path)) {
-                    if (this.accessor.isReadable(window, path)) {
-                        constructor = this.accessor.getValue(window, path);
-                    }
+                    constructor = objectGetter(path);
 
                     if (!!constructor && object instanceof constructor) {
                         return mapping[path];
