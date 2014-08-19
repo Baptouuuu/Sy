@@ -1,9 +1,7 @@
 /**
  * @venus-library jasmine
  * @venus-include ../../vendor/underscore/underscore.js
- * @venus-include ../../vendor/Reflection.js/reflection.js
  * @venus-include ../../src/functions.js
- * @venus-include ../../src/PropertyAccessor.js
  * @venus-include ../../src/ConfiguratorInterface.js
  * @venus-include ../../src/Configurator.js
  * @venus-include ../../src/Validator/Core.js
