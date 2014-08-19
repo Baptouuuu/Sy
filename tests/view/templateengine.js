@@ -75,9 +75,13 @@ describe('view template engine', function () {
                     return 42;
                 }
             },
-            getBaz: {
+            get: {
                 value: function (prop) {
-                    return 'baz';
+                    if (prop === 'foo') {
+                        return this.foo;
+                    } else {
+                        return prop;
+                    }
                 }
             }
         });
