@@ -12,6 +12,7 @@ Sy.Configurator = function () {
 
     this.name = '';
     this.config = {};
+    this.accessor = new Sy.PropertyAccessor(true);
 
 };
 
@@ -27,7 +28,11 @@ Sy.Configurator.prototype = Object.create(Sy.ConfiguratorInterface.prototype, {
             if (key instanceof Object && value === undefined) {
                 this.config = _.extend(this.config, key);
             } else {
-                objectSetter.call(this.config, key, value);
+                if (!this.accessor.isReadable(this.config, key)) {
+                    namespace.call(this.config, key);
+                }
+
+                this.accessor.setValue(this.config, key, value);
             }
 
             return this;
@@ -47,7 +52,7 @@ Sy.Configurator.prototype = Object.create(Sy.ConfiguratorInterface.prototype, {
             if (key === undefined) {
                 value = this.config;
             } else if (this.has(key)) {
-                value = objectGetter.call(this.config, key);
+                value = this.accessor.getValue(this.config, key);
             }
 
             return value;
@@ -61,21 +66,7 @@ Sy.Configurator.prototype = Object.create(Sy.ConfiguratorInterface.prototype, {
 
     has: {
         value: function (key) {
-
-            try {
-
-                objectGetter.call(this.config, key);
-
-                return true;
-
-            } catch (error) {
-
-                if (error instanceof ReferenceError) {
-                    return false;
-                }
-
-            }
-
+            return this.accessor.isReadable(this.config, key);
         }
     },
 
