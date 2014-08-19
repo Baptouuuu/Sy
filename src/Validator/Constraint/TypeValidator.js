@@ -11,6 +11,7 @@ namespace('Sy.Validator.Constraint');
 
 Sy.Validator.Constraint.TypeValidator = function () {
     Sy.Validator.AbstractConstraintValidator.call(this);
+    this.accessor = new Sy.PropertyAccessor(true);
 };
 Sy.Validator.Constraint.TypeValidator.prototype = Object.create(Sy.Validator.AbstractConstraintValidator.prototype, {
 
@@ -26,7 +27,11 @@ Sy.Validator.Constraint.TypeValidator.prototype = Object.create(Sy.Validator.Abs
             }
 
             var expected = constraint.getType(),
-                constructor = objectGetter(expected) || function () {};
+                constructor = function () {};
+
+            if (this.accessor.isReadable(expected)) {
+                constructor = this.accessor.getValue(window, expected);
+            }
 
             if (
                 typeof value !== expected &&

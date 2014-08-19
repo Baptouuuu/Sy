@@ -13,6 +13,7 @@ Sy.View.TemplateEngine = function () {
     Sy.View.TemplateEngineInterface.call(this);
     this.registry = null;
     this.generator = null;
+    this.accessor = new Sy.PropertyAccessor();
 };
 Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface.prototype, {
 
@@ -188,7 +189,7 @@ Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface
                 var results = this.PATTERN.exec(source);
 
                 if (results !== null && results.length >= 1) {
-                    source = source.replace(results[0], reflectedObjectGetter.call(data, results[1]) || '');
+                    source = source.replace(results[0], this.accessor.getValue(data, results[1]));
                 }
             }
 
@@ -220,7 +221,7 @@ Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface
                 d;
 
             if (results) {
-                d = objectGetter.call(data, results[1]);
+                d = this.accessor.getValue(data, results[1]);
             }
 
             if (d instanceof HTMLElement) {

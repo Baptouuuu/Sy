@@ -11,6 +11,7 @@ namespace('Sy.Validator');
 
 Sy.Validator.ConstraintValidatorFactory = function () {
     this.validators = {};
+    this.accessor = new Sy.PropertyAccessor(true);
 };
 Sy.Validator.ConstraintValidatorFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
 
@@ -29,11 +30,11 @@ Sy.Validator.ConstraintValidatorFactory.prototype = Object.create(Sy.FactoryInte
                 constructor;
 
             if (this.validators[path] === undefined) {
-                constructor = objectGetter(path);
-
-                if (constructor === undefined) {
+                if (!this.accessor.isReadable(window, path)) {
                     throw new ReferenceError('Undefined validator "' + path + '"');
                 }
+
+                constructor = this.accessor.getValue(window, path);
 
                 this.validators[path] = new constructor();
             }
