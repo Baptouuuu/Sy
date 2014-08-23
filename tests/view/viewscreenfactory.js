@@ -23,7 +23,12 @@ describe('viewscreen factory', function () {
     var factory = new Sy.View.ViewScreenFactory(),
         viewscreen = new Sy.View.ViewScreen(),
         layoutFactory = new Sy.View.LayoutFactory(),
-        node = document.querySelector('[data-sy-view]');
+        node = document.querySelector('[data-sy-view]'),
+         Mock = function () {
+                Sy.View.ViewScreen.call(this);
+            };
+
+    Mock.prototype = Object.create(Sy.View.ViewScreen.prototype);
 
     layoutFactory.setParser(new Sy.View.Parser());
     layoutFactory.setTemplateEngine(new Sy.View.TemplateEngineInterface());
@@ -66,15 +71,22 @@ describe('viewscreen factory', function () {
     });
 
     it('should register a new viewscreen wrapper', function () {
-        var node = document.querySelector('[data-sy-view="customWrapper"]'),
-            Mock = function () {
-                Sy.View.ViewScreen.call(this);
-            };
-        Mock.prototype = Object.create(Sy.View.ViewScreen.prototype);
+        var node = document.querySelector('[data-sy-view="customWrapper"]');
 
-        factory.setViewScreenWrapper('customWrapper', Mock);
-
+        expect(factory.setViewScreenWrapper('customWrapper', new Mock())).toEqual(factory);
         expect(factory.make(node) instanceof Mock).toBe(true);
+    });
+
+    it('should throw if using a wrapper name twice', function () {
+        expect(function () {
+            factory.setViewScreenWrapper('customWrapper', new Mock());
+        }).toThrow('A viewscreen wrapper is already defined with the name "customWrapper"');
+    });
+
+    it('should throw if trying to set invalid wrapper', function () {
+        expect(function () {
+            factory.setViewScreenWrapper('foo', {});
+        }).toThrow('Invalid viewscreen wrapper');
     });
 
 });

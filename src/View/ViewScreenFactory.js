@@ -96,36 +96,17 @@ Sy.View.ViewScreenFactory.prototype = Object.create(Sy.View.ViewScreenFactoryInt
      */
 
     setViewScreenWrapper: {
-        value: function (name, viewscreenConstructor) {
+        value: function (name, viewscreen) {
 
             if (this.viewscreens.has(name)) {
                 throw new ReferenceError('A viewscreen wrapper is already defined with the name "' + name + '"');
             }
 
-            this.viewscreens.set(name, viewscreenConstructor);
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Pass the array of wrappers found in the project
-     *
-     * @param {Array} wrappers
-     *
-     * @return {Sy.View.ViewScreenFactory}
-     */
-
-    setDefinedWrappers: {
-        value: function (wrappers) {
-
-            for (var i = 0, l = wrappers.length; i < l; i++) {
-                this.setViewScreenWrapper(
-                    wrappers[i].name,
-                    wrappers[i].creator
-                );
+            if (!(viewscreen instanceof Sy.View.ViewScreen)) {
+                throw new TypeError('Invalid viewscreen wrapper');
             }
+
+            this.viewscreens.set(name, viewscreen);
 
             return this;
 
@@ -143,13 +124,9 @@ Sy.View.ViewScreenFactory.prototype = Object.create(Sy.View.ViewScreenFactoryInt
                 wrapper;
 
             if (this.viewscreens.has(name)) {
-                wrapper = new (this.viewscreens.get(name))();
+                wrapper = this.viewscreens.get(name);
             } else {
                 wrapper = new Sy.View.ViewScreen();
-            }
-
-            if (!(wrapper instanceof Sy.View.ViewScreen)) {
-                throw new TypeError('Invalid viewscreen wrapper');
             }
 
             return wrapper

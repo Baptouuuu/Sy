@@ -14,6 +14,7 @@ Sy.View.LayoutFactory = function () {
     this.engine = null;
     this.registryFactory = null;
     this.listFactory = null;
+    this.layouts = null;
 };
 Sy.View.LayoutFactory.prototype = Object.create(Sy.View.LayoutFactoryInterface.prototype, {
 
@@ -65,6 +66,7 @@ Sy.View.LayoutFactory.prototype = Object.create(Sy.View.LayoutFactoryInterface.p
             }
 
             this.registryFactory = factory;
+            this.layouts = factory.make();
 
             return this;
 
@@ -93,10 +95,42 @@ Sy.View.LayoutFactory.prototype = Object.create(Sy.View.LayoutFactoryInterface.p
      * @inheritDoc
      */
 
+    setLayoutWrapper: {
+        value: function (viewscreen, name, layout) {
+            var fullname = viewscreen + '::' + name;
+
+            if (this.layouts.has(fullname)) {
+                throw new ReferenceError('A layout wrapper is already defined with the name "' + fullname + '"')
+            }
+
+            if (!(layout instanceof Sy.View.Layout)) {
+                throw new TypeError('Invalid layout wrapper');
+            }
+
+            this.layouts.set(
+                fullname,
+                layout
+            );
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
     make: {
         value: function (viewscreen, node) {
 
-            var wrapper = new Sy.View.Layout();
+            var fullname = viewscreen + '::' + node.dataset.syLayout,
+                wrapper;
+
+            if (this.layouts.has(fullname)) {
+                wrapper = this.layouts.get(fullname);
+            } else {
+                wrapper = new Sy.View.Layout();
+            }
 
             return wrapper
                 .setViewScreenName(viewscreen)
