@@ -75,7 +75,8 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                 .configureLogger()
                 .registerShutdownListener()
                 .registerFormTypes()
-                .registerEventSubscribers();
+                .registerEventSubscribers()
+                .registerViewPasses();
 
             this.container.compile();
 
@@ -221,6 +222,30 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
             );
 
             return this;
+        }
+    },
+
+    /**
+     * Add the compiler passes related to the view engine to the container
+     *
+     * @return {Sy.Kernel.Core} self
+     */
+
+    registerViewPasses: {
+        value: function () {
+            var vs = new Sy.Kernel.CompilerPass.RegisterViewScreenWrapperPass(),
+                layout = new Sy.Kernel.CompilerPass.RegisterLayoutWrapperPass(),
+                list = new Sy.Kernel.CompilerPass.RegisterListWrapperPass(),
+                logger = this.container.get('sy::core::logger');
+
+            vs.setLogger(logger);
+            layout.setLogger(logger);
+            list.setLogger(logger);
+
+            this.container
+                .addPass(vs)
+                .addPass(layout)
+                .addPass(list);
         }
     }
 

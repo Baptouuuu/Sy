@@ -107,7 +107,6 @@ Sy.kernel.getContainer()
                 ['setTemplateEngine', ['@sy::core::view::template::engine']],
                 ['setRegistryFactory', ['@sy::core::registry::factory']],
                 ['setLayoutFactory', ['@sy::core::view::factory::layout']],
-                ['setDefinedWrappers', ['%app.meta.viewscreens%']]
             ]
         },
         'sy::core::storage::factory::engine::indexeddb': {
