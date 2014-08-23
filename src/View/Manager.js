@@ -97,7 +97,7 @@ Sy.View.Manager.prototype = Object.create(Object.prototype, {
      *
      * @param {string} name
      *
-     * @return {Sy.View.ViewScreenInterface}
+     * @return {Sy.View.ViewScreen}
      */
 
     getViewScreen: {
