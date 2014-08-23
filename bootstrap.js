@@ -3,11 +3,6 @@ namespace('Sy');
 Sy.kernel = new Sy.Kernel.Core();
 Sy.kernel.getConfig().set({
     env: 'prod',
-    app: {
-        meta: {
-            viewscreens: [] //array of objects containing `name` and `creator` attributes
-        }
-    },
     storage: {
         engines: [
             {
@@ -107,7 +102,6 @@ Sy.kernel.getContainer()
                 ['setTemplateEngine', ['@sy::core::view::template::engine']],
                 ['setRegistryFactory', ['@sy::core::registry::factory']],
                 ['setLayoutFactory', ['@sy::core::view::factory::layout']],
-                ['setDefinedWrappers', ['%app.meta.viewscreens%']]
             ]
         },
         'sy::core::storage::factory::engine::indexeddb': {

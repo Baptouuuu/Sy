@@ -14,6 +14,8 @@ Sy.View.List = function () {
     this.name = null;
     this.elements = [];
     this.types = [];
+    this.screen = null;
+    this.layout = null;
 };
 Sy.View.List.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
@@ -50,6 +52,38 @@ Sy.View.List.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
             return this;
 
+        }
+    },
+
+    /**
+     * Set the view screen name the list belongs to
+     *
+     * @param {String} name
+     *
+     * @return {Sy.View.List} self
+     */
+
+    setViewScreenName: {
+        value: function (name) {
+            this.screen = name;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the layout name the list belongs to
+     *
+     * @param {String} name
+     *
+     * @return {Sy.View.List} self
+     */
+
+    setLayoutName: {
+        value: function (name) {
+            this.layout = name;
+
+            return this;
         }
     },
 

@@ -58,6 +58,20 @@ Sy.View.LayoutFactoryInterface.prototype = Object.create(Sy.FactoryInterface.pro
 
     setListFactory: {
         value: function (factory) {}
+    },
+
+    /**
+     * Inject a layout wrapper instance
+     *
+     * @param {String} viewscreen ViewScreen name it belongs to
+     * @param {String} name Layout name it's attached to
+     * @param {Sy.View.Layout} layout
+     *
+     * @return {Sy.View.LayoutFactoryInterface} self
+     */
+
+    setLayoutWrapper: {
+        value: function (viewscreen, name, layout) {}
     }
 
 });

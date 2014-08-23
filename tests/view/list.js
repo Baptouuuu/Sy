@@ -108,4 +108,12 @@ describe('view list', function () {
         expect(node.children[1].textContent).toEqual('second');
     });
 
+    it('should set the viewscreen name', function () {
+        expect(list.setViewScreenName('foo')).toEqual(list);
+    });
+
+    it('should set the layout name', function () {
+        expect(list.setLayoutName('foo')).toEqual(list);
+    });
+
 });

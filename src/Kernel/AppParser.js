@@ -12,7 +12,6 @@ Sy.Kernel.AppParser = function () {
     this.bundles = [];
     this.controllers = [];
     this.entities = [];
-    this.viewscreens = [];
     this.logger = null;
 };
 Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
@@ -147,45 +146,6 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
             }
 
             return this.entities;
-
-        }
-    },
-
-    /**
-     * Return the list of viewscreens wrappers
-     *
-     * @return {Array}
-     */
-
-    getViewScreens: {
-        value: function () {
-
-            if (this.viewscreens.length > 0) {
-                return this.viewscreens;
-            }
-
-            var bundleViewScreens;
-
-            for (var i = 0, l = this.bundles.length; i < l; i++) {
-                bundleViewScreens = App.Bundle[this.bundles[i]].ViewScreen;
-
-                if (!bundleViewScreens) {
-                    this.logger && this.logger.debug('No viewscreen wrapper found in', this.bundles[i]);
-                    continue;
-                }
-
-                for (var name in bundleViewScreens) {
-                    if (bundleViewScreens.hasOwnProperty(name)) {
-                        this.viewscreens.push({
-                            name: this.bundles[i] + '::' + name,
-                            creator: bundleViewScreens[name]
-                        });
-                        this.logger && this.logger.debug('ViewScreen wrapper found', this.bundles[i] + '::' + name);
-                    }
-                }
-            }
-
-            return this.viewscreens;
 
         }
     },
