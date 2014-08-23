@@ -22,6 +22,7 @@ describe('view layout', function () {
         node;
 
     factory.setTemplateEngine(engine);
+    factory.setRegistry(new Sy.Registry());
 
     beforeEach(function () {
         node = rawNode.cloneNode(true);
