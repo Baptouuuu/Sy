@@ -15,6 +15,7 @@ Sy.View.Layout = function () {
     this.lists = null;
     this.parser = null;
     this.listFactory = null;
+    this.screen = null;
 };
 Sy.View.Layout.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
@@ -34,7 +35,11 @@ Sy.View.Layout.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
             lists = this.parser.getLists(node);
 
             for (var i = 0, l = lists.length; i < l; i++) {
-                wrapper = this.listFactory.make(lists[i]);
+                wrapper = this.listFactory.make(
+                    this.screen,
+                    this.name,
+                    lists[i]
+                );
 
                 this.lists.set(
                     wrapper.getName(),
@@ -44,6 +49,22 @@ Sy.View.Layout.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
             return this;
 
+        }
+    },
+
+    /**
+     * Set the view screen name the layout belongs to
+     *
+     * @param {String} name
+     *
+     * @return {Sy.View.Layout} self
+     */
+
+    setViewScreenName: {
+        value: function (name) {
+            this.screen = name;
+
+            return this;
         }
     },
 

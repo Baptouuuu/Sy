@@ -94,11 +94,12 @@ Sy.View.LayoutFactory.prototype = Object.create(Sy.View.LayoutFactoryInterface.p
      */
 
     make: {
-        value: function (node) {
+        value: function (viewscreen, node) {
 
             var wrapper = new Sy.View.Layout();
 
             return wrapper
+                .setViewScreenName(viewscreen)
                 .setParser(this.parser)
                 .setListFactory(this.listFactory)
                 .setListsRegistry(this.registryFactory.make())

@@ -57,7 +57,7 @@ describe('view layout factory', function () {
             wrapper;
 
         node.dataset.syLayout = 'name';
-        wrapper = factory.make(node);
+        wrapper = factory.make('viewscreen name', node);
 
         expect(wrapper instanceof Sy.View.Layout).toBe(true);
     });

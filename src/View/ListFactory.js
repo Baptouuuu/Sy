@@ -37,11 +37,13 @@ Sy.View.ListFactory.prototype = Object.create(Sy.View.ListFactoryInterface.proto
      */
 
     make: {
-        value: function (node) {
+        value: function (viewscreen, layout, node) {
 
             var wrapper = new Sy.View.List();
 
             return wrapper
+                .setViewScreenName(viewscreen)
+                .setLayoutName(layout)
                 .setTemplateEngine(this.engine)
                 .setNode(node);
 

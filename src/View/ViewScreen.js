@@ -34,7 +34,7 @@ Sy.View.ViewScreen.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
             layouts = this.parser.getLayouts(node);
 
             for (var i = 0, l = layouts.length; i < l; i++) {
-                wrapper = this.layoutFactory.make(layouts[i]);
+                wrapper = this.layoutFactory.make(this.name, layouts[i]);
 
                 this.layouts.set(
                     wrapper.getName(),

@@ -61,4 +61,8 @@ describe('view layout', function () {
         expect(lists.length).toEqual(1);
     });
 
+    it('should set the viewscreen name', function () {
+        expect(layout.setViewScreenName('foo')).toEqual(layout);
+    });
+
 });

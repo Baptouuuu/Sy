@@ -29,7 +29,11 @@ describe('view list factory', function () {
             wrapper;
 
         node.dataset.syList = 'name';
-        wrapper = factory.make(node);
+        wrapper = factory.make(
+            'viewscreen name',
+            'layout name',
+            node
+        );
 
         expect(wrapper instanceof Sy.View.List).toBe(true);
     });
