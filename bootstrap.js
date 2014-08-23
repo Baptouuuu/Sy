@@ -3,11 +3,6 @@ namespace('Sy');
 Sy.kernel = new Sy.Kernel.Core();
 Sy.kernel.getConfig().set({
     env: 'prod',
-    app: {
-        meta: {
-            viewscreens: [] //array of objects containing `name` and `creator` attributes
-        }
-    },
     storage: {
         engines: [
             {

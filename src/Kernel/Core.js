@@ -61,8 +61,7 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
             this.config.set('app.meta', {
                 bundles: parser.getBundles(),
                 controllers: parser.getControllers(),
-                entities: parser.getEntities(),
-                viewscreens: parser.getViewScreens()
+                entities: parser.getEntities()
             });
 
             parser
