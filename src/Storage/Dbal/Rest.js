@@ -29,7 +29,7 @@ Sy.Storage.Dbal.Rest.prototype = Object.create(Sy.Storage.Dbal.DriverInterface.p
 
     setURLPattern: {
         value: function (pattern) {
-            if (pattern.substr(-1) !== '/') {
+            if (pattern.substr(- 1) !== '/') {
                 pattern += '/';
             }
 
