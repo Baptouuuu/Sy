@@ -15,6 +15,7 @@ describe('storage dbal factory', function () {
 
     beforeEach(function () {
         factory = new Sy.Storage.Dbal.Factory();
+        factory.setFactoriesRegistry(new Sy.Registry());
     });
 
     it('should set a new registry for the factories', function () {
