@@ -129,7 +129,9 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
                         entity = bundleEntities[name];
 
                         this.entities.push({
-                            name: alias,
+                            alias: alias,
+                            bundle: this.bundles[i],
+                            name: name,
                             repository: bundleRepositories[name] || Sy.Storage.Repository,
                             entity: entity,
                             indexes: (new entity()).indexes,
