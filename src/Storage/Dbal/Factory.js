@@ -117,8 +117,9 @@ Sy.Storage.Dbal.Factory.prototype = Object.create(Sy.FactoryInterface.prototype,
             factory = this.factories.get(conn.driver);
             driver = factory.make(
                 conn.dbname,
-                conn.version,
-                conn.stores
+                conn.version || 1,
+                conn.stores || [],
+                conn.options || {}
             );
 
             if (!(driver instanceof Sy.Storage.Dbal.DriverInterface)) {
