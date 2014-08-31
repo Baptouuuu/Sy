@@ -102,6 +102,8 @@ Sy.Storage.Dbal.Factory.prototype = Object.create(Sy.FactoryInterface.prototype,
 
     make: {
         value: function (name) {
+            name = name || this.defaultConnection;
+
             if (!this.connections.hasOwnProperty(name)) {
                 throw new ReferenceError('No connection defined with the name "' + name + '"');
             }
