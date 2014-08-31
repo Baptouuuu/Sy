@@ -437,7 +437,7 @@ Sy.Storage.Dbal.IndexedDB.prototype = Object.create(Sy.Storage.Dbal.DriverInterf
                         var result = event.target.result;
 
                         if (!!result === false) {
-                            if (limit) {
+                            if (limit !== undefined) {
                                 resolve(results.slice(0, limit));
                             } else {
                                 resolve(results);
