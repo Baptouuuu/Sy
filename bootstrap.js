@@ -242,5 +242,38 @@ Sy.kernel.getContainer()
                 ['setDefaultConnectionName', ['%storage.dbal.defaultConnection%']],
                 ['setConnections', ['%storage.dbal.connections%']]
             ]
+        },
+        'sy::core::storage::dbal::driver_factory::indexeddb': {
+            constructor: 'Sy.Storage.Dbal.IndexedDBFactory',
+            private: true,
+            calls: [
+                ['setEntitiesMeta', ['%app.meta.entities%']],
+                ['setLogger', ['@sy::core::logger']]
+            ],
+            tags: [
+                {name: 'storage.driver_factory', alias: 'indexeddb'}
+            ]
+        },
+        'sy::core::storage::dbal::driver_factory::localstorage': {
+            constructor: 'Sy.Storage.Dbal.LocalstorageFactory',
+            private: true,
+            calls: [
+                ['setEntitiesMeta', ['%app.meta.entities%']],
+                ['setLogger', ['@sy::core::logger']]
+            ],
+            tags: [
+                {name: 'storage.driver_factory', alias: 'localstorage'}
+            ]
+        },
+        'sy::core::storage::dbal::driver_factory::rest': {
+            constructor: 'Sy.Storage.Dbal.RestFactory',
+            private: true,
+            calls: [
+                ['setEntitiesMeta', ['%app.meta.entities%']],
+                ['setLogger', ['@sy::core::logger']]
+            ],
+            tags: [
+                {name: 'storage.driver_factory', alias: 'rest'}
+            ]
         }
     });
