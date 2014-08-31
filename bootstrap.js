@@ -21,8 +21,24 @@ Sy.kernel.getConfig().set({
                 idb: {
                     driver: 'indexeddb',
                     dbname: 'sy::app',
+                    version: 1
+                },
+                local: {
+                    driver: 'localstorage',
+                    dbname: 'sy::app',
+                    options: {
+                        temporary: false
+                    }
+                },
+                rest: {
+                    driver: 'http',
                     version: 1,
-                    stores: []
+                    options: {
+                        pattern: '/{version}/{bundle}/{name}/',
+                        headers: [
+                            ['X-API-VERSION', 'vendor/1']
+                        ]
+                    }
                 }
             }
         }
