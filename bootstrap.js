@@ -3,25 +3,6 @@ namespace('Sy');
 Sy.kernel = new Sy.Kernel.Core();
 Sy.kernel.getConfig().set({
     env: 'prod',
-    storage: {
-        engines: [
-            {
-                name: 'indexeddb',
-                factory: 'sy::core::storage::factory::engine::indexeddb',
-                mapper: 'sy::core::storage::storemapper::indexeddb'
-            },
-            {
-                name: 'localstorage',
-                factory: 'sy::core::storage::factory::engine::localstorage',
-                mapper: 'sy::core::storage::storemapper::localstorage'
-            },
-            {
-                name: 'rest',
-                factory: 'sy::core::storage::factory::engine::rest',
-                mapper: 'sy::core::storage::storemapper::rest'
-            }
-        ]
-    },
     controllers: {
         cache: true
     },
@@ -102,52 +83,6 @@ Sy.kernel.getContainer()
                 ['setTemplateEngine', ['@sy::core::view::template::engine']],
                 ['setRegistryFactory', ['@sy::core::registry::factory']],
                 ['setLayoutFactory', ['@sy::core::view::factory::layout']],
-            ]
-        },
-        'sy::core::storage::factory::engine::indexeddb': {
-            constructor: 'Sy.Storage.EngineFactory.IndexedDBFactory',
-            calls: [
-                ['setLogger', ['@sy::core::logger']],
-                ['setMediator', ['@sy::core::mediator']]
-            ]
-        },
-        'sy::core::storage::factory::engine::localstorage': {
-            constructor: 'Sy.Storage.EngineFactory.LocalstorageFactory',
-            calls: [
-                ['setLogger', ['@sy::core::logger']],
-                ['setMediator', ['@sy::core::mediator']]
-            ]
-        },
-        'sy::core::storage::factory::engine::rest': {
-            constructor: 'Sy.Storage.EngineFactory.RestFactory',
-            calls: [
-                ['setLogger', ['@sy::core::logger']],
-                ['setMediator', ['@sy::core::mediator']],
-                ['setManager', ['@sy::core::http::rest']]
-            ]
-        },
-        'sy::core::storage::storemapper::indexeddb': {
-            constructor: 'Sy.Storage.StoreMapper.IndexedDBMapper'
-        },
-        'sy::core::storage::storemapper::localstorage': {
-            constructor: 'Sy.Storage.StoreMapper.LocalstorageMapper'
-        },
-        'sy::core::storage::storemapper::rest': {
-            constructor: 'Sy.Storage.StoreMapper.RestMapper'
-        },
-        'sy::core::storage::unitofwork::factory': {
-            constructor: 'Sy.Storage.UnitOfWorkFactory',
-            calls: [
-                ['setGenerator', ['@sy::core::generator::uuid']],
-                ['setStateRegistryFactory', ['@sy::core::stateregistry::factory']]
-            ]
-        },
-        'sy::core::storage::repository::factory': {
-            constructor: 'Sy.Storage.RepositoryFactory',
-            calls: [
-                ['setRegistryFactory', ['@sy::core::registry::factory']],
-                ['setUOWFactory', ['@sy::core::storage::unitofwork::factory']],
-                ['setMeta', ['%app.meta.entities%']]
             ]
         },
         'sy::core::form': {
@@ -270,49 +205,4 @@ Sy.kernel.getContainer()
             constructor: 'Sy.Validator.ConstraintFactory',
             private: true
         }
-    })
-    .set('sy::core::storage::factory::engine::core', function () {
-
-        var factory = new Sy.Storage.EngineFactory.Core(),
-            factories = this.getParameter('storage.engines');
-
-        factory.setRegistry(
-            this.get('sy::core::registry::factory').make()
-        );
-
-        for (var i = 0, l = factories.length; i < l; i++) {
-            factory.setEngineFactory(
-                factories[i].name,
-                this.get(factories[i].factory),
-                this.get(factories[i].mapper)
-            );
-        }
-
-        return factory;
-
-    })
-    .set('sy::core::storage', function () {
-
-        var meta = this.getParameter('app.meta.entities'),
-            storage = new Sy.Storage.Core(),
-            managerFact = new Sy.Storage.ManagerFactory(),
-            engineFact = this.get('sy::core::storage::factory::engine::core'),
-            conf = this.getParameter('storage.managers'),
-            registryFact = this.get('sy::core::registry::factory');
-
-        storage.setRegistry(registryFact.make());
-
-        managerFact
-            .setEngineFactory(engineFact)
-            .setRepositoryFactory(this.get('sy::core::storage::repository::factory'));
-
-        for (var name in conf) {
-            if (conf.hasOwnProperty(name)) {
-                var manager = managerFact.make(name, conf[name], meta);
-
-                storage.setManager(name, manager);
-            }
-        }
-
-        return storage;
     });
