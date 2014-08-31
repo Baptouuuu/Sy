@@ -13,6 +13,19 @@ Sy.kernel.getConfig().set({
             error: Sy.Lib.Logger.CoreLogger.prototype.ERROR,
             log: Sy.Lib.Logger.CoreLogger.prototype.LOG,
         }
+    },
+    storage: {
+        dbal: {
+            defaultConnection: 'idb',
+            connections: {
+                idb: {
+                    driver: 'indexeddb',
+                    dbname: 'sy::app',
+                    version: 1,
+                    stores: []
+                }
+            }
+        }
     }
 });
 
@@ -204,5 +217,14 @@ Sy.kernel.getContainer()
         'sy::core::validator::constraintfactory': {
             constructor: 'Sy.Validator.ConstraintFactory',
             private: true
+        },
+        'sy::core::storage::dbal::factory': {
+            constructor: 'Sy.Storage.Dbal.Factory',
+            private: true,
+            calls: [
+                ['setFactoriesRegistry', ['@sy::core::registry']],
+                ['setDefaultConnectionName', ['%storage.dbal.defaultConnection%']],
+                ['setConnections', ['%storage.dbal.connections%']]
+            ]
         }
     });

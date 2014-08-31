@@ -75,7 +75,8 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                 .registerShutdownListener()
                 .registerFormTypes()
                 .registerEventSubscribers()
-                .registerViewPasses();
+                .registerViewPasses()
+                .registerStoragePasses();
 
             this.container.compile();
 
@@ -245,6 +246,24 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                 .addPass(vs)
                 .addPass(layout)
                 .addPass(list);
+
+            return this;
+        }
+    },
+
+    /**
+     * Register all the passes to make the storage engine work
+     *
+     * @return {Sy.Kernel.Core} self
+     */
+
+    registerStoragePasses: {
+        value: function () {
+            this.container.addPass(
+                new Sy.Kernel.CompilerPass.RegisterDriverFactoryPass()
+            );
+
+            return this;
         }
     }
 
