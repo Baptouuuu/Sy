@@ -112,7 +112,11 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
             return uow
                 .setIdentityMap(this.identityMap)
                 .setEntitiesRegistry(this.stateRegistryFactory.make())
-                .setStatesRegistry(this.stateRegistryFactory.make())
+                .setStatesRegistry(
+                    this.stateRegistryFactory
+                        .make()
+                        .setStrict()
+                )
                 .setPropertyAccessor(this.propertyAccessor);
         }
     }
