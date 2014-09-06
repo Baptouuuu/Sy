@@ -12,6 +12,7 @@ namespace('Sy.Storage');
 Sy.Storage.UnitOfWorkFactory = function () {
     this.identityMap = new Sy.Storage.IdentityMap();
     this.registryFactory = null;
+    this.stateRegistryFactory = null;
 };
 Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
 
@@ -60,6 +61,26 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
     },
 
     /**
+     * Set the state registry factory
+     *
+     * @param {Sy.StateRegistryFactory} factory
+     *
+     * @return {Sy.Storage.UnitOfWorkFactory} self
+     */
+
+    setStateRegistryFactory: {
+        value: function (factory) {
+            if (!(factory instanceof Sy.StateRegistryFactory)) {
+                throw new TypeError('Invalid state registry factory');
+            }
+
+            this.stateRegistryFactory = factory;
+
+            return this;
+        }
+    },
+
+    /**
      * @inheritDoc
      */
 
@@ -68,7 +89,8 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
             var uow = new Sy.Storage.UnitOfWork();
 
             return uow
-                .setIdentityMap(this.identityMap);
+                .setIdentityMap(this.identityMap)
+                .setEntitiesRegistry(this.stateRegistryFactory.make());
         }
     }
 
