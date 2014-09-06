@@ -56,12 +56,18 @@ describe('property accessor', function () {
                 value: function () {
                     return 'bar';
                 }
+            },
+            get: {
+                value: function () {
+                    return 'd';
+                }
             }
         });
 
         o.a.b = new O();
 
         expect(a.getValue(o, 'a.b.c')).toEqual('bar');
+        expect(a.getValue(o, 'a.b.d')).toEqual('d');
     });
 
     it('should get the value via the isser', function () {
