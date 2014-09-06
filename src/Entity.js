@@ -9,27 +9,14 @@ namespace('Sy');
  */
 
 Sy.Entity = function () {
-
     this.attributes = {};
-
     this.register(this.UUID);
-
 };
-
 Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
 
-    indexes: {
+    INDEXES: {
         value: [],
         enumerable: false
-    },
-
-    connections: {
-        value: {},
-        enumerable: false
-    },
-
-    UUID: {
-        value: 'uuid'
     },
 
     /**
@@ -66,36 +53,6 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
             } else {
                 return this.attributes[attr];
             }
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    register: {
-        value: function (attr, entity) {
-
-            var regexp = new RegExp(/^\w+::\w+$/gi);
-
-            if (this.indexes.indexOf(attr) === -1) {
-                this.indexes.push(attr);
-
-                if (entity !== undefined) {
-
-                    if (!regexp.test(entity)) {
-                        throw new SyntaxError('Invalid entity name format');
-                    }
-
-                    var path = entity.split('::');
-
-                    this.connections[attr] = App.Bundle[path[0]].Entity[path[1]];
-
-                }
-            }
-
-            return this;
 
         }
     },

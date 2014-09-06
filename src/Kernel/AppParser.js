@@ -134,7 +134,7 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
                             name: name,
                             repository: bundleRepositories[name],
                             entity: entity,
-                            indexes: (new entity()).indexes,
+                            indexes: entity.prototype.INDEXES,
                             uuid: entity.prototype.UUID
                         });
 
