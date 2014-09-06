@@ -83,6 +83,16 @@ Sy.StateRegistryInterface.prototype = Object.create(Object.prototype, {
 
     remove: {
         value: function (state, key) {}
+    },
+
+    /**
+     * Set the registry as strict, meaning a key can only exist in one state
+     *
+     * @return {Sy.StateRegistryInterface}
+     */
+
+    setStrict: {
+        value: function () {}
     }
 
 });
