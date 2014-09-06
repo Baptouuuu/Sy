@@ -327,5 +327,9 @@ Sy.kernel.getContainer()
                 ['setRegistryFactory', ['@sy::core::registry::factory']],
                 ['setStateRegistryFactory', ['@sy::core::stateregistry::factory']]
             ]
+        },
+        'sy::core::propertyaccessor': {
+            constructor: 'Sy.PropertyAccessor',
+            prototype: true
         }
     });
