@@ -13,6 +13,7 @@ Sy.Storage.ManagerFactory = function () {
     this.definitions = {};
     this.dbals = null;
     this.repoFactory = null;
+    this.uowFactory = null;
 };
 Sy.Storage.ManagerFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
 
@@ -73,6 +74,26 @@ Sy.Storage.ManagerFactory.prototype = Object.create(Sy.FactoryInterface.prototyp
     },
 
     /**
+     * Set the unit of work factory
+     *
+     * @param {Sy.Storage.UnitOfWorkFactory} factory
+     *
+     * @return {Sy.Storage.ManagerFactory} self
+     */
+
+    setUnitOfWorkFactory: {
+        value: function (factory) {
+            if (!(factory instanceof Sy.Storage.UnitOfWorkFactory)) {
+                throw new TypeError('Invalid unit of work factory');
+            }
+
+            this.uowFactory = factory;
+
+            return this;
+        }
+    },
+
+    /**
      * @inheritDoc
      */
 
@@ -82,16 +103,21 @@ Sy.Storage.ManagerFactory.prototype = Object.create(Sy.FactoryInterface.prototyp
                 throw new ReferenceError('Unknown manager definition');
             }
 
-            var manager = new Sy.Storage.Manager();
+            var manager = new Sy.Storage.Manager(),
+                uow = this.uowFactory.make(),
+                driver = this.dbals.get(
+                    this.definitions[name].connection
+                );
+
+            uow.setDriver(driver);
 
             return manager
-                .setDriver(this.dbals.get(
-                    this.definitions[name].connection
-                ))
+                .setDriver(driver)
                 .setRepositoryFactory(this.repoFactory)
                 .setMappings(
                     this.definitions[name].mappings || []
-                );
+                )
+                .setUnitOfWork(uow);
         }
     }
 

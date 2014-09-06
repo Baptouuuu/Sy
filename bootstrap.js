@@ -300,7 +300,8 @@ Sy.kernel.getContainer()
             calls: [
                 ['setDefinitions', ['%storage.orm.managers%']],
                 ['setDbalFactory', ['@sy::core::storage::dbal::factory']],
-                ['setRepositoryFacctory', ['@sy::core::storage::factory::repository']]
+                ['setRepositoryFacctory', ['@sy::core::storage::factory::repository']],
+                ['setUnitOfWorkFactory', ['@sy::core::storage::factory::unitofwork']]
             ]
         },
         'sy::core::storage::factory::repository': {
@@ -317,6 +318,13 @@ Sy.kernel.getContainer()
             private: true,
             calls: [
                 ['setMetadata', ['%app.meta.entities%']]
+            ]
+        },
+        'sy::core::storage::factory::unitofwork': {
+            constructor: 'Sy.Storage.UnitOfWorkFactory',
+            private: true,
+            calls: [
+                ['setRegistryFactory', ['@sy::core::registry::factory']]
             ]
         }
     });
