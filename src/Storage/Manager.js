@@ -113,7 +113,9 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
      */
 
     find: {
-        value: function (alias, id) {}
+        value: function (alias, id) {
+            return this.uow.find(alias, id);
+        }
     },
 
     /**
@@ -125,7 +127,11 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
      */
 
     persist: {
-        value: function (entity) {}
+        value: function (entity) {
+            this.uow.persist(entity);
+
+            return this;
+        }
     },
 
     /**
@@ -135,7 +141,11 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
      */
 
     flush: {
-        value: function () {}
+        value: function () {
+            this.uow.commit();
+
+            return this;
+        }
     },
 
     /**
@@ -147,7 +157,11 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
      */
 
     remove: {
-        value: function (entity) {}
+        value: function (entity) {
+            this.uow.remove(entity);
+
+            return this;
+        }
     },
 
     /**
@@ -159,7 +173,11 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
      */
 
     clear: {
-        value: function () {}
+        value: function (alias) {
+            this.uow.clear(alias);
+
+            return this;
+        }
     },
 
     /**
@@ -172,7 +190,11 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
      */
 
     detach: {
-        value: function (entity) {}
+        value: function (entity) {
+            this.uow.detach(entity);
+
+            return this;
+        }
     },
 
     /**
@@ -184,7 +206,9 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
      */
 
     getRepository: {
-        value: function (alias) {}
+        value: function (alias) {
+            return this.repoFactory.make(this, alias);
+        }
     },
 
     /**
@@ -196,7 +220,9 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
      */
 
     contains: {
-        value: function (entity) {}
+        value: function (entity) {
+            return this.uow.isManaged(entity);
+        }
     },
 
     /**
