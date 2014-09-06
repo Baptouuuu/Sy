@@ -41,6 +41,15 @@ Sy.kernel.getConfig().set({
                     }
                 }
             }
+        },
+        orm: {
+            defaultManager: 'default',
+            managers: {
+                default: {
+                    connection: 'idb',
+                    mappings: []
+                }
+            }
         }
     }
 });
@@ -274,6 +283,40 @@ Sy.kernel.getContainer()
             ],
             tags: [
                 {name: 'storage.driver_factory', alias: 'rest'}
+            ]
+        },
+        'storage': '@sy::core:storage',
+        'sy::core::storage': {
+            constructor: 'Sy.Storage.Core',
+            calls: [
+                ['setManagersRegistry', ['@sy::core::registry']],
+                ['setDefaultManager', ['%storage.orm.defaultManager%']],
+                ['setManagerFactory', ['@sy::core::storage::factory::manager']]
+            ]
+        },
+        'sy::core::storage::factory::manager': {
+            constructor: 'Sy.Storage.ManagerFactory',
+            private: true,
+            calls: [
+                ['setDefinitions', ['%storage.orm.managers%']],
+                ['setDbalFactory', ['@sy::core::storage::dbal::factory']],
+                ['setRepositoryFacctory', ['@sy::core::storage::factory::repository']]
+            ]
+        },
+        'sy::core::storage::factory::repository': {
+            constructor: 'Sy.Storage.RepositoryFactory',
+            private: true,
+            configurator: ['sy::core::storage::repofactconfigurator', 'configure'],
+            calls: [
+                ['setMetadatRegistry', ['@sy::core::registry']],
+                ['setRepositoriesRegistry', ['@sy::core::registry']]
+            ]
+        },
+        'sy::core::storage::repofactconfigurator': {
+            constructor: 'Sy.Storage.RepositoryFactoryConfigurator',
+            private: true,
+            calls: [
+                ['setMetadata', ['%app.meta.entities%']]
             ]
         }
     });
