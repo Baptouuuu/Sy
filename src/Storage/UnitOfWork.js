@@ -172,6 +172,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                 entity = this.entities.get(alias, data[key]);
             } else {
                 entity = new constructor();
+                this.entities.set(alias, data[key], entity);
             }
 
             for (var p in data) {
@@ -179,6 +180,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                     entity.set(p, data[p]);
                 }
             }
+
 
             return entity;
         }
