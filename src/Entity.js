@@ -10,7 +10,6 @@ namespace('Sy');
 
 Sy.Entity = function () {
     this.attributes = {};
-    this.register(this.UUID);
 };
 Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
 
@@ -71,6 +70,8 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
             if (Object.isSealed(this.attributes)) {
                 return;
             }
+
+            this.attributes = {};
 
             for (var i = 0, l = attributes.length; i < l; i++) {
                 this.attributes[attributes[i]] = null;

@@ -17,42 +17,6 @@ describe('entity', function () {
 
     });
 
-    it('should register a new index', function () {
-
-        var e = new Sy.Entity();
-
-        e.register('foo');
-
-        expect(e.indexes.indexOf('foo')).not.toEqual(-1);
-
-    });
-
-    it('should register a connection to another entity', function () {
-
-        var e = new Sy.Entity();
-
-        namespace('App.Bundle.Foo.Entity');
-
-        App.Bundle.Foo.Entity.Bar = function () {};
-        App.Bundle.Foo.Entity.Bar.prototype = Object.create(Sy.Entity.prototype);
-
-        e.register('foobar', 'Foo::Bar');
-
-        expect(e.indexes.indexOf('foo')).not.toEqual(-1);
-        expect(e.connections.foobar).toEqual(App.Bundle.Foo.Entity.Bar);
-
-    });
-
-    it('should throw an error when entity relation alias name format is invalid', function () {
-
-        var e = new Sy.Entity();
-
-        expect(function () {
-            e.register('foobaz', 'invalidFormat');
-        }).toThrow('Invalid entity name format');
-
-    });
-
     it('should lock the entity properties', function () {
 
         var f = function () {
@@ -88,12 +52,48 @@ describe('entity', function () {
 
     });
 
+    it('should throw if locking without specifying wrong attributes list', function () {
+        expect(function () {
+            var e = new Sy.Entity();
+            e.lock('foo');
+        }).toThrow();
+    });
+
+    it('should not change the locked attributes', function () {
+        var e = new Sy.Entity();
+
+        e.lock(['foo']);
+        e.lock(['bar']);
+        e.set('foo', 'foo');
+        e.set('bar', 'bar');
+
+        expect(e.get('foo')).toEqual('foo');
+        expect(e.get('bar')).toEqual(undefined);
+    });
+
+    it('should return all attributes', function () {
+        var e = new Sy.Entity();
+        e.set('foo', 'bar');
+
+        expect(e.get()).toEqual({foo: 'bar'});
+    });
+
+    it('should initialize the entity with the given data object', function () {
+        var e = new Sy.Entity();
+        e.set({
+            foo: 'bar',
+            bar: 'baz'
+        });
+
+        expect(e.get('foo')).toEqual('bar');
+        expect(e.get('bar')).toEqual('baz');
+    });
+
     it('should return itself', function () {
 
         var e = new Sy.Entity();
 
         expect(e.set('foo', 'bar')).toEqual(e);
-        expect(e.register('foo')).toEqual(e);
         expect(e.lock(['foo'])).toEqual(e);
 
     });
