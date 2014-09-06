@@ -13,6 +13,7 @@ Sy.Storage.UnitOfWorkFactory = function () {
     this.identityMap = new Sy.Storage.IdentityMap();
     this.registryFactory = null;
     this.stateRegistryFactory = null;
+    this.propertyAccessor = null;
 };
 Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
 
@@ -81,6 +82,26 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
     },
 
     /**
+     * Set a property accessor
+     *
+     * @param {Sy.PropertyAccessor} accessor
+     *
+     * @return {Sy.Storage.UnitOfWorkFactory} self
+     */
+
+    setPropertyAccessor: {
+        value: function (accessor) {
+            if (!(accessor instanceof Sy.PropertyAccessor)) {
+                throw new TypeError('Invalid property accessor');
+            }
+
+            this.propertyAccessor = accessor;
+
+            return this;
+        }
+    },
+
+    /**
      * @inheritDoc
      */
 
@@ -90,7 +111,9 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
 
             return uow
                 .setIdentityMap(this.identityMap)
-                .setEntitiesRegistry(this.stateRegistryFactory.make());
+                .setEntitiesRegistry(this.stateRegistryFactory.make())
+                .setStatesRegistry(this.stateRegistryFactory.make())
+                .setPropertyAccessor(this.propertyAccessor);
         }
     }
 

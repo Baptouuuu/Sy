@@ -12,8 +12,33 @@ Sy.Storage.UnitOfWork = function () {
     this.driver = null;
     this.map = null;
     this.entities = null;
+    this.states = null;
+    this.propertyAccessor = null;
+    this.scheduledForInsert = [];
+    this.scheduledForUpdate = [];
+    this.scheduledForDelete = [];
 };
 Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
+
+    STATE_NEW: {
+        value: 'new',
+        writable: false,
+    },
+
+    STATE_MANAGED: {
+        value: 'managed',
+        writable: false
+    },
+
+    STATE_DETACHED: {
+        value: 'detached',
+        writable: false
+    },
+
+    STATE_REMOVED: {
+        value: 'removed',
+        writable: false
+    },
 
     /**
      * Set the database driver
@@ -82,6 +107,46 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
             }
 
             this.entities = registry;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a property accessor
+     *
+     * @param {Sy.PropertyAccessor} accessor
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setPropertyAccessor: {
+        value: function (accessor) {
+            if (!(accessor instanceof Sy.PropertyAccessor)) {
+                throw new TypeError('Invalid property accessor');
+            }
+
+            this.propertyAccessor = accessor;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a state registry to hold entities states
+     *
+     * @param {Sy.StateRegistryInterface} registry
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setStatesRegistry: {
+        value: function (registry) {
+            if (!(registry instanceof Sy.StateRegistryInterface)) {
+                throw new TypeError('Invalid state registry');
+            }
+
+            this.states = registry;
 
             return this;
         }
@@ -189,6 +254,8 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                 }
             }
 
+            this.states.set(this.STATE_NEW, data[key], data[key]);
+
             return entity;
         }
     },
@@ -202,7 +269,31 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
      */
 
     persist: {
-        value: function (entity) {}
+        value: function (entity) {
+            if (!(entity instanceof Sy.EntityInterface)) {
+                throw new TypeError('Invalid entity');
+            }
+
+            var alias = this.map.getAlias(entity),
+                key = this.map.getKey(alias),
+                id = this.propertyAccessor.getValue(entity, key),
+                state = this.states.state(id);
+
+            this.entities.set(alias, id, entity);
+
+            if (state === undefined) {
+                this.states.set(
+                    this.STATE_NEW,
+                    id,
+                    id
+                );
+                this.scheduledForInsert.push(entity)
+            } else {
+                this.scheduledForUpdate.push(entity);
+            }
+
+            return this;
+        }
     },
 
     /**
@@ -224,7 +315,15 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
      */
 
     remove: {
-        value: function (entity) {}
+        value: function (entity) {
+            if (!(entity instanceof Sy.EntityInterface)) {
+                throw new TypeError('Invalid entity');
+            }
+
+            this.scheduledForDelete.push(entity);
+
+            return this;
+        }
     },
 
     /**
