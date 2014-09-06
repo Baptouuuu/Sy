@@ -28,9 +28,12 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
             for (var i = 0, l = metadata.length; i < l; i++) {
                 this.identityMap.set(
                     metadata[i].alias,
-                    metadata[i].entity
+                    metadata[i].entity,
+                    metadata[i].uuid
                 );
             }
+
+            this.identityMap.lock();
 
             return this;
         }
