@@ -181,7 +181,6 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                 }
             }
 
-
             return entity;
         }
     },
