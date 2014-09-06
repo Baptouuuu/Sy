@@ -359,7 +359,14 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
      */
 
     isManaged: {
-        value: function (entity) {}
+        value: function (entity) {
+            var alias = this.map.getAlias(entity),
+                key = this.map.getKey(alias),
+                id = this.propertyAccessor.getValue(entity, key);
+                state = this.states.state(id);
+
+            return [this.STATE_NEW, this.STATE_MANAGED].indexOf(state) !== -1;
+        }
     }
 
 });
