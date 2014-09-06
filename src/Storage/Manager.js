@@ -114,6 +114,10 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
 
     find: {
         value: function (alias, id) {
+            if (!this.isHandled(alias)) {
+                throw new ReferenceError('Entity not handled by this manager');
+            }
+
             return this.uow.find(alias, id);
         }
     },
@@ -128,6 +132,10 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
 
     persist: {
         value: function (entity) {
+            if (!this.isHandled(this.uow.getIdentityMap.getKey(entity))) {
+                throw new ReferenceError('Entity not handled by this manager');
+            }
+
             this.uow.persist(entity);
 
             return this;
@@ -158,6 +166,10 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
 
     remove: {
         value: function (entity) {
+            if (!this.isHandled(this.uow.getIdentityMap.getKey(entity))) {
+                throw new ReferenceError('Entity not handled by this manager');
+            }
+
             this.uow.remove(entity);
 
             return this;
@@ -191,6 +203,10 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
 
     detach: {
         value: function (entity) {
+            if (!this.isHandled(this.uow.getIdentityMap.getKey(entity))) {
+                throw new ReferenceError('Entity not handled by this manager');
+            }
+
             this.uow.detach(entity);
 
             return this;
@@ -207,6 +223,10 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
 
     getRepository: {
         value: function (alias) {
+            if (!this.isHandled(alias)) {
+                throw new ReferenceError('Entity not handled by this manager');
+            }
+
             return this.repoFactory.make(this, alias);
         }
     },
@@ -221,6 +241,10 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
 
     contains: {
         value: function (entity) {
+            if (!this.isHandled(this.uow.getIdentityMap.getKey(entity))) {
+                throw new ReferenceError('Entity not handled by this manager');
+            }
+
             return this.uow.isManaged(entity);
         }
     },
