@@ -376,7 +376,27 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                 throw new TypeError('Invalid entity');
             }
 
-            this.scheduledForDelete.push(entity);
+            var alias = this.map.getAlias(entity),
+                key = this.map.getKey(alias),
+                state = this.states.state(
+                    this.propertyAccessor.getValue(entity, key)
+                );
+
+            if (state === this.STATE_MANAGED) {
+                if (this.isScheduledForUpdate(entity)) {
+                    this.scheduledForUpdate.splice(
+                        this.scheduledForUpdate.indexOf(entity),
+                        1
+                    );
+                }
+
+                this.scheduledForDelete.push(entity);
+            } else if (state === this.STATE_NEW) {
+                this.scheduledForInsert.splice(
+                    this.scheduledForInsert.indexOf(entity),
+                    1
+                );
+            }
 
             return this;
         }
