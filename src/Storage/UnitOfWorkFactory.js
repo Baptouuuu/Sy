@@ -14,6 +14,8 @@ Sy.Storage.UnitOfWorkFactory = function () {
     this.registryFactory = null;
     this.stateRegistryFactory = null;
     this.propertyAccessor = null;
+    this.logger = null;
+    this.logger = null;
 };
 Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
 
@@ -102,6 +104,46 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
     },
 
     /**
+     * Set a logger
+     *
+     * @param {Sy.Lib.Logger.Interface} logger
+     *
+     * @return {Sy.Storage.UnitOfWorkFactory} self
+     */
+
+    setLogger: {
+        value: function (logger) {
+            if (!(logger instanceof Sy.Lib.Logger.Interface)) {
+                throw new TypeError('Invalid logger');
+            }
+
+            this.logger = logger;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a generator
+     *
+     * @param {Sy.Lib.Generator.Interface} generator
+     *
+     * @return {Sy.Storage.UnitOfWorkFactory} self
+     */
+
+    setGenerator: {
+        value: function (generator) {
+            if (!(generator instanceof Sy.Lib.Generator.Interface)) {
+                throw new TypeError('Invalid generator');
+            }
+
+            this.generator = generator;
+
+            return this;
+        }
+    },
+
+    /**
      * @inheritDoc
      */
 
@@ -117,7 +159,9 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
                         .make()
                         .setStrict()
                 )
-                .setPropertyAccessor(this.propertyAccessor);
+                .setPropertyAccessor(this.propertyAccessor)
+                .setLogger(this.logger)
+                .setGenerator(this.generator);
         }
     }
 

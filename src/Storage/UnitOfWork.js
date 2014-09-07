@@ -17,6 +17,8 @@ Sy.Storage.UnitOfWork = function () {
     this.scheduledForInsert = [];
     this.scheduledForUpdate = [];
     this.scheduledForDelete = [];
+    this.logger = null;
+    this.generator = null;
 };
 Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
 
@@ -147,6 +149,46 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
             }
 
             this.states = registry;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a logger
+     *
+     * @param {Sy.Lib.Logger.Interface} logger
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setLogger: {
+        value: function (logger) {
+            if (!(logger instanceof Sy.Lib.Logger.Interface)) {
+                throw new TypeError('Invalid logger');
+            }
+
+            this.logger = logger;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a generator
+     *
+     * @param {Sy.Lib.Generator.Interface} generator
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setLogger: {
+        value: function (generator) {
+            if (!(generator instanceof Sy.Lib.Generator.Interface)) {
+                throw new TypeError('Invalid generator');
+            }
+
+            this.generator = generator;
 
             return this;
         }
