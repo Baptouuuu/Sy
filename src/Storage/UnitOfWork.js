@@ -411,7 +411,24 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
      */
 
     clear: {
-        value: function (alias) {}
+        value: function (alias) {
+            var entities = this.entities.get(),
+                constructor;
+
+            for (var i = 0, l = entities.length; i < l; i++) {
+                if (alias !== undefined) {
+                    constructor = this.map.getConstructor(alias);
+
+                    if (!(entity instanceof constructor)) {
+                        continue;
+                    }
+                }
+
+                this.detach(entity)
+            }
+
+            return this;
+        }
     },
 
     /**
@@ -423,7 +440,36 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
      */
 
     detach: {
-        value: function (entity) {}
+        value: function (entity) {
+            var alias = this.map.getAlias(entity),
+                key = this.map.getKey(alias),
+                id = this.propertyAccessor.getValue(entity, key);
+
+            this.states.set(this.STATE_DETACHED, id, id);
+
+            if (this.isScheduledForInsert(entity)) {
+                this.scheduledForInsert.splice(
+                    this.scheduledForInsert.indexOf(entity),
+                    1
+                );
+            }
+
+            if (this.isScheduledForUpdate(entity)) {
+                this.scheduledForUpdate.splice(
+                    this.scheduledForUpdate.indexOf(entity),
+                    1
+                );
+            }
+
+            if (this.isScheduledForDelete(entity)) {
+                this.scheduledForDelete.splice(
+                    this.scheduledForDelete.indexOf(entity),
+                    1
+                );
+            }
+
+            return this;
+        }
     },
 
     /**
