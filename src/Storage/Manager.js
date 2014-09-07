@@ -136,7 +136,7 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
 
     persist: {
         value: function (entity) {
-            if (!this.isHandled(this.uow.getIdentityMap.getKey(entity))) {
+            if (!this.isHandled(this.uow.getIdentityMap().getAlias(entity))) {
                 throw new ReferenceError('Entity not handled by this manager');
             }
 
@@ -170,7 +170,7 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
 
     remove: {
         value: function (entity) {
-            if (!this.isHandled(this.uow.getIdentityMap.getKey(entity))) {
+            if (!this.isHandled(this.uow.getIdentityMap().getAlias(entity))) {
                 throw new ReferenceError('Entity not handled by this manager');
             }
 
@@ -207,7 +207,7 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
 
     detach: {
         value: function (entity) {
-            if (!this.isHandled(this.uow.getIdentityMap.getKey(entity))) {
+            if (!this.isHandled(this.uow.getIdentityMap().getAlias(entity))) {
                 throw new ReferenceError('Entity not handled by this manager');
             }
 
@@ -245,7 +245,7 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
 
     contains: {
         value: function (entity) {
-            if (!this.isHandled(this.uow.getIdentityMap.getKey(entity))) {
+            if (!this.isHandled(this.uow.getIdentityMap().getAlias(entity))) {
                 throw new ReferenceError('Entity not handled by this manager');
             }
 
