@@ -296,7 +296,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                 }
             }
 
-            this.states.set(this.STATE_NEW, data[key], data[key]);
+            this.states.set(this.STATE_MANAGED, data[key], data[key]);
 
             return entity;
         }
