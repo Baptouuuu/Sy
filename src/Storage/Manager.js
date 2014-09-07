@@ -69,6 +69,18 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
     },
 
     /**
+     * Return the UnitOfWork
+     *
+     * @return {Sy.Storage.UnitOfWork}
+     */
+
+    getUnitOfWork: {
+        value: function () {
+            return this.uow;
+        }
+    },
+
+    /**
      * Set the allowed entities to be managed here
      *
      * @param {Array} mappings
@@ -104,6 +116,24 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
             this.repoFactory = factory;
 
             return this;
+        }
+    },
+
+    /**
+     * Get the repository for the given alias
+     *
+     * @param {String} alias
+     *
+     * @return {Sy.Storage.Repository}
+     */
+
+    getRepository: {
+        value: function (alias) {
+            if (!this.isHandled(alias)) {
+                throw new ReferenceError('Entity not handled by this manager');
+            }
+
+            return this.repoFactory.make(this, alias);
         }
     },
 
@@ -218,24 +248,6 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Get the repository for the given alias
-     *
-     * @param {String} alias
-     *
-     * @return {Sy.Storage.Repository}
-     */
-
-    getRepository: {
-        value: function (alias) {
-            if (!this.isHandled(alias)) {
-                throw new ReferenceError('Entity not handled by this manager');
-            }
-
-            return this.repoFactory.make(this, alias);
-        }
-    },
-
-    /**
      * Tell if the entity is managed by this manager
      *
      * @param {Sy.EntityInterface} entity
@@ -250,18 +262,6 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
             }
 
             return this.uow.isManaged(entity);
-        }
-    },
-
-    /**
-     * Return the UnitOfWork
-     *
-     * @return {Sy.Storage.UnitOfWork}
-     */
-
-    getUnitOfWork: {
-        value: function () {
-            return this.uow;
         }
     },
 
