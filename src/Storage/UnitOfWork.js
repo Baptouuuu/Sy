@@ -409,6 +409,48 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
 
             return [this.STATE_NEW, this.STATE_MANAGED].indexOf(state) !== -1;
         }
+    },
+
+    /**
+     * Check if the entity is scheduled for insertion
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Boolean}
+     */
+
+    isScheduledForInsert: {
+        value: function (entity) {
+            return this.scheduledForInsert.indexOf(entity) !== -1;
+        }
+    },
+
+    /**
+     * Check if the entity is scheduled for update
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Boolean}
+     */
+
+    isScheduledForUpdate: {
+        value: function (entity) {
+            return this.scheduledForUpdate.indexOf(entity) !== -1;
+        }
+    },
+
+    /**
+     * Check if the entity is scheduled for removal
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Boolean}
+     */
+
+    isScheduledForDelete: {
+        value: function (entity) {
+            return this.scheduledForDelete.indexOf(entity) !== -1;
+        }
     }
 
 });
