@@ -8,9 +8,7 @@ namespace('Sy');
  * @implements {Sy.EntityInterface}
  */
 
-Sy.Entity = function () {
-    this.attributes = {};
-};
+Sy.Entity = function () {};
 Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
 
     INDEXES: {
@@ -24,7 +22,6 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
 
     set: {
         value: function (attr, value) {
-
             if (attr instanceof Object) {
                 for (var p in attr) {
                     if (attr.hasOwnProperty(p)) {
@@ -32,11 +29,10 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
                     }
                 }
             } else {
-                this.attributes[attr] = value;
+                this[attr] = value;
             }
 
             return this;
-
         }
     },
 
@@ -46,41 +42,7 @@ Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
 
     get: {
         value: function (attr) {
-
-            if (attr === undefined) {
-                return this.attributes;
-            } else {
-                return this.attributes[attr];
-            }
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    lock: {
-        value: function (attributes) {
-
-            if (!(attributes instanceof Array)) {
-                throw new SyntaxError();
-            }
-
-            if (Object.isSealed(this.attributes)) {
-                return;
-            }
-
-            this.attributes = {};
-
-            for (var i = 0, l = attributes.length; i < l; i++) {
-                this.attributes[attributes[i]] = null;
-            }
-
-            Object.seal(this.attributes);
-
-            return this;
-
+            return this[attr];
         }
     }
 

@@ -41,18 +41,6 @@ Sy.EntityInterface.prototype = Object.create(Object.prototype, {
 
     get: {
         value: function (attr) {}
-    },
-
-    /**
-     * Block the available attributes for this entity. Once set, the list won't be mutable.
-     *
-     * @param {Array} attributes
-     *
-     * @return {Sy.EntityInterface}
-     */
-
-    lock: {
-        value: function (attributes) {}
     }
 
 });
