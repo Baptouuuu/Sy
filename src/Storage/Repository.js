@@ -11,6 +11,10 @@ namespace('Sy.Storage');
  */
 
 Sy.Storage.Repository = function (em, alias) {
+    if (!(em instanceof Sy.Storage.Manager)) {
+        throw new TypeError('Invalid entity manager');
+    }
+
     this.em = em;
     this.alias = alias;
 };
