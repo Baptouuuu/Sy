@@ -78,6 +78,10 @@ Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
 
     setMappings: {
         value: function (mappings) {
+            if (!(mappings instanceof Array)) {
+                throw new TypeError('Invalid mappings array');
+            }
+
             this.mappings = mappings;
 
             return this;
