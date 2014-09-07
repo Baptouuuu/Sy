@@ -105,7 +105,7 @@ Sy.Storage.ManagerFactory.prototype = Object.create(Sy.FactoryInterface.prototyp
 
             var manager = new Sy.Storage.Manager(),
                 uow = this.uowFactory.make(),
-                driver = this.dbals.get(
+                driver = this.dbals.make(
                     this.definitions[name].connection
                 );
 
