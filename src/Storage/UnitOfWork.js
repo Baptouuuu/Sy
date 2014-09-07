@@ -358,6 +358,48 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
         value: function () {
             Platform.performMicrotaskCheckpoint();
 
+            this.scheduledForInsert.forEach(function (entity) {
+                var alias = this.map.getAlias(entity),
+                    key = this.map.getKey(alias),
+                    id = this.generator.generate();
+
+                this.propertyAccessor.setValue(entity, key, id);
+
+                this.driver
+                    .create(alias, this.getEntityData(entity))
+                    .then(function () {
+                        this.states.set(
+                            this.STATE_MANAGED,
+                            id,
+                            id
+                        );
+                    }.bind(this));
+            }, this);
+            this.scheduledForUpdate.forEach(function (entity) {
+                var alias = this.map.getAlias(entity),
+                    key = this.map.getKey(alias),
+                    id = this.propertyAccessor.getValue(entity, key);
+
+                this.driver.update(
+                    alias,
+                    id,
+                    this.getEntityData(entity)
+                );
+            }, this);
+            this.scheduledForDelete.forEach(function (entity) {
+                var alias = this.map.getAlias(entity),
+                    key = this.map.getKey(alias),
+                    id = this.propertyAccessor.getValue(entity, key);
+
+                this.driver.remove(alias, id);
+            }, this);
+
+            //reinitialize schedules so 2 close commits can't trigger
+            //an entity to be sent to the driver twice
+            this.scheduledForInsert.splice(0);
+            this.scheduledForUpdate.splice(0);
+            this.scheduledForDelete.splice(0);
+
             return this;
         }
     },
@@ -552,6 +594,27 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
             if (state === this.STATE_MANAGED && !this.isScheduledForUpdate(entity)) {
                 this.scheduledForUpdate.push(entity);
             }
+        }
+    },
+
+    /**
+     * Extract the data as a POJO from an entity
+     *
+     * @param {Sy.EtityInterface} entity
+     *
+     * @return {Object}
+     */
+
+    getEntityData: {
+        value: function (entity) {
+            var data = {},
+                refl = new ReflectionObject(entity);
+
+            refl.getProperties().forEach(function (refl) {
+                data[refl.getName()] = refl.getValue();
+            });
+
+            return data;
         }
     }
 
