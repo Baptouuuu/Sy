@@ -11,7 +11,6 @@ namespace('Sy.Storage');
 
 Sy.Storage.UnitOfWorkFactory = function () {
     this.identityMap = new Sy.Storage.IdentityMap();
-    this.registryFactory = null;
     this.stateRegistryFactory = null;
     this.propertyAccessor = null;
     this.logger = null;
@@ -38,26 +37,6 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
             }
 
             this.identityMap.lock();
-
-            return this;
-        }
-    },
-
-    /**
-     * Set the registry factory
-     *
-     * @param {Sy.RegistryFactory} factory
-     *
-     * @return {Sy.Storage.UnitOfWorkFactory} self
-     */
-
-    setRegistryFactory: {
-        value: function (factory) {
-            if (!(factory instanceof Sy.RegistryFactory)) {
-                throw new TypeError('Invalid registry factory');
-            }
-
-            this.registryFactory = factory;
 
             return this;
         }

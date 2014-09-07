@@ -324,7 +324,6 @@ Sy.kernel.getContainer()
             constructor: 'Sy.Storage.UnitOfWorkFactory',
             private: true,
             calls: [
-                ['setRegistryFactory', ['@sy::core::registry::factory']],
                 ['setStateRegistryFactory', ['@sy::core::stateregistry::factory']],
                 ['setGenerator', ['@sy::core::generator::uuid']],
                 ['setLogger', ['@sy::core::logger']]
