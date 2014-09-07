@@ -10,7 +10,8 @@
   "dependencies": {
     "underscore": "1.5.1",
     "moment": "~2.4.0",
-    "Reflection.js": "~1.1.0"
+    "Reflection.js": "~1.1.0",
+    "observe-js": "~0.4.0"
   },
   "devDependencies": {}
 }
