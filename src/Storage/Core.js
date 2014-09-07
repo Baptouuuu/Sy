@@ -46,6 +46,8 @@ Sy.Storage.Core.prototype = Object.create(Object.prototype, {
     setDefaultManager: {
         value: function (defaultName) {
             this.defaultName = defaultName || 'default';
+
+            return this;
         }
     },
 
