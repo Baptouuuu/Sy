@@ -288,6 +288,11 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
             } else {
                 entity = new constructor();
                 this.entities.set(alias, data[key], entity);
+
+                (new ObjectObserver(entity))
+                    .open(function () {
+                        this.computeSchedules(entity);
+                    }.bind(this));
             }
 
             for (var p in data) {
@@ -329,7 +334,12 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                     id,
                     id
                 );
-                this.scheduledForInsert.push(entity)
+                this.scheduledForInsert.push(entity);
+
+                (new ObjectObserver(entity))
+                    .open(function () {
+                        this.computeSchedules(entity);
+                    }.bind(this));
             } else {
                 this.scheduledForUpdate.push(entity);
             }
@@ -345,7 +355,11 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
      */
 
     commit: {
-        value: function () {}
+        value: function () {
+            Platform.performMicrotaskCheckpoint();
+
+            return this;
+        }
     },
 
     /**
@@ -450,6 +464,28 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
     isScheduledForDelete: {
         value: function (entity) {
             return this.scheduledForDelete.indexOf(entity) !== -1;
+        }
+    },
+
+    /**
+     * Update the schedules for the given entity
+     * If entity scheduled for insert leave as is
+     * otherwise plan for update except if planned for delete
+     *
+     * @param {Sy.EntityInterface} entity
+     */
+
+    computeSchedules: {
+        value: function (entity) {
+            var alias = this.map.getAlias(entity),
+                key = this.map.getKey(alias),
+                state = this.states.state(
+                    this.propertyAccessor.getValue(entity, key)
+                );
+
+            if (state === this.STATE_MANAGED && !this.isScheduledForUpdate(entity)) {
+                this.scheduledForUpdate.push(entity);
+            }
         }
     }
 
