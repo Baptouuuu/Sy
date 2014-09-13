@@ -362,7 +362,17 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
             this.scheduledForInsert.forEach(function (entity) {
                 var alias = this.map.getAlias(entity),
                     key = this.map.getKey(alias),
-                    id = this.propertyAccessor.getValue(entity, key);
+                    id = this.propertyAccessor.getValue(entity, key)
+                    event = new Sy.Storage.LifeCycleEvent(alias, entity);
+
+                this.mediator && this.mediator.publish(
+                    event.PRE_CREATE,
+                    event
+                );
+
+                if (event.isAborted) {
+                    return;
+                }
 
                 this.driver
                     .create(alias, this.getEntityData(entity))
@@ -372,6 +382,12 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                             id,
                             id
                         );
+
+                        this.mediator && this.mediator.publish(
+                            event.POST_CREATE,
+                            event
+                        );
+
                         this.logger && this.logger.info(
                             'Entity created',
                             entity
@@ -381,7 +397,17 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
             this.scheduledForUpdate.forEach(function (entity) {
                 var alias = this.map.getAlias(entity),
                     key = this.map.getKey(alias),
-                    id = this.propertyAccessor.getValue(entity, key);
+                    id = this.propertyAccessor.getValue(entity, key),
+                    event = new Sy.Storage.LifeCycleEvent(alias, entity);
+
+                this.mediator && this.mediator.publish(
+                    event.PRE_UPDATE,
+                    event
+                );
+
+                if (event.isAborted) {
+                    return;
+                }
 
                 this.driver
                     .update(
@@ -390,6 +416,11 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                         this.getEntityData(entity)
                     )
                     .then(function () {
+                        this.mediator && this.mediator.publish(
+                            event.POST_UPDATE,
+                            event
+                        );
+
                         this.logger && this.logger.info(
                             'Entity updated',
                             entity
@@ -399,7 +430,17 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
             this.scheduledForDelete.forEach(function (entity) {
                 var alias = this.map.getAlias(entity),
                     key = this.map.getKey(alias),
-                    id = this.propertyAccessor.getValue(entity, key);
+                    id = this.propertyAccessor.getValue(entity, key),
+                    event = new Sy.Storage.LifeCycleEvent(alias, entity);
+
+                this.mediator && this.mediator.publish(
+                    event.PRE_REMOVE,
+                    event
+                );
+
+                if (event.isAborted) {
+                    return;
+                }
 
                 this.driver
                     .remove(alias, id)
@@ -409,6 +450,12 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                             id,
                             id
                         );
+
+                        this.mediator && this.mediator.publish(
+                            event.POST_REMOVE,
+                            event
+                        );
+
                         this.logger && this.logger.info(
                             'Entity removed',
                             entity
