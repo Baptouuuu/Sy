@@ -11,7 +11,20 @@
 
 describe('storage dbal factory', function () {
 
-    var factory;
+    var DriverFactory = function () {},
+        factory;
+
+    DriverFactory.prototype = Object.create(Sy.Storage.Dbal.DriverFactoryInterface.prototype, {
+        make: {
+            value: function (dbname) {
+                if (dbname === 'foo') {
+                    return {};
+                } else {
+                    return new Sy.Storage.Dbal.DriverInterface();
+                }
+            }
+        }
+    });
 
     beforeEach(function () {
         factory = new Sy.Storage.Dbal.Factory();
@@ -64,6 +77,53 @@ describe('storage dbal factory', function () {
 
     it('should set the connections', function () {
         expect(factory.setConnections({})).toEqual(factory);
+    });
+
+    it('should throw if making driver for unknown connection', function () {
+        expect(function () {
+            factory.make('unknown');
+        }).toThrow('No connection defined with the name "unknown"');
+    });
+
+    it('should throw if unknown driver for a connection', function () {
+        factory.setConnections({
+            foo: {
+                driver: 'unknown'
+            }
+        });
+        factory.setFactoriesRegistry(new Sy.Registry());
+
+        expect(function () {
+            factory.make('foo');
+        }).toThrow('Unknown driver "unknown"');
+    });
+
+    it('should throw if driver not implementing the driver interface', function () {
+        factory.setConnections({
+            foo: {
+                driver: 'foo',
+                dbname: 'foo'
+            }
+        });
+        factory.setFactoriesRegistry(new Sy.Registry());
+        factory.setDriverFactory('foo', new DriverFactory());
+
+        expect(function () {
+            factory.make('foo');
+        }).toThrow('Invalid driver instance');
+    });
+
+    it('should return a valid driver', function () {
+        factory.setConnections({
+            foo: {
+                driver: 'foo',
+                dbname: 'bar'
+            }
+        });
+        factory.setFactoriesRegistry(new Sy.Registry());
+        factory.setDriverFactory('foo', new DriverFactory());
+
+        expect(factory.make('foo') instanceof Sy.Storage.Dbal.DriverInterface).toBe(true);
     });
 
 });
