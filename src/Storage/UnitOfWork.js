@@ -390,7 +390,15 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                     key = this.map.getKey(alias),
                     id = this.propertyAccessor.getValue(entity, key);
 
-                this.driver.remove(alias, id);
+                this.driver
+                    .remove(alias, id)
+                    .then(function () {
+                        this.states.set(
+                            this.STATE_REMOVED,
+                            id,
+                            id
+                        );
+                    }.bind(this));
             }, this);
 
             //reinitialize schedules so 2 close commits can't trigger
