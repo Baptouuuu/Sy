@@ -325,15 +325,15 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                 id = this.propertyAccessor.getValue(entity, key),
                 state = this.states.state(id);
 
-            this.entities.set(alias, id, entity);
-
             if (state === undefined) {
+                id = this.generator.generate();
                 this.states.set(
                     this.STATE_NEW,
                     id,
                     id
                 );
                 this.scheduledForInsert.push(entity);
+                this.propertyAccessor.setValue(entity, key, id);
 
                 (new ObjectObserver(entity))
                     .open(function () {
@@ -342,6 +342,8 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
             } else {
                 this.scheduledForUpdate.push(entity);
             }
+
+            this.entities.set(alias, id, entity);
 
             return this;
         }
@@ -360,9 +362,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
             this.scheduledForInsert.forEach(function (entity) {
                 var alias = this.map.getAlias(entity),
                     key = this.map.getKey(alias),
-                    id = this.generator.generate();
-
-                this.propertyAccessor.setValue(entity, key, id);
+                    id = this.propertyAccessor.getValue(entity, key);
 
                 this.driver
                     .create(alias, this.getEntityData(entity))
