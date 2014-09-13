@@ -142,9 +142,7 @@ Sy.Storage.Dbal.Localstorage.prototype = Object.create(Sy.Storage.Dbal.DriverInt
                 var store = this.stores[storeName];
 
                 if (this.data[store.path].hasOwnProperty(id)) {
-                    setTimeout(function () {
-                        resolve(this.data[store.path][id]);
-                    }.bind(this), 0);
+                    resolve(this.data[store.path][id]);
                 }
             }.bind(this));
         }
@@ -166,9 +164,7 @@ Sy.Storage.Dbal.Localstorage.prototype = Object.create(Sy.Storage.Dbal.DriverInt
                 this.data[store.path][object[store.key]] = object;
                 this.commit();
 
-                setTimeout(function () {
-                    resolve(object[store.key]);
-                }.bind(this), 0);
+                resolve(object[store.key]);
             }.bind(this));
         }
     },
@@ -189,9 +185,7 @@ Sy.Storage.Dbal.Localstorage.prototype = Object.create(Sy.Storage.Dbal.DriverInt
                 this.data[store.path][id] = object;
                 this.commit();
 
-                setTimeout(function () {
-                    resolve(object);
-                }.bind(this), 0);
+                resolve(object);
             }.bind(this));
         }
     },
@@ -212,9 +206,7 @@ Sy.Storage.Dbal.Localstorage.prototype = Object.create(Sy.Storage.Dbal.DriverInt
                 delete this.data[store.path][id];
                 this.commit();
 
-                setTimeout(function () {
-                    resolve();
-                }.bind(this), 0);
+                resolve();
             }.bind(this));
         }
     },
@@ -266,9 +258,7 @@ Sy.Storage.Dbal.Localstorage.prototype = Object.create(Sy.Storage.Dbal.DriverInt
                     data = data.slice(0, limit);
                 }
 
-                setTimeout(function () {
-                    resolve(data);
-                }.bind(this), 0);
+                resolve(data);
             }.bind(this));
         }
     },
@@ -293,9 +283,7 @@ Sy.Storage.Dbal.Localstorage.prototype = Object.create(Sy.Storage.Dbal.DriverInt
                     }
                 }
 
-                setTimeout(function () {
-                    resolve(data);
-                }.bind(this), 0);
+                resolve(data);
             }.bind(this));
         }
     }

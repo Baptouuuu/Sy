@@ -207,9 +207,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
         value: function (alias, id) {
             if (this.entities.has(alias, id)) {
                 return new Promise(function (resolve) {
-                    setTimeout(function () {
-                        resolve(this.entities.get(alias, id));
-                    }.bind(this), 0);
+                    resolve(this.entities.get(alias, id));
                 }.bind(this));
             }
 
