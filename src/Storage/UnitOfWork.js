@@ -372,6 +372,10 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                             id,
                             id
                         );
+                        this.logger && this.logger.info(
+                            'Entity created',
+                            entity
+                        );
                     }.bind(this));
             }, this);
             this.scheduledForUpdate.forEach(function (entity) {
@@ -379,11 +383,18 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                     key = this.map.getKey(alias),
                     id = this.propertyAccessor.getValue(entity, key);
 
-                this.driver.update(
-                    alias,
-                    id,
-                    this.getEntityData(entity)
-                );
+                this.driver
+                    .update(
+                        alias,
+                        id,
+                        this.getEntityData(entity)
+                    )
+                    .then(function () {
+                        this.logger && this.logger.info(
+                            'Entity updated',
+                            entity
+                        );
+                    });
             }, this);
             this.scheduledForDelete.forEach(function (entity) {
                 var alias = this.map.getAlias(entity),
@@ -398,6 +409,10 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                             id,
                             id
                         );
+                        this.logger && this.logger.info(
+                            'Entity removed',
+                            entity
+                        )
                     }.bind(this));
             }, this);
 
