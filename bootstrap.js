@@ -245,7 +245,6 @@ Sy.kernel.getContainer()
         },
         'sy::core::storage::dbal::factory': {
             constructor: 'Sy.Storage.Dbal.Factory',
-            private: true,
             calls: [
                 ['setFactoriesRegistry', ['@sy::core::registry']],
                 ['setDefaultConnectionName', ['%storage.dbal.defaultConnection%']],
