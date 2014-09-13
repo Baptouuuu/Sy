@@ -11,6 +11,7 @@
  * @venus-include ../../src/PropertyAccessor.js
  * @venus-include ../../src/Lib/Logger/Interface.js
  * @venus-include ../../src/Lib/Generator/Interface.js
+ * @venus-include ../../src/Lib/Mediator.js
  * @venus-include ../../src/Storage/IdentityMap.js
  * @venus-include ../../src/Storage/UnitOfWork.js
  * @venus-code ../../src/Storage/UnitOfWorkFactory.js
@@ -73,6 +74,16 @@ describe('storage unit of work factory', function () {
         expect(f.setGenerator(new Sy.Lib.Generator.Interface())).toBe(f);
     });
 
+    it('should throw if trying to set invalid mediator', function () {
+        expect(function () {
+            f.setMediator({});
+        }).toThrow('Invalid mediator');
+    });
+
+    it('should set the mediator', function () {
+        expect(f.setMediator(new Sy.Lib.Mediator())).toBe(f);
+    });
+
     it('should return a unit of work', function () {
         var s = new Sy.StateRegistryFactory();
 
@@ -83,7 +94,8 @@ describe('storage unit of work factory', function () {
             .setStateRegistryFactory(s)
             .setPropertyAccessor(new Sy.PropertyAccessor())
             .setLogger(new Sy.Lib.Logger.Interface())
-            .setGenerator(new Sy.Lib.Generator.Interface());
+            .setGenerator(new Sy.Lib.Generator.Interface())
+            .setMediator(new Sy.Lib.Mediator());
 
         expect(function () {
             expect(f.make() instanceof Sy.Storage.UnitOfWork).toBe(true);

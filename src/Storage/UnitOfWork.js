@@ -19,6 +19,7 @@ Sy.Storage.UnitOfWork = function () {
     this.scheduledForDelete = [];
     this.logger = null;
     this.generator = null;
+    this.mediator = null;
 };
 Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
 
@@ -189,6 +190,26 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
             }
 
             this.generator = generator;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the mediator
+     *
+     * @param {Sy.Lib.Mediator} mediator
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setMediator: {
+        value: function (mediator) {
+            if (!(mediator instanceof Sy.Lib.Mediator)) {
+                throw new TypeError('Invalid mediator');
+            }
+
+            this.mediator = mediator;
 
             return this;
         }

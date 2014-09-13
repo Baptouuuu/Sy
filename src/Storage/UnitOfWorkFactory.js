@@ -14,7 +14,8 @@ Sy.Storage.UnitOfWorkFactory = function () {
     this.stateRegistryFactory = null;
     this.propertyAccessor = null;
     this.logger = null;
-    this.logger = null;
+    this.generator = null;
+    this.mediator = null;
 };
 Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
 
@@ -127,6 +128,26 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
     },
 
     /**
+     * Set the mediator
+     *
+     * @param {Sy.Lib.Mediator} mediator
+     *
+     * @return {Sy.Storage.UnitOfWorkFactory} self
+     */
+
+    setMediator: {
+        value: function (mediator) {
+            if (!(mediator instanceof Sy.Lib.Mediator)) {
+                throw new TypeError('Invalid mediator');
+            }
+
+            this.mediator = mediator;
+
+            return this;
+        }
+    },
+
+    /**
      * @inheritDoc
      */
 
@@ -144,7 +165,8 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
                 )
                 .setPropertyAccessor(this.propertyAccessor)
                 .setLogger(this.logger)
-                .setGenerator(this.generator);
+                .setGenerator(this.generator)
+                .setMediator(this.mediator);
         }
     }
 

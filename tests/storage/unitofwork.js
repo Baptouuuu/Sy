@@ -17,8 +17,10 @@
  * @venus-include ../../src/Lib/Logger/Interface.js
  * @venus-include ../../src/Lib/Generator/Interface.js
  * @venus-include ../../src/Lib/Generator/UUID.js
+ * @venus-include ../../src/Lib/Mediator.js
  * @venus-include ../../src/Storage/Dbal/DriverInterface.js
  * @venus-include ../../src/Storage/IdentityMap.js
+ * @venus-include ../../src/Storage/LifeCycleEvent.js
  * @venus-code ../../src/Storage/UnitOfWork.js
  */
 
@@ -148,6 +150,16 @@ describe('storage unit of work', function () {
 
     it('should set the generator', function () {
         expect(uow.setGenerator(new Sy.Lib.Generator.UUID())).toEqual(uow);
+    });
+
+    it('should throw if trying to set invalid mediator', function () {
+        expect(function () {
+            uow.setMediator({});
+        }).toThrow('Invalid mediator');
+    });
+
+    it('should set the mediator', function () {
+        expect(uow.setMediator(new Sy.Lib.Mediator())).toBe(uow);
     });
 
     it('should find an entity', function () {
@@ -327,7 +339,8 @@ describe('storage unit of work', function () {
             .setStatesRegistry(stateF.make())
             .setIdentityMap(map)
             .setPropertyAccessor(new Sy.PropertyAccessor())
-            .setGenerator(new Sy.Lib.Generator.UUID());
+            .setGenerator(new Sy.Lib.Generator.UUID())
+            .setMediator(new Sy.Lib.Mediator());
 
         uow
             .find('simpletest', 'foo')
