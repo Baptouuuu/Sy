@@ -28,6 +28,10 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
 
     setEntitiesMetadata: {
         value: function (metadata) {
+            if (!(metadata instanceof Array)) {
+                throw new TypeError('Invalid metadata array');
+            }
+
             for (var i = 0, l = metadata.length; i < l; i++) {
                 this.identityMap.set(
                     metadata[i].alias,
