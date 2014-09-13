@@ -269,6 +269,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
     /**
      * Build an entity for the specified alias
      *
+     * @private
      * @param {String} alias
      * @param {Object} data
      *
@@ -578,6 +579,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
      * If entity scheduled for insert leave as is
      * otherwise plan for update except if planned for delete
      *
+     * @private
      * @param {Sy.EntityInterface} entity
      */
 
@@ -598,6 +600,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
     /**
      * Extract the data as a POJO from an entity
      *
+     * @private
      * @param {Sy.EtityInterface} entity
      *
      * @return {Object}
