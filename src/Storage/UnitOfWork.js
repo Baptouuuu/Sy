@@ -464,16 +464,21 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
             var entities = this.entities.get(),
                 constructor;
 
-            for (var i = 0, l = entities.length; i < l; i++) {
-                if (alias !== undefined) {
-                    constructor = this.map.getConstructor(alias);
+            for (var a in entities) {
+                if (entities.hasOwnProperty(a)) {
 
-                    if (!(entity instanceof constructor)) {
+                    if (alias !== undefined && alias !== a) {
                         continue;
                     }
-                }
 
-                this.detach(entity)
+                    for (var i = 0, l = entities[a].length; i < l; i++) {
+                        this.detach(entities[a][i]);
+                    }
+
+                    if (alias !== undefined && alias === a) {
+                        break;
+                    }
+                }
             }
 
             return this;
