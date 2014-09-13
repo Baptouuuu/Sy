@@ -182,7 +182,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
      * @return {Sy.Storage.UnitOfWork} self
      */
 
-    setLogger: {
+    setGenerator: {
         value: function (generator) {
             if (!(generator instanceof Sy.Lib.Generator.Interface)) {
                 throw new TypeError('Invalid generator');
