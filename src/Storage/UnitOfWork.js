@@ -383,7 +383,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
             this.scheduledForInsert.forEach(function (entity) {
                 var alias = this.map.getAlias(entity),
                     key = this.map.getKey(alias),
-                    id = this.propertyAccessor.getValue(entity, key)
+                    id = this.propertyAccessor.getValue(entity, key),
                     event = new Sy.Storage.LifeCycleEvent(alias, entity);
 
                 this.mediator && this.mediator.publish(
@@ -391,7 +391,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                     event
                 );
 
-                if (event.isAborted) {
+                if (event.isAborted()) {
                     return;
                 }
 
@@ -426,7 +426,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                     event
                 );
 
-                if (event.isAborted) {
+                if (event.isAborted()) {
                     return;
                 }
 
@@ -459,7 +459,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                     event
                 );
 
-                if (event.isAborted) {
+                if (event.isAborted()) {
                     return;
                 }
 

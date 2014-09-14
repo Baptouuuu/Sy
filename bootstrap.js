@@ -284,7 +284,7 @@ Sy.kernel.getContainer()
                 {name: 'storage.driver_factory', alias: 'rest'}
             ]
         },
-        'storage': '@sy::core:storage',
+        'storage': '@sy::core::storage',
         'sy::core::storage': {
             constructor: 'Sy.Storage.Core',
             calls: [
