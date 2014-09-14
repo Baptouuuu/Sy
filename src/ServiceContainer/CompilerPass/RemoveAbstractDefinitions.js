@@ -23,6 +23,10 @@ Sy.ServiceContainer.CompilerPass.RemoveAbstractDefinitions.prototype = Object.cr
                 .forEach(function (id) {
                     var def = this.getDefinition(id);
 
+                    if (!(def instanceof Sy.ServiceContainer.Definition)) {
+                        return;
+                    }
+
                     if (def.isAbstract()) {
                         this.remove(id);
                     }

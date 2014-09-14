@@ -22,8 +22,14 @@ Sy.ServiceContainer.CompilerPass.ResolveParameterPlaceholder.prototype = Object.
                 .getServiceIds()
                 .forEach(function (id) {
                     var def = this.getDefinition(id),
-                        calls = def.getCalls(),
-                        re = /^%[a-zA-Z-_.]+%$/;
+                        re = /^%[a-zA-Z-_.]+%$/,
+                        calls;
+
+                    if (!(def instanceof Sy.ServiceContainer.Definition)) {
+                        return;
+                    }
+
+                    calls = def.getCalls();
 
                     for (var i = 0, l = calls.length; i < l; i++) {
                         for (var j = 0, m = calls[i][1].length; j < m; j++) {

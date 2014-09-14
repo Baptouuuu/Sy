@@ -25,6 +25,10 @@ Sy.ServiceContainer.CompilerPass.ApplyParentDefinition.prototype = Object.create
                         parent,
                         calls;
 
+                    if (!(def instanceof Sy.ServiceContainer.Definition)) {
+                        return;
+                    }
+
                     if (def.hasParent()) {
                         parent = this.getDefinition(
                             def.getParent().toString()
