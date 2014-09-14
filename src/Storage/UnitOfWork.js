@@ -276,7 +276,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
     findBy: {
         value: function (alias, index, value, limit) {
             return this.driver
-                .findBy(alias, index, value, limit)
+                .find(alias, index, value, limit)
                 .then(function (data) {
                     for (var i = 0, l = data.length; i < l; i++) {
                         data[i] = this.buildEntity(alias, data[i]);

@@ -59,7 +59,7 @@ describe('storage unit of work', function () {
                 }
             }
         },
-        findBy: {
+        find: {
             value: function (alias) {
                 if (alias === 'simpletest') {
                     return new Promise(function (resolve) {
