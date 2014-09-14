@@ -22,6 +22,8 @@ Sy.Storage.Dbal.IndexedDB = function () {
     this.stores = {};
     this.storage = null;
     this.logger = null;
+    this.opened = false;
+    this.openingCheckInterval = null;
 };
 Sy.Storage.Dbal.IndexedDB.prototype = Object.create(Sy.Storage.Dbal.DriverInterface.prototype, {
 
@@ -167,6 +169,7 @@ Sy.Storage.Dbal.IndexedDB.prototype = Object.create(Sy.Storage.Dbal.DriverInterf
             request.onupgradeneeded = this.upgradeDatabase.bind(this);
             request.onsuccess = function (event) {
                 this.storage = event.target.result;
+                this.opened = true;
                 this.storage.onerror = function (event) {
                     this.logger && this.logger.error('Database operation failed', [this.name, event]);
                 };
@@ -181,6 +184,30 @@ Sy.Storage.Dbal.IndexedDB.prototype = Object.create(Sy.Storage.Dbal.DriverInterf
             }.bind(this);
 
             return this;
+        }
+    },
+
+    /**
+     * Return a promise to know when the database is opened
+     *
+     * @return {Promise}
+     */
+
+    whenOpened: {
+        value: function () {
+            return new Promise(function (resolve) {
+                if (this.opened === true) {
+                    resolve();
+                    return;
+                }
+
+                this.openingCheckInterval = setInterval(function () {
+                    if (this.opened === true) {
+                        resolve();
+                        clearInterval(this.openingCheckInterval);
+                    }
+                }.bind(this), 50);
+            }.bind(this))
         }
     },
 
