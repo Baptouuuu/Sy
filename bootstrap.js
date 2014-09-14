@@ -102,7 +102,8 @@ Sy.kernel.getContainer()
         'sy::core::view::factory::list': {
             constructor: 'Sy.View.ListFactory',
             calls: [
-                ['setTemplateEngine', ['@sy::core::view::template::engine']]
+                ['setTemplateEngine', ['@sy::core::view::template::engine']],
+                ['setRegistry', ['@sy::core::registry']]
             ]
         },
         'sy::core::view::factory::layout': {
@@ -266,8 +267,7 @@ Sy.kernel.getContainer()
             constructor: 'Sy.Storage.Dbal.LocalstorageFactory',
             private: true,
             calls: [
-                ['setEntitiesMeta', ['%app.meta.entities%']],
-                ['setLogger', ['@sy::core::logger']]
+                ['setEntitiesMeta', ['%app.meta.entities%']]
             ],
             tags: [
                 {name: 'storage.driver_factory', alias: 'localstorage'}
@@ -278,7 +278,7 @@ Sy.kernel.getContainer()
             private: true,
             calls: [
                 ['setEntitiesMeta', ['%app.meta.entities%']],
-                ['setLogger', ['@sy::core::logger']]
+                ['setREST', ['@sy::core::http::rest']]
             ],
             tags: [
                 {name: 'storage.driver_factory', alias: 'rest'}
@@ -299,7 +299,7 @@ Sy.kernel.getContainer()
             calls: [
                 ['setDefinitions', ['%storage.orm.managers%']],
                 ['setDbalFactory', ['@sy::core::storage::dbal::factory']],
-                ['setRepositoryFacctory', ['@sy::core::storage::factory::repository']],
+                ['setRepositoryFactory', ['@sy::core::storage::factory::repository']],
                 ['setUnitOfWorkFactory', ['@sy::core::storage::factory::unitofwork']]
             ]
         },
@@ -308,7 +308,7 @@ Sy.kernel.getContainer()
             private: true,
             configurator: ['sy::core::storage::repofactconfigurator', 'configure'],
             calls: [
-                ['setMetadatRegistry', ['@sy::core::registry']],
+                ['setMetadataRegistry', ['@sy::core::registry']],
                 ['setRepositoriesRegistry', ['@sy::core::registry']]
             ]
         },
@@ -326,7 +326,8 @@ Sy.kernel.getContainer()
                 ['setStateRegistryFactory', ['@sy::core::stateregistry::factory']],
                 ['setGenerator', ['@sy::core::generator::uuid']],
                 ['setLogger', ['@sy::core::logger']],
-                ['setMediator', ['@sy::core::mediator']]
+                ['setMediator', ['@sy::core::mediator']],
+                ['setPropertyAccessor', ['@sy::core::propertyaccessor']]
             ]
         },
         'sy::core::propertyaccessor': {
