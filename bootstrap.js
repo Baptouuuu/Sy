@@ -327,7 +327,8 @@ Sy.kernel.getContainer()
                 ['setGenerator', ['@sy::core::generator::uuid']],
                 ['setLogger', ['@sy::core::logger']],
                 ['setMediator', ['@sy::core::mediator']],
-                ['setPropertyAccessor', ['@sy::core::propertyaccessor']]
+                ['setPropertyAccessor', ['@sy::core::propertyaccessor']],
+                ['setEntitiesMetadata', ['%app.meta.entities%']]
             ]
         },
         'sy::core::propertyaccessor': {
