@@ -137,6 +137,7 @@ Sy.Storage.Dbal.Localstorage.prototype = Object.create(Sy.Storage.Dbal.DriverInt
             return new Promise(function (resolve, reject) {
                 if (!this.stores.hasOwnProperty(storeName)) {
                     reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
                 }
 
                 var store = this.stores[storeName];
@@ -157,6 +158,7 @@ Sy.Storage.Dbal.Localstorage.prototype = Object.create(Sy.Storage.Dbal.DriverInt
             return new Promise(function (resolve, reject) {
                 if (!this.stores.hasOwnProperty(storeName)) {
                     reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
                 }
 
                 var store = this.stores[storeName];
@@ -178,6 +180,7 @@ Sy.Storage.Dbal.Localstorage.prototype = Object.create(Sy.Storage.Dbal.DriverInt
             return new Promise(function (resolve, reject) {
                 if (!this.stores.hasOwnProperty(storeName)) {
                     reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
                 }
 
                 var store = this.stores[storeName];
@@ -199,6 +202,7 @@ Sy.Storage.Dbal.Localstorage.prototype = Object.create(Sy.Storage.Dbal.DriverInt
             return new Promise(function (resolve, reject) {
                 if (!this.stores.hasOwnProperty(storeName)) {
                     reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
                 }
 
                 var store = this.stores[storeName];
@@ -272,6 +276,7 @@ Sy.Storage.Dbal.Localstorage.prototype = Object.create(Sy.Storage.Dbal.DriverInt
             return new Promise(function (resolve, reject) {
                 if (!this.stores.hasOwnProperty(storeName)) {
                     reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
                 }
 
                 var store = this.stores[storeName],

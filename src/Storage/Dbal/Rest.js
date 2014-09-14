@@ -133,6 +133,7 @@ Sy.Storage.Dbal.Rest.prototype = Object.create(Sy.Storage.Dbal.DriverInterface.p
             return new Promise(function (resolve, reject) {
                 if (!this.stores.hasOwnProperty(storeName)) {
                     reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
                 }
 
                 var store = this.stores[storeName];
@@ -164,6 +165,7 @@ Sy.Storage.Dbal.Rest.prototype = Object.create(Sy.Storage.Dbal.DriverInterface.p
             return new Promise(function (resolve, reject) {
                 if (!this.stores.hasOwnProperty(storeName)) {
                     reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
                 }
 
                 var store = this.stores[storeName];
@@ -196,6 +198,7 @@ Sy.Storage.Dbal.Rest.prototype = Object.create(Sy.Storage.Dbal.DriverInterface.p
             return new Promise(function (resolve, reject) {
                 if (!this.stores.hasOwnProperty(storeName)) {
                     reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
                 }
 
                 var store = this.stores[storeName];
@@ -233,6 +236,7 @@ Sy.Storage.Dbal.Rest.prototype = Object.create(Sy.Storage.Dbal.DriverInterface.p
             return new Promise(function (resolve, reject) {
                 if (!this.stores.hasOwnProperty(storeName)) {
                     reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
                 }
 
                 var store = this.stores[storeName];
@@ -268,6 +272,7 @@ Sy.Storage.Dbal.Rest.prototype = Object.create(Sy.Storage.Dbal.DriverInterface.p
             return new Promise(function (resolve, reject) {
                 if (!this.stores.hasOwnProperty(storeName)) {
                     reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
                 }
 
                 var store = this.stores[storeName],
@@ -306,6 +311,7 @@ Sy.Storage.Dbal.Rest.prototype = Object.create(Sy.Storage.Dbal.DriverInterface.p
             return new Promise(function (resolve, reject) {
                 if (!this.stores.hasOwnProperty(storeName)) {
                     reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
                 }
 
                 var store = this.stores[storeName];

@@ -244,6 +244,7 @@ Sy.Storage.Dbal.IndexedDB.prototype = Object.create(Sy.Storage.Dbal.DriverInterf
             return new Promise(function (resolve, reject) {
                 if (!this.stores.hasOwnProperty(storeName)) {
                     reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
                 }
 
                 var store = this.stores[storeName];
@@ -283,6 +284,7 @@ Sy.Storage.Dbal.IndexedDB.prototype = Object.create(Sy.Storage.Dbal.DriverInterf
             return new Promise(function (resolve, reject) {
                 if (!this.stores.hasOwnProperty(storeName)) {
                     reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
                 }
 
                 var store = this.stores[storeName];
@@ -322,6 +324,7 @@ Sy.Storage.Dbal.IndexedDB.prototype = Object.create(Sy.Storage.Dbal.DriverInterf
             return new Promise(function (resolve, reject) {
                 if (!this.stores.hasOwnProperty(storeName)) {
                     reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
                 }
 
                 var store = this.stores[storeName];
@@ -361,6 +364,7 @@ Sy.Storage.Dbal.IndexedDB.prototype = Object.create(Sy.Storage.Dbal.DriverInterf
             return new Promise(function (resolve, reject) {
                 if (!this.stores.hasOwnProperty(storeName)) {
                     reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
                 }
 
                 var store = this.stores[storeName];
@@ -401,6 +405,7 @@ Sy.Storage.Dbal.IndexedDB.prototype = Object.create(Sy.Storage.Dbal.DriverInterf
             return new Promise(function (resolve, reject) {
                 if (!this.stores.hasOwnProperty(storeName)) {
                     reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
                 }
 
                 var store = this.stores[storeName];
@@ -473,6 +478,7 @@ Sy.Storage.Dbal.IndexedDB.prototype = Object.create(Sy.Storage.Dbal.DriverInterf
             return new Promise(function (resolve, reject) {
                 if (!this.stores.hasOwnProperty(storeName)) {
                     reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
                 }
 
                 var store = this.stores[storeName];
