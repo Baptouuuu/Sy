@@ -250,6 +250,18 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
                 .get('sy::core::form')
                 .createForm(formType, object, options);
         }
+    },
+
+    /**
+     * Shortcut to retrieve the storage engine
+     *
+     * @return {Sy.Storage.Core}
+     */
+
+    getStorage: {
+        value: function () {
+            return this.container.get('sy::core::storage');
+        }
     }
 
 });
