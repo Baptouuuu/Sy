@@ -83,7 +83,7 @@ Sy.kernel.getContainer()
             constructor: 'Sy.Registry',
             factory: ['sy::core::registry::factory', 'make'],
             prototype: true
-        }
+        },
         'sy::core::stateregistry::factory': {
             constructor: 'Sy.StateRegistryFactory',
             calls: [
@@ -95,7 +95,7 @@ Sy.kernel.getContainer()
             constructor: 'Sy.StateRegistry',
             fatory: ['sy::core::stateregistry::factory', 'make'],
             prototype: true
-        }
+        },
         'sy::core::view::parser': {
             constructor: 'Sy.View.Parser'
         },
@@ -207,7 +207,7 @@ Sy.kernel.getContainer()
         },
         'sy::core::view::manager': {
             constructor: 'Sy.View.Manager',
-            configurator: ['sy::core::view::managerconfigurator', 'configure']
+            configurator: ['sy::core::view::managerconfigurator', 'configure'],
             calls: [
                 ['setViewsRegistry', ['@sy::core::registry']],
                 ['setViewScreenFactory', ['@sy::core::view::factory::viewscreen']]
@@ -232,7 +232,7 @@ Sy.kernel.getContainer()
             constructor: 'Sy.Validator.ExecutionContextFactory',
             calls: [
                 ['setConstraintValidatorFactory', ['@sy::core::validator::constraintvalidatorfactory']]
-            ]
+            ],
             private: true
         },
         'sy::core::validator::constraintvalidatorfactory': {
