@@ -68,12 +68,9 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
             parser
                 .buildConfig(this.config)
-                .buildServices(this.container)
-                .registerValidationRules(this.container);
+                .buildServices(this.container);
 
             this
-                .registerControllers(parser.getControllers())
-                .configureLogger()
                 .registerShutdownListener()
                 .registerFormTypes()
                 .registerEventSubscribers()
@@ -82,6 +79,11 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
             this.container.compile();
 
+            parser.registerValidationRules(this.container);
+
+            this
+                .registerControllers(parser.getControllers())
+                .configureLogger();
         }
     },
 
