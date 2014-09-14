@@ -13,6 +13,8 @@ Sy.Kernel.Core = function () {
     this.container = new Sy.ServiceContainer.Core();
     this.controllerManager = new Sy.Kernel.ControllerManager();
     this.actionDispatcher = new Sy.Kernel.ActionDispatcher();
+
+    this.container.setCompiler(new Sy.ServiceContainer.Compiler());
 };
 Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
