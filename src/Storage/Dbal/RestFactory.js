@@ -40,7 +40,7 @@ Sy.Storage.Dbal.RestFactory.prototype = Object.create(Sy.Storage.Dbal.DriverFact
      */
 
     setREST: {
-        value: function () {
+        value: function (rest) {
             if (!(rest instanceof Sy.HTTP.REST)) {
                 throw new TypeError('Invalid rest engine');
             }
