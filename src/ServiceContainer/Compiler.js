@@ -52,7 +52,7 @@ Sy.ServiceContainer.Compiler.prototype = Object.create(Object.prototype, {
                     break;
                 case pass.AFTER_REMOVING:
                     this.afterRm.push(pass);
-                    beak;
+                    break;
                 default:
                     this.beforeOpti.push(pass);
             }
