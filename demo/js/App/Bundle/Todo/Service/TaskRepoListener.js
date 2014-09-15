@@ -21,13 +21,13 @@ App.Bundle.Todo.Service.TaskRepoListener.prototype = Object.create(Sy.EventSubsc
     getSubscribedEvents: {
         value: function () {
             return {
-                Sy.Storage.LifeCycleEvent.prototype.POST_CREATE: {
+                'storage.post.create': {
                     method: 'create'
                 },
-                Sy.Storage.LifeCycleEvent.prototype.POST_UPDATE: {
+                'storage.post.update': {
                     method: 'update'
                 },
-                Sy.Storage.LifeCycleEvent.prototype.POST_REMOVE: {
+                'storage.post.remove': {
                     method: 'remove'
                 }
             };
