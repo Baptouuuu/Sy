@@ -4,21 +4,22 @@ App.Bundle.Todo.Controller.Main = function () {
     Sy.Controller.call(this);
     this.tasks = null;
     this.repo = null;
+    this.em = null;
 };
 App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototype, {
 
     init: {
         value: function () {
             this.tasks = new Sy.Registry();
-            this.repo = this.container
-                .get('sy::core::storage')
-                .getManager()
-                .getRepository('Todo::Task');
-            this.repo.findBy({
-                index: 'uuid',
-                value: [''],
-                callback: this.loadPreviousTasks.bind(this)
-            });
+            this.em = this.getStorage().getManager();
+            this.repo = this.em.getRepository('Todo::Task');
+            this.em
+                .getDriver()
+                .whenOpened()
+                .then(function () {
+                    return this.repo.findAll();
+                }.bind(this))
+                .then(this.loadPreviousTasks.bind(this));
         }
     },
 
@@ -46,8 +47,8 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
                     name: event.target.value,
                     status: t.ACTIVE
                 });
-                this.repo.persist(t);
-                this.repo.flush();
+                this.em.persist(t);
+                this.em.flush();
                 this.tasks.set(
                     t.get('uuid'),
                     t
@@ -72,11 +73,11 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
             if (event.type === 'change' && n.classList.contains('toggle')) {
                 this.toggleStatus(n.dataset.uuid, n.checked);
                 this.viewscreen.updateFooter(this.tasks.get());
-                this.repo.flush();
+                this.em.flush();
             } else if (event.type === 'click') {
                 if (n.classList.contains('destroy')) {
                     this.removeTask(n.dataset.uuid);
-                    this.repo.flush();
+                    this.em.flush();
                 }
             } else if (event.type === 'dblclick') {
                 if (n.nodeName === 'LABEL') {
@@ -85,7 +86,7 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
             } else if (event.type === 'change' && n.classList.contains('edit')) {
                 this.viewscreen.toggleTaskEdit(n.dataset.uuid);
                 this.updateTask(n.dataset.uuid, n.value);
-                this.repo.flush();
+                this.em.flush();
             }
 
 
@@ -102,7 +103,7 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
             } else {
                 t.setActive();
             }
-            this.repo.persist(t);
+            this.em.persist(t);
 
             this.viewscreen.updateTask(t);
 
@@ -115,7 +116,7 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
             var t = this.tasks.get(uuid);
 
             this.tasks.remove(t.get('uuid'));
-            this.repo.remove(t);
+            this.em.remove(t);
             this.viewscreen.removeTask(uuid);
 
             this.viewscreen.updateFooter(this.tasks.get());
@@ -134,7 +135,7 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
             }, this);
 
             this.viewscreen.updateFooter(this.tasks.get());
-            this.repo.flush();
+            this.em.flush();
         }
     },
 
@@ -148,12 +149,12 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
             this.tasks.get().forEach(function (task) {
                 if (task.isCompleted()) {
                     this.tasks.remove(task.get('uuid'));
-                    this.repo.remove(task);
+                    this.em.remove(task);
                     this.viewscreen.removeTask(task.get('uuid'));
                 }
             }, this);
             this.viewscreen.updateFooter(this.tasks.get());
-            this.repo.flush();
+            this.em.flush();
 
         }
     },
@@ -166,7 +167,7 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
             task.set('name', value);
             this.viewscreen.updateTask(task);
 
-            this.repo.persist(task);
+            this.em.persist(task);
 
         }
     }
