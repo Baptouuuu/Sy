@@ -27,10 +27,6 @@
 
     try {
         Sy.kernel.boot();
-
-        Sy.kernel.getContainer()
-            .get('listener::repo::task')
-            .boot();
     } catch (e) {
         console.log(e);
     }
