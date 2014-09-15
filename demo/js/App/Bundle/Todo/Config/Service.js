@@ -14,6 +14,12 @@ App.Bundle.Todo.Config.Service.prototype = Object.create(Object.prototype, {
                         ['setMediator', ['@sy::core::mediator']],
                         ['setApiPath', ['%api.basePath%']]
                     ]
+                },
+                'todo::viewscreen::main': {
+                    constructor: 'App.Bundle.Todo.ViewScreen.Main',
+                    tags: [
+                        {name: 'view.viewscreen', alias: 'Todo::Main'}
+                    ]
                 }
             });
 
