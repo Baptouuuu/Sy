@@ -278,7 +278,9 @@ Sy.Storage.Dbal.Rest.prototype = Object.create(Sy.Storage.Dbal.DriverInterface.p
                 var store = this.stores[storeName],
                     path = store.path;
 
-                path += '?' + index + '=' + value;
+                path += '?' + index + '=' + (value instanceof Array
+                    ? JSON.stringify(value)
+                    : value);
 
                 if (limit !== undefined) {
                     path += '&limit=' + limit;
