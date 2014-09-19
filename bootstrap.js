@@ -13,44 +13,6 @@ Sy.kernel.getConfig().set({
             error: Sy.Lib.Logger.CoreLogger.prototype.ERROR,
             log: Sy.Lib.Logger.CoreLogger.prototype.LOG,
         }
-    },
-    storage: {
-        dbal: {
-            defaultConnection: 'idb',
-            connections: {
-                idb: {
-                    driver: 'indexeddb',
-                    dbname: 'sy::app',
-                    version: 1
-                },
-                local: {
-                    driver: 'localstorage',
-                    dbname: 'sy::app',
-                    options: {
-                        temporary: false
-                    }
-                },
-                rest: {
-                    driver: 'http',
-                    version: 1,
-                    options: {
-                        pattern: '/{version}/{bundle}/{name}/',
-                        headers: [
-                            ['X-API-VERSION', 'vendor/1']
-                        ]
-                    }
-                }
-            }
-        },
-        orm: {
-            defaultManager: 'default',
-            managers: {
-                default: {
-                    connection: 'idb',
-                    mappings: []
-                }
-            }
-        }
     }
 });
 

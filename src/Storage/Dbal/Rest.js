@@ -88,7 +88,7 @@ Sy.Storage.Dbal.Rest.prototype = Object.create(Sy.Storage.Dbal.DriverInterface.p
      * @return {Sy.Storage.Dbal.Rest} self
      */
 
-    setVersionHeader: {
+    setHeader: {
         value: function (name, value) {
             this.headers[name] = value;
 
