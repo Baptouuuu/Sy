@@ -367,4 +367,11 @@ describe('service container', function () {
         }).toThrow('Service name already used');
     });
 
+    it('should set a new parameter', function () {
+        sc.setParameters(new Sy.Configurator());
+
+        expect(sc.setParameter('foo', 'bar')).toBe(sc);
+        expect(sc.getParameter('foo')).toEqual('bar');
+    });
+
 });

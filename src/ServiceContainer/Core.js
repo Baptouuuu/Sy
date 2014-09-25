@@ -317,6 +317,23 @@ Sy.ServiceContainer.Core.prototype = Object.create(Object.prototype, {
     },
 
     /**
+     * Set a new parameter in the config object
+     *
+     * @param {String} key
+     * @param {mixed} value
+     *
+     * @return {Sy.ServiceContainer.Core} self
+     */
+
+    setParameter: {
+        value: function (key, value) {
+            this.config.set(key, value);
+
+            return this;
+        }
+    },
+
+    /**
      * Return the definition of a service
      *
      * @param {String} id
