@@ -175,9 +175,9 @@ If you add new indexes after the `IndexedDB` database has been created, you'll n
 
 To go back on the search, the search value specified imply that it will return entities matching exactly this value. But you can also search for a property value between bounds, to do this you specify an `Array` with two values as the search value. Examples:
 
-* `.findBy('foo', [0, 42])`: equivalent to `0 < foo < 42`
-* `.findBy('foo', [undefined, 42])`: equivalent to `foo < 42`
-* `.findBy('foo', [42, undefined])`: equivalent to `foo > 42`
+* `.findBy('foo', [0, 42])`: equivalent to `0 <= foo <= 42`
+* `.findBy('foo', [undefined, 42])`: equivalent to `foo <= 42`
+* `.findBy('foo', [42, undefined])`: equivalent to `foo >= 42`
 
 ### Searching one entity
 
