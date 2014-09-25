@@ -13,6 +13,8 @@ Sy.Kernel.Core = function () {
     this.container = new Sy.ServiceContainer.Core();
     this.controllerManager = new Sy.Kernel.ControllerManager();
     this.actionDispatcher = new Sy.Kernel.ActionDispatcher();
+
+    this.container.setCompiler(new Sy.ServiceContainer.Compiler());
 };
 Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
@@ -66,19 +68,22 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
             parser
                 .buildConfig(this.config)
-                .buildServices(this.container)
-                .registerValidationRules(this.container);
+                .buildServices(this.container);
 
             this
-                .registerControllers(parser.getControllers())
-                .configureLogger()
                 .registerShutdownListener()
                 .registerFormTypes()
                 .registerEventSubscribers()
-                .registerViewPasses();
+                .registerViewPasses()
+                .registerStoragePasses();
 
             this.container.compile();
 
+            parser.registerValidationRules(this.container);
+
+            this
+                .registerControllers(parser.getControllers())
+                .configureLogger();
         }
     },
 
@@ -245,6 +250,24 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                 .addPass(vs)
                 .addPass(layout)
                 .addPass(list);
+
+            return this;
+        }
+    },
+
+    /**
+     * Register all the passes to make the storage engine work
+     *
+     * @return {Sy.Kernel.Core} self
+     */
+
+    registerStoragePasses: {
+        value: function () {
+            this.container.addPass(
+                new Sy.Kernel.CompilerPass.RegisterDriverFactoryPass()
+            );
+
+            return this;
         }
     }
 

@@ -1,94 +1,74 @@
 namespace('Sy.Storage');
 
 /**
- * Factory that generates entities repository
+ * Build a repository for the specified alias
  *
  * @package Sy
  * @subpackage Storage
- * @implements {Sy.FactoryInterface}
  * @class
+ * @implements {Sy.FactoryInterface}
  */
 
 Sy.Storage.RepositoryFactory = function () {
-    this.meta = null;
+    this.metadata = null;
     this.loaded = null;
-    this.uowFactory = null;
-    this.registryFactory = null;
 };
-
 Sy.Storage.RepositoryFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
 
     /**
-     * Set the registry factory
+     * Set a registry to hold entities metadata
      *
-     * @param {Sy.RegistryFactory} factory
+     * @param {Sy.RegistryInterface} registry
      *
-     * @return {Sy.Storage.RepositoryFactory}
+     * @return {Sy.Storage.RepositoryFactory} self
      */
 
-    setRegistryFactory: {
-        value: function (factory) {
-
-            if (!(factory instanceof Sy.RegistryFactory)) {
-                throw new TypeError('Invalid registry factory');
+    setMetadataRegistry: {
+        value: function (registry) {
+            if (!(registry instanceof Sy.RegistryInterface)) {
+                throw new TypeError('Invalid registry');
             }
 
-            this.meta = factory.make();
-            this.loaded = factory.make();
-            this.registryFactory = factory;
+            this.metadata = registry;
 
             return this;
-
         }
     },
 
     /**
-     * Set the informations about repositories
+     * Set a registry to hold loaded repositories
      *
-     * @param {Array} list
+     * @param {Sy.RegistryInterface} registry
      *
-     * @return {Sy.Storage.RepositoryFactory}
+     * @return {Sy.Storage.RepositoryFactory} self
      */
 
-    setMeta: {
-        value: function (list) {
-
-            for (var i = 0, l = list.length; i < l; i++) {
-                this.meta.set(
-                    list[i].name,
-                    {
-                        repository: list[i].repository,
-                        entity: list[i].entity,
-                        indexes: list[i].indexes,
-                        uuid: list[i].uuid
-                    }
-                );
+    setRepositoriesRegistry: {
+        value: function (registry) {
+            if (!(registry instanceof Sy.RegistryInterface)) {
+                throw new TypeError('Invalid registry');
             }
 
-            return this;
+            this.loaded = registry;
 
+            return this;
         }
     },
 
     /**
-     * Set the UnitOfWork factory
+     * Set a new entity definition
      *
-     * @param {Sy.Storage.UnitOfWorkFactory} factory
+     * @param {String} alias
+     * @param {Function} repository Repository constructor
      *
-     * @return {Sy.Storage.RepositoryInterface}
+     * @return {Sy.Storage.RepositoryFactory} self
      */
 
-    setUOWFactory: {
-        value: function (factory) {
-
-            if (!(factory instanceof Sy.Storage.UnitOfWorkFactory)) {
-                throw new TypeError('Invalid factory');
-            }
-
-            this.uowFactory = factory;
+    setRepository: {
+        value: function (alias, repository) {
+            this.metadata.set(alias, repository);
 
             return this;
-
         }
     },
 
@@ -97,36 +77,27 @@ Sy.Storage.RepositoryFactory.prototype = Object.create(Sy.FactoryInterface.proto
      */
 
     make: {
-        value: function (alias) {
-
+        value: function (em, alias) {
             if (this.loaded.has(alias)) {
                 return this.loaded.get(alias);
             }
 
-            if (!this.meta.has(alias)) {
-                throw new ReferenceError('Unknown repository "' + alias + '"');
+            if (!this.metadata.has(alias)) {
+                throw new ReferenceError('Unknown entity alias "' + alias + '"');
             }
 
-            var meta = this.meta.get(alias),
-                repo = new meta.repository(),
-                uow = this.uowFactory.make(alias, meta.uuid);
+            var repo = new (this.metadata.get(alias))(
+                em,
+                alias
+            );
 
-            if (!(repo instanceof Sy.Storage.RepositoryInterface)) {
-                throw new TypeError('Invalid repository "' + alias + '"');
+            if (!(repo instanceof Sy.Storage.Repository)) {
+                throw new TypeError('Invalid repository');
             }
-
-            repo
-                .setName(alias)
-                .setEntityKey(meta.uuid)
-                .setEntityConstructor(meta.entity)
-                .setIndexes(meta.indexes)
-                .setUnitOfWork(uow)
-                .setCacheRegistry(this.registryFactory.make());
 
             this.loaded.set(alias, repo);
 
             return repo;
-
         }
     }
 

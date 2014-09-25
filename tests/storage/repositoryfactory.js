@@ -4,109 +4,79 @@
  * @venus-include ../../src/FactoryInterface.js
  * @venus-include ../../src/RegistryInterface.js
  * @venus-include ../../src/Registry.js
- * @venus-include ../../src/RegistryFactory.js
- * @venus-include ../../src/EntityInterface.js
- * @venus-include ../../src/StateRegistryInterface.js
- * @venus-include ../../src/StateRegistry.js
- * @venus-include ../../src/StateRegistryFactory.js
- * @venus-include ../../src/Lib/Generator/Interface.js
- * @venus-include ../../src/Storage/RepositoryInterface.js
  * @venus-include ../../src/Storage/Repository.js
- * @venus-include ../../src/Storage/UnitOfWork.js
- * @venus-include ../../src/Storage/UnitOfWorkFactory.js
  * @venus-code ../../src/Storage/RepositoryFactory.js
  */
 
 describe('storage repository factory', function () {
+    var Repo = function () {},
+        f;
 
-    var fact = new Sy.Storage.RepositoryFactory(),
-        registryFactory = new Sy.RegistryFactory(),
-        stateRegistryFactory = new Sy.StateRegistryFactory(),
-        mockEntity = function () {
-            Sy.EntityInterface.call(this);
-        };
+    Repo.prototype = Object.create(Sy.Storage.Repository.prototype);
 
-    stateRegistryFactory.setRegistryFactory(registryFactory);
-    mockEntity.prototype = Object.create(Sy.EntityInterface.prototype);
-
-    it('should return itself', function () {
-
-        expect(fact.setRegistryFactory(registryFactory)).toEqual(fact);
-        expect(fact.setMeta([])).toEqual(fact);
-        expect(fact.setUOWFactory(new Sy.Storage.UnitOfWorkFactory())).toEqual(fact);
-
+    beforeEach(function () {
+        f = new Sy.Storage.RepositoryFactory();
     });
 
-    it('should throw if invalid registry factory', function () {
-
+    it('should throw if setting invalid metadata registry', function () {
         expect(function () {
-            fact.setRegistryFactory({});
-        }).toThrow('Invalid registry factory');
-
+            f.setMetadataRegistry({});
+        }).toThrow('Invalid registry');
     });
 
-    it('should throw if invalid unit of work factory', function () {
+    it('should set the metadata registry', function () {
+        expect(f.setMetadataRegistry(new Sy.Registry())).toEqual(f);
+    });
 
+    it('should throw if setting invalid repositories registry', function () {
         expect(function () {
-            fact.setUOWFactory({});
-        }).toThrow('Invalid factory');
+            f.setRepositoriesRegistry({});
+        }).toThrow('Invalid registry');
+    });
 
+    it('should set the repositories registry', function () {
+        expect(f.setRepositoriesRegistry(new Sy.Registry())).toEqual(f);
+    });
+
+    it('should set a new repository', function () {
+        f.setMetadataRegistry(new Sy.Registry());
+        expect(f.setRepository('foo', Sy.Storage.Repository)).toEqual(f);
     });
 
     it('should throw if unknown repository alias', function () {
+        f.setMetadataRegistry(new Sy.Registry());
+        f.setRepositoriesRegistry(new Sy.Registry());
 
         expect(function () {
-            fact.make('foo');
-        }).toThrow('Unknown repository "foo"');
-
+            f.make('em', 'unknown');
+        }).toThrow('Unknown entity alias "unknown"');
     });
 
-    it('should throw if invalid repository constructed', function () {
-
-        var uowf = new Sy.Storage.UnitOfWorkFactory(),
-            qf = new Sy.StateRegistryFactory();
-
-        qf.setRegistryFactory(new Sy.RegistryFactory());
-        uowf.setStateRegistryFactory(qf);
-        uowf.setGenerator(new Sy.Lib.Generator.Interface());
-
-        fact.setRegistryFactory(registryFactory);
-        fact.setMeta([{
-            name: 'invalid',
-            repository: function () {},
-            entity: function () {},
-            indexes: [],
-            uuid: 'uuid'
-        }]);
-        fact.setUOWFactory(uowf);
+    it('should throw if building repository not inheriting from generic one', function () {
+        f.setMetadataRegistry(new Sy.Registry());
+        f.setRepositoriesRegistry(new Sy.Registry());
+        f.setRepository('foo', function () {});
 
         expect(function () {
-            fact.make('invalid');
-        }).toThrow('Invalid repository "invalid"');
-
+            f.make('em', 'foo');
+        }).toThrow('Invalid repository');
     });
 
-    it('should return configured repository', function () {
+    it('should build the repository from the given class', function () {
+        f.setMetadataRegistry(new Sy.Registry());
+        f.setRepositoriesRegistry(new Sy.Registry());
+        f.setRepository('foo', Repo);
 
-        var repo;
-
-        fact.setRegistryFactory(registryFactory);
-        fact.setMeta([{
-            name: 'valid',
-            repository: Sy.Storage.Repository,
-            entity: mockEntity,
-            indexes: ['foo'],
-            uuid: 'uuid'
-        }]);
-
-        repo = fact.make('valid');
-
-        expect(repo instanceof Sy.Storage.RepositoryInterface).toBe(true);
-        expect(repo.name).toEqual('valid');
-        expect(repo.entityKey).toEqual('uuid');
-        expect(repo.entityConstructor).toEqual(mockEntity);
-        expect(repo.indexes).toEqual(['foo']);
-
+        expect(f.make('em', 'foo') instanceof Repo).toBe(true);
     });
 
+    it('should always return the same repo instance', function () {
+        f.setMetadataRegistry(new Sy.Registry());
+        f.setRepositoriesRegistry(new Sy.Registry());
+        f.setRepository('foo', Repo);
+
+        var repo = f.make('em', 'foo');
+
+        expect(f.make('em', 'foo')).toEqual(repo);
+    });
 });

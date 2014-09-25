@@ -49,6 +49,11 @@ Sy.PropertyAccessor.prototype = Object.create(Object.prototype, {
                         break;
                     }
                 }
+
+                if (!fromGetter && refl.hasMethod('get')) {
+                    value = refl.getMethod('get').call(prop);
+                    fromGetter = true;
+                }
             }
 
             if (!fromGetter && refl.hasProperty(prop)) {
