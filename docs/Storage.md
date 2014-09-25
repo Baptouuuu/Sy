@@ -270,6 +270,8 @@ But each share a common [interface](../src/Storage/Dbal/DriverInterface.js), if 
 
 So for each, you have access to these methods: `read`, `create`, `update`, `remove`, `find` and `findAll`.
 
+**Important**: if you use the `IndexedDB` driver, the first time you access the storage mechanism the connection to the database is establish, however the indexedDB api does it asynchronously so the first operation you'll do on the database will fail. To overcome the problem, you have access to a method called `whenOpened` that return a `Promise`, it's resolved once the onnection is established (so you should have a code looking like this: `driver.whenOpened().then(function () {/*here your code to query the db*/})`).
+
 ### Configuration
 
 Here is a list of all the options available to declare drivers in the global config:
