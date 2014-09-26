@@ -39,10 +39,8 @@ describe('property accessor', function () {
         expect(a.getValue(o, 'a.b.c')).toEqual('foo');
     });
 
-    it('should throw as the path is not reachable', function () {
-        expect(function () {
-            a.getValue({}, 'a');
-        }).toThrow('Path not accessible');
+    it('should return undefined if the path is not reachable', function () {
+        expect(a.getValue({}, 'a')).toBeUndefined();
     });
 
     it('should get the value via the getter', function () {
@@ -135,8 +133,8 @@ describe('property accessor', function () {
             }
         };
 
-        console.log(a.setValue(o, 'a.b', 'bar') === a);
-        // expect(o.a.b).toEqual('bar');
+        a.setValue(o, 'a.b', 'bar');
+        expect(o.a.b).toEqual('bar');
     });
 
     it('should set the value via the setter', function () {
@@ -180,11 +178,9 @@ describe('property accessor', function () {
         expect(o.a.b).toEqual('bar');
     });
 
-    it('should say the path is not accessible', function () {
-        expect(a.isReadable({}, 'a')).toBe(false);
-    });
-
-    it('should say the path is accessible', function () {
-        expect(a.isReadable({a: 'foo'}, 'a')).toBe(true);
+    it('should throw if the path is not writable for nested property', function () {
+        expect(function () {
+            a.setValue({}, 'a.b', 'foo');
+        }).toThrow('Path "a.b" not writable');
     });
 });

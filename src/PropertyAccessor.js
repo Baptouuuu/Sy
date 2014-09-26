@@ -59,7 +59,7 @@ Sy.PropertyAccessor.prototype = Object.create(Object.prototype, {
             if (!fromGetter && refl.hasProperty(prop)) {
                 value = refl.getProperty(prop).getValue();
             } else if (!fromGetter) {
-                throw new ReferenceError('Path not accessible');
+                return undefined;
             }
 
             if (elements.length === 0) {
@@ -89,6 +89,10 @@ Sy.PropertyAccessor.prototype = Object.create(Object.prototype, {
 
             if (elements.length !== 0) {
                 object = this.getValue(object, elements);
+            }
+
+            if (typeof object === 'undefined') {
+                throw new ReferenceError('Path "' + path + '" not writable');
             }
 
             if (!this.disableGetterSetter) {
@@ -174,26 +178,6 @@ Sy.PropertyAccessor.prototype = Object.create(Object.prototype, {
             this.disableGetterSetter = true;
 
             return this;
-        }
-    },
-
-    /**
-     * Check if a path is accessible
-     *
-     * @param {Object} object
-     * @param {String} path
-     *
-     * @return {Boolean}
-     */
-
-    isReadable: {
-        value: function (object, path) {
-            try {
-                this.getValue(object, path);
-                return true;
-            } catch (e) {
-                return false;
-            }
         }
     }
 
