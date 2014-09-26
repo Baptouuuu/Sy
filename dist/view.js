@@ -1,4 +1,4 @@
-/*! sy#0.6.0 - 2014-06-11 */
+/*! sy#0.7.0 - 2014-09-26 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -1259,7 +1259,9 @@ Sy.Lib.Logger.Handler.Console = function (level) {
 
     this.level = null;
 
-    this.setLevel(level);
+    if (level !== undefined) {
+        this.setLevel(level);
+    }
 
 };
 
@@ -1671,6 +1673,20 @@ Sy.View.LayoutFactoryInterface.prototype = Object.create(Sy.FactoryInterface.pro
 
     setListFactory: {
         value: function (factory) {}
+    },
+
+    /**
+     * Inject a layout wrapper instance
+     *
+     * @param {String} viewscreen ViewScreen name it belongs to
+     * @param {String} name Layout name it's attached to
+     * @param {Sy.View.Layout} layout
+     *
+     * @return {Sy.View.LayoutFactoryInterface} self
+     */
+
+    setLayoutWrapper: {
+        value: function (viewscreen, name, layout) {}
     }
 
 });
@@ -1699,6 +1715,33 @@ Sy.View.ListFactoryInterface.prototype = Object.create(Sy.FactoryInterface.proto
 
     setTemplateEngine: {
         value: function (engine) {}
+    },
+
+    /**
+     * Set a registry to hold custom list wrappers
+     *
+     * @param {Sy.RegistryInterface} registry
+     *
+     * @return {Sy.View.ListFactoryInterface} self
+     */
+
+    setRegistry: {
+        value: function (registry) {}
+    },
+
+    /**
+     * Inject a custom list wrapper
+     *
+     * @param {String} viewscreen ViewScreen name it belongs to
+     * @param {String} layout Layout name it belongs to
+     * @param {String} name List it's attached to
+     * @param {Sy.View.List} list
+     *
+     * @return {Sy.View.ListFactoryInterface} self
+     */
+
+    setListWrapper: {
+        value: function (viewscreen, layout, name, list) {}
     }
 
 });
@@ -1807,13 +1850,13 @@ Sy.View.ViewScreenFactoryInterface.prototype = Object.create(Sy.FactoryInterface
      * Set viewscreen wrapper constructor
      *
      * @param {String} name Viewscreen name it's attached to
-     * @param {Function} viewscreenConstructor
+     * @param {Sy.View.ViewScreen} viewscreen
      *
-     * @return {Sy.View.ViewScreenFactoryInterface}
+     * @return {Sy.View.ViewScreenFactoryInterface} self
      */
 
     setViewScreenWrapper: {
-        value: function (name, viewscreenConstructor) {}
+        value: function (name, viewscreen) {}
     }
 
 });
@@ -1998,6 +2041,7 @@ Sy.View.Layout = function () {
     this.lists = null;
     this.parser = null;
     this.listFactory = null;
+    this.screen = null;
 };
 Sy.View.Layout.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
@@ -2017,7 +2061,11 @@ Sy.View.Layout.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
             lists = this.parser.getLists(node);
 
             for (var i = 0, l = lists.length; i < l; i++) {
-                wrapper = this.listFactory.make(lists[i]);
+                wrapper = this.listFactory.make(
+                    this.screen,
+                    this.name,
+                    lists[i]
+                );
 
                 this.lists.set(
                     wrapper.getName(),
@@ -2027,6 +2075,22 @@ Sy.View.Layout.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
             return this;
 
+        }
+    },
+
+    /**
+     * Set the view screen name the layout belongs to
+     *
+     * @param {String} name
+     *
+     * @return {Sy.View.Layout} self
+     */
+
+    setViewScreenName: {
+        value: function (name) {
+            this.screen = name;
+
+            return this;
         }
     },
 
@@ -2151,6 +2215,7 @@ Sy.View.LayoutFactory = function () {
     this.engine = null;
     this.registryFactory = null;
     this.listFactory = null;
+    this.layouts = null;
 };
 Sy.View.LayoutFactory.prototype = Object.create(Sy.View.LayoutFactoryInterface.prototype, {
 
@@ -2202,6 +2267,7 @@ Sy.View.LayoutFactory.prototype = Object.create(Sy.View.LayoutFactoryInterface.p
             }
 
             this.registryFactory = factory;
+            this.layouts = factory.make();
 
             return this;
 
@@ -2230,12 +2296,45 @@ Sy.View.LayoutFactory.prototype = Object.create(Sy.View.LayoutFactoryInterface.p
      * @inheritDoc
      */
 
-    make: {
-        value: function (node) {
+    setLayoutWrapper: {
+        value: function (viewscreen, name, layout) {
+            var fullname = viewscreen + '::' + name;
 
-            var wrapper = new Sy.View.Layout();
+            if (this.layouts.has(fullname)) {
+                throw new ReferenceError('A layout wrapper is already defined with the name "' + fullname + '"')
+            }
+
+            if (!(layout instanceof Sy.View.Layout)) {
+                throw new TypeError('Invalid layout wrapper');
+            }
+
+            this.layouts.set(
+                fullname,
+                layout
+            );
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    make: {
+        value: function (viewscreen, node) {
+
+            var fullname = viewscreen + '::' + node.dataset.syLayout,
+                wrapper;
+
+            if (this.layouts.has(fullname)) {
+                wrapper = this.layouts.get(fullname);
+            } else {
+                wrapper = new Sy.View.Layout();
+            }
 
             return wrapper
+                .setViewScreenName(viewscreen)
                 .setParser(this.parser)
                 .setListFactory(this.listFactory)
                 .setListsRegistry(this.registryFactory.make())
@@ -2263,6 +2362,8 @@ Sy.View.List = function () {
     this.name = null;
     this.elements = [];
     this.types = [];
+    this.screen = null;
+    this.layout = null;
 };
 Sy.View.List.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
@@ -2299,6 +2400,38 @@ Sy.View.List.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
             return this;
 
+        }
+    },
+
+    /**
+     * Set the view screen name the list belongs to
+     *
+     * @param {String} name
+     *
+     * @return {Sy.View.List} self
+     */
+
+    setViewScreenName: {
+        value: function (name) {
+            this.screen = name;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the layout name the list belongs to
+     *
+     * @param {String} name
+     *
+     * @return {Sy.View.List} self
+     */
+
+    setLayoutName: {
+        value: function (name) {
+            this.layout = name;
+
+            return this;
         }
     },
 
@@ -2429,6 +2562,7 @@ namespace('Sy.View');
 
 Sy.View.ListFactory = function () {
     this.engine = null;
+    this.lists = null;
 };
 Sy.View.ListFactory.prototype = Object.create(Sy.View.ListFactoryInterface.prototype, {
 
@@ -2454,12 +2588,62 @@ Sy.View.ListFactory.prototype = Object.create(Sy.View.ListFactoryInterface.proto
      * @inheritDoc
      */
 
-    make: {
-        value: function (node) {
+    setRegistry: {
+        value: function (registry) {
+            if (!(registry instanceof Sy.RegistryInterface)) {
+                throw new TypeError('Invalid registry');
+            }
 
-            var wrapper = new Sy.View.List();
+            this.lists = registry;
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    setListWrapper: {
+        value: function (viewscreen, layout, name, list) {
+            var fullname = viewscreen + '::' + layout + '::' + name;
+
+            if (this.lists.has(fullname)) {
+                throw new ReferenceError('A list wrapper is already defined with the name "' + fullname + '"')
+            }
+
+            if (!(list instanceof Sy.View.List)) {
+                throw new TypeError('Invalid list wrapper');
+            }
+
+            this.lists.set(
+                fullname,
+                list
+            );
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    make: {
+        value: function (viewscreen, layout, node) {
+
+            var fullname = viewscreen + '::' + layout + '::' + node.dataset.syList,
+                wrapper;
+
+            if (this.lists.has(fullname)) {
+                wrapper = this.lists.get(fullname);
+            } else {
+                wrapper = new Sy.View.List();
+            }
 
             return wrapper
+                .setViewScreenName(viewscreen)
+                .setLayoutName(layout)
                 .setTemplateEngine(this.engine)
                 .setNode(node);
 
@@ -2549,7 +2733,7 @@ Sy.View.Manager.prototype = Object.create(Object.prototype, {
             }
 
             if (this.views.has(name.trim())) {
-                throw new ReferenceError('A view with the name "' + name.trim() + '"');
+                throw new ReferenceError('A view with the name "' + name.trim() + '" already exist');
             }
 
             this.views.set(
@@ -2567,7 +2751,7 @@ Sy.View.Manager.prototype = Object.create(Object.prototype, {
      *
      * @param {string} name
      *
-     * @return {Sy.View.ViewScreenInterface}
+     * @return {Sy.View.ViewScreen}
      */
 
     getViewScreen: {
@@ -2591,6 +2775,64 @@ Sy.View.Manager.prototype = Object.create(Object.prototype, {
     getViewScreens: {
         value: function () {
             return this.views.get();
+        }
+    }
+
+});
+
+namespace('Sy.View');
+
+/**
+ * Help to build the manager by injecting viewscreens
+ *
+ * @package Sy
+ * @subpackage View
+ * @class
+ */
+
+Sy.View.ManagerConfigurator = function () {
+    this.parser = null;
+};
+
+Sy.View.ManagerConfigurator.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set the dom parser
+     *
+     * @param {Sy.View.Parser} parser
+     */
+
+    setParser: {
+        value: function (parser) {
+            if (!(parser instanceof Sy.View.Parser)) {
+                throw new TypeError('Invalid parser');
+            }
+
+            this.parser = parser;
+        }
+    },
+
+    /**
+     * Configure the manager
+     *
+     * @param {Sy.View.Manager} manager
+     */
+
+    configure: {
+        value: function (manager) {
+            if (!(manager instanceof Sy.View.Manager)) {
+                throw new TypeError('Invalid manager');
+            }
+
+            var viewscreens = this.parser.getViewScreens();
+
+            for (var i = 0, l = viewscreens.length; i < l; i++) {
+                manager.setViewScreen(viewscreens[i]);
+
+                if (!DOM(viewscreens[i]).isChildOf('.viewport')){
+                    viewscreens[i].parentNode.removeChild(viewscreens[i]);
+                }
+            }
         }
     }
 
@@ -3104,7 +3346,7 @@ Sy.View.ViewScreen.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
             layouts = this.parser.getLayouts(node);
 
             for (var i = 0, l = layouts.length; i < l; i++) {
-                wrapper = this.layoutFactory.make(layouts[i]);
+                wrapper = this.layoutFactory.make(this.name, layouts[i]);
 
                 this.layouts.set(
                     wrapper.getName(),
@@ -3321,36 +3563,17 @@ Sy.View.ViewScreenFactory.prototype = Object.create(Sy.View.ViewScreenFactoryInt
      */
 
     setViewScreenWrapper: {
-        value: function (name, viewscreenConstructor) {
+        value: function (name, viewscreen) {
 
             if (this.viewscreens.has(name)) {
                 throw new ReferenceError('A viewscreen wrapper is already defined with the name "' + name + '"');
             }
 
-            this.viewscreens.set(name, viewscreenConstructor);
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Pass the array of wrappers found in the project
-     *
-     * @param {Array} wrappers
-     *
-     * @return {Sy.View.ViewScreenFactory}
-     */
-
-    setDefinedWrappers: {
-        value: function (wrappers) {
-
-            for (var i = 0, l = wrappers.length; i < l; i++) {
-                this.setViewScreenWrapper(
-                    wrappers[i].name,
-                    wrappers[i].creator
-                );
+            if (!(viewscreen instanceof Sy.View.ViewScreen)) {
+                throw new TypeError('Invalid viewscreen wrapper');
             }
+
+            this.viewscreens.set(name, viewscreen);
 
             return this;
 
@@ -3368,13 +3591,9 @@ Sy.View.ViewScreenFactory.prototype = Object.create(Sy.View.ViewScreenFactoryInt
                 wrapper;
 
             if (this.viewscreens.has(name)) {
-                wrapper = new (this.viewscreens.get(name))();
+                wrapper = this.viewscreens.get(name);
             } else {
                 wrapper = new Sy.View.ViewScreen();
-            }
-
-            if (!(wrapper instanceof Sy.View.ViewScreen)) {
-                throw new TypeError('Invalid viewscreen wrapper');
             }
 
             return wrapper
