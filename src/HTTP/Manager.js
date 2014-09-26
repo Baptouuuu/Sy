@@ -317,6 +317,18 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
             return this;
 
         }
+    },
+
+    /**
+     * Return an array of all pending xhrs
+     *
+     * @return {Array}
+     */
+
+    getStack: {
+        value: function () {
+            return this.requests.get();
+        }
     }
 
 });
