@@ -24,6 +24,8 @@ module.exports = function (grunt) {
             'src/HTTP/HeaderParser.js',
             'src/HTTP/HTMLRequest.js',
             'src/HTTP/HTMLResponse.js',
+            'src/HTTP/ImageRequest.js',
+            'src/HTTP/ImageResponse.js',
             'src/HTTP/Manager.js',
             'src/HTTP/REST.js'
         ],
