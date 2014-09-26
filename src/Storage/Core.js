@@ -1,7 +1,7 @@
 namespace('Sy.Storage');
 
 /**
- * Main entrance to access storage functionalities
+ * Entry point to the storage mechanism
  *
  * @package Sy
  * @subpackage Storage
@@ -9,75 +9,89 @@ namespace('Sy.Storage');
  */
 
 Sy.Storage.Core = function () {
-
     this.managers = null;
-
+    this.defaultName = 'default';
+    this.factory = null;
 };
-
 Sy.Storage.Core.prototype = Object.create(Object.prototype, {
 
     /**
-     * Set a registry holding the managers
+     * Set a registry to hold managers
      *
-     * @param {Sy.Registry} registry
+     * @param {Sy.RegistryInterface} registry
      *
-     * @return {Sy.Storage.Core}
+     * @return {Sy.Storage.Core} self
      */
 
-    setRegistry: {
+    setManagersRegistry: {
         value: function (registry) {
-
-            if (!(registry instanceof Sy.Registry)) {
+            if (!(registry instanceof Sy.RegistryInterface)) {
                 throw new TypeError('Invalid registry');
             }
 
-            this.managers = new Sy.Registry();
+            this.managers = registry;
 
             return this;
-
         }
     },
 
     /**
-     * Set a new manager
+     * Set the default manager name
      *
-     * @param {string} name
-     * @param {Sy.Storage.Manager} manager
+     * @param {String} defaultName
      *
-     * @return {Sy.Storage.Core}
+     * @return {Sy.Storage.Core} self
      */
 
-    setManager: {
-        value: function (name, manager) {
-
-            if (!(manager instanceof Sy.Storage.Manager)) {
-                throw new TypeError('Invalid manager type');
-            }
-
-            this.managers.set(name, manager);
+    setDefaultManager: {
+        value: function (defaultName) {
+            this.defaultName = defaultName || 'default';
 
             return this;
-
         }
     },
 
     /**
-     * Get a manager
+     * Set the manager factory
      *
-     * If the name is not specified it is set to main
+     * @param {Sy.Storage.ManagerFactory} factory
      *
-     * @param {string} manager
+     * @return {Sy.Storage.Core} self
+     */
+
+    setManagerFactory: {
+        value: function (factory) {
+            if (!(factory instanceof Sy.Storage.ManagerFactory)) {
+                throw new TypeError('Invalid manager factory');
+            }
+
+            this.factory = factory;
+
+            return this;
+        }
+    },
+
+    /**
+     * Get an entity manager
+     *
+     * @param {String} name Manager name, optional
      *
      * @return {Sy.Storage.Manager}
      */
 
     getManager: {
-        value: function (manager) {
+        value: function (name) {
+            name = name || this.defaultName;
 
-            manager = manager || 'main';
+            if (this.managers.has(name)) {
+                return this.managers.get(name);
+            }
 
-            return this.managers.get(manager);
+            var manager = this.factory.make(name);
 
+            this.managers.set(name, manager);
+
+            return manager;
         }
     }
 

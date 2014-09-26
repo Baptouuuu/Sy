@@ -4,7 +4,7 @@
 
 The data validation is an important part inside an application, that's why Sy comes with a component dedicated to this. In order to understand how the component works, please refer to its [documentation](../Validation.md).
 
-Inside your application you can access the validator via the service named `sy::core::validator`.
+Inside your application you can access the validator via the service named `validator` (alias of `sy::core::validator`).
 
 ## Validation rules
 

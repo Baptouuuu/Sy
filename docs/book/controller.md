@@ -42,7 +42,7 @@ When first loading a controller the framework automatically inject a set of depe
 
 *Each of this setters can be overidden, so you can modify the attributes where those are saved in your controller.*
 
-The service container injected in each controller is the same as the one returned by the kernel (via `Sy.kernel.getServiceContainer()`).
+The service container injected in each controller is the same as the one returned by the kernel (via `Sy.kernel.getContainer()`).
 
 The viewscreen is the wrapper of the node being displayed and that the controller is related to.
 
@@ -79,6 +79,14 @@ The `broadcast` is nothing more than a shortcut as it only applies the arguments
 ### Entity creation
 
 Writing the full namespace to create a new entity can quickly become annoying, that's why the controller come with a method called `new` to help you create new entities via their alias. For example, to create an instance of `App.Bundle.Foo.Entity.Bar` just call `this.new('Foo::Bar', {})` inside your controller. The object passed as second argument is the data object that will populate the entity.
+
+### Storage
+
+To give a quicker access to the storage engine, a controller ships with a method called `getStorage`, pretty straightforward. Not that much magic behind it, it only retrieve the service called `sy::core::storage` (aliased with `storage`).
+
+### Forms
+
+The controller also gives you a quicker access to build forms via 2 methods: `createForm` and `createFormBuilder`. These have the same signature and behaviour as the ones of the form component (learn more about [forms](../Form.md)).
 
 ## Actions
 

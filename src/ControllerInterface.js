@@ -100,7 +100,7 @@ Sy.ControllerInterface.prototype = Object.create(Object.prototype, {
     /**
      * Set the service container
      *
-     * @param {Sy.ServiceContainerInterface} container
+     * @param {Sy.ServiceContainer.Core} container
      *
      * @return {Sy.ControllerInterface}
      */

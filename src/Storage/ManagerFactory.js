@@ -1,64 +1,95 @@
 namespace('Sy.Storage');
 
 /**
- * Build new storage managers
+ * Build entity manager instances
  *
  * @package Sy
  * @subpackage Storage
- * @implements {Sy.FactoryInterface}
  * @class
+ * @implements {Sy.FactoryInterface}
  */
 
 Sy.Storage.ManagerFactory = function () {
-
-    this.engineFact = null;
-    this.repositoryFact = null;
-
+    this.definitions = {};
+    this.dbals = null;
+    this.repoFactory = null;
+    this.uowFactory = null;
 };
-
 Sy.Storage.ManagerFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
 
     /**
-     * Set the engine factory
+     * Set the managers definitions
      *
-     * @param {Sy.Storage.EngineFactory.Core} factory
+     * @param {Object} definitions
      *
-     * @return {Sy.Storage.ManagerFactory}
+     * @return {Sy.Storage.ManagerFactory} self
      */
 
-    setEngineFactory: {
-        value: function (factory) {
-
-            if (!(factory instanceof Sy.Storage.EngineFactory.Core)) {
-                throw new TypeError('Invalid engine factory');
-            }
-
-            this.engineFact = factory;
+    setDefinitions: {
+        value: function (definitions) {
+            this.definitions = definitions || {};
 
             return this;
-
         }
     },
 
     /**
-     * Set the Repository factory
+     * Set the factory to build dbals
+     *
+     * @param {Sy.Storage.Dbal.Factory} factory
+     *
+     * @return {Sy.Storage.ManagerFactory} self
+     */
+
+    setDbalFactory: {
+        value: function (factory) {
+            if (!(factory instanceof Sy.Storage.Dbal.Factory)) {
+                throw new TypeError('Invalid dbal factory');
+            }
+
+            this.dbals = factory;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the repository factory
      *
      * @param {Sy.Storage.RepositoryFactory} factory
      *
-     * @return {Sy.Storage.ManagerFactory}
+     * @return {Sy.Storage.ManagerFactory} self
      */
 
     setRepositoryFactory: {
         value: function (factory) {
-
             if (!(factory instanceof Sy.Storage.RepositoryFactory)) {
                 throw new TypeError('Invalid repository factory');
             }
 
-            this.repositoryFact = factory;
+            this.repoFactory = factory;
 
             return this;
+        }
+    },
 
+    /**
+     * Set the unit of work factory
+     *
+     * @param {Sy.Storage.UnitOfWorkFactory} factory
+     *
+     * @return {Sy.Storage.ManagerFactory} self
+     */
+
+    setUnitOfWorkFactory: {
+        value: function (factory) {
+            if (!(factory instanceof Sy.Storage.UnitOfWorkFactory)) {
+                throw new TypeError('Invalid unit of work factory');
+            }
+
+            this.uowFactory = factory;
+
+            return this;
         }
     },
 
@@ -67,29 +98,26 @@ Sy.Storage.ManagerFactory.prototype = Object.create(Sy.FactoryInterface.prototyp
      */
 
     make: {
-        value: function (name, args, entitiesMeta) {
-
-            var manager = new Sy.Storage.Manager(),
-                meta = [],
-                engine;
-
-                args.mapping = args.mapping || [];
-
-            for (var i = 0, l = entitiesMeta.length; i < l; i++) {
-                if (args.mapping.length === 0 || args.mapping.indexOf(entitiesMeta[i].name) !== -1) {
-                    meta.push(entitiesMeta[i]);
-                }
+        value: function (name) {
+            if (!this.definitions.hasOwnProperty(name)) {
+                throw new ReferenceError('Unknown manager definition');
             }
 
-            engine = this.engineFact.make(args, meta);
+            var manager = new Sy.Storage.Manager(),
+                uow = this.uowFactory.make(),
+                driver = this.dbals.make(
+                    this.definitions[name].connection
+                );
 
-            manager
-                .setRepositoryFactory(this.repositoryFact)
-                .setMapping(args.mapping)
-                .setEngine(engine);
+            uow.setDriver(driver);
 
-            return manager;
-
+            return manager
+                .setDriver(driver)
+                .setRepositoryFactory(this.repoFactory)
+                .setMappings(
+                    this.definitions[name].mappings || []
+                )
+                .setUnitOfWork(uow);
         }
     }
 

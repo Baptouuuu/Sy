@@ -2,116 +2,93 @@
  * @venus-library jasmine
  * @venus-include ../../src/functions.js
  * @venus-include ../../src/FactoryInterface.js
- * @venus-include ../../src/Storage/EngineFactory/Core.js
- * @venus-include ../../src/Storage/EngineInterface.js
+ * @venus-include ../../src/Storage/Dbal/Factory.js
+ * @venus-include ../../src/Storage/Dbal/DriverInterface.js
  * @venus-include ../../src/Storage/RepositoryFactory.js
- * @venus-include ../../src/Storage/Repository.js
+ * @venus-include ../../src/Storage/IdentityMap.js
+ * @venus-include ../../src/Storage/UnitOfWork.js
+ * @venus-include ../../src/Storage/UnitOfWorkFactory.js
  * @venus-include ../../src/Storage/Manager.js
  * @venus-code ../../src/Storage/ManagerFactory.js
  */
 
 describe('storage manager factory', function () {
+    var DbalFactory = function () {},
+        UOWF = function () {},
+        factory;
 
-    it('should throw if invalid engine factory', function () {
-
-        var mf = new Sy.Storage.ManagerFactory();
-
-        expect(function () {
-            mf.setEngineFactory({});
-        }).toThrow('Invalid engine factory');
-
+    DbalFactory.prototype = Object.create(Sy.Storage.Dbal.Factory.prototype, {
+        make: {
+            value: function () {
+                return new Sy.Storage.Dbal.DriverInterface();
+            }
+        }
+    });
+    UOWF.prototype = Object.create(Sy.Storage.UnitOfWorkFactory.prototype, {
+        make: {
+            value: function () {
+                return new Sy.Storage.UnitOfWork();
+            }
+        }
     });
 
-    it('should set engine factory', function () {
-
-        var mf = new Sy.Storage.ManagerFactory(),
-            ef = new Sy.Storage.EngineFactory.Core();
-
-        expect(mf.setEngineFactory(ef)).toEqual(mf);
-        expect(mf.engineFact).toEqual(ef);
-
+    beforeEach(function () {
+        factory = new Sy.Storage.ManagerFactory();
     });
 
-    it('should throw if invalid repository factory', function () {
+    it('should set the managers definitions', function () {
+        expect(factory.setDefinitions({})).toEqual(factory);
+    });
 
-        var mf = new Sy.Storage.ManagerFactory();
-
+    it('should throw if trying to set invalid dbal factory', function () {
         expect(function () {
-            mf.setRepositoryFactory({});
+            factory.setDbalFactory({});
+        }).toThrow('Invalid dbal factory');
+    });
+
+    it('should throw the dbal factory', function () {
+        expect(factory.setDbalFactory(new Sy.Storage.Dbal.Factory())).toEqual(factory);
+    });
+
+    it('should throw if trying to set invalid repository factory', function () {
+        expect(function () {
+            factory.setRepositoryFactory({});
         }).toThrow('Invalid repository factory');
-
     });
 
-    it('should set repository factory', function () {
-
-        var mf = new Sy.Storage.ManagerFactory(),
-            rf = new Sy.Storage.RepositoryFactory();
-
-        expect(mf.setRepositoryFactory(rf)).toEqual(mf);
-        expect(mf.repositoryFact).toEqual(rf);
-
+    it('should set the repository factory', function () {
+        expect(factory.setRepositoryFactory(new Sy.Storage.RepositoryFactory())).toEqual(factory);
     });
 
-    it('should return manager', function () {
+    it('should throw if trying to set invalid unit of work factory', function () {
+        expect(function () {
+            factory.setUnitOfWorkFactory({});
+        }).toThrow('Invalid unit of work factory');
+    });
 
-        var mf = new Sy.Storage.ManagerFactory(),
-            mockEF = function () {},
-            mockRF = function () {},
-            m;
+    it('should set the unit of work factory', function () {
+        expect(factory.setUnitOfWorkFactory(new Sy.Storage.UnitOfWorkFactory())).toEqual(factory);
+    });
 
-        mockEF.prototype = Object.create(Sy.Storage.EngineFactory.Core.prototype, {
+    it('should throw if trying to get a manager without a definition', function () {
+        factory.setDefinitions({});
 
-            make: {
-                value: function () {
+        expect(function () {
+            factory.make('default');
+        }).toThrow('Unknown manager definition');
+    });
 
-                    var mock = function () {};
-
-                    mock.prototype = Object.create(Sy.Storage.EngineInterface.prototype);
-
-                    return new mock();
-
+    it('should return a manager', function () {
+        factory
+            .setDefinitions({
+                foo: {
+                    connection: 'default'
                 }
-            }
+            })
+            .setDbalFactory(new DbalFactory())
+            .setRepositoryFactory(new Sy.Storage.RepositoryFactory())
+            .setUnitOfWorkFactory(new UOWF);
 
-        });
-
-        mockRF.prototype = Object.create(Sy.Storage.RepositoryFactory.prototype, {
-
-            make: {
-                value: function () {
-
-                    var mock = function () {};
-
-                    mock.prototype = Object.create(Sy.Storage.Repository.prototype);
-
-                    return new mock();
-
-                }
-            }
-
-        });
-
-        mf.setEngineFactory(new mockEF());
-        mf.setRepositoryFactory(new mockRF());
-
-        m = mf.make(
-            'foo',
-            {
-                type: 'foo',
-                version: 1,
-                mapping: ['Foo::Bar']
-            },
-            [{
-                name: 'Foo::Bar',
-                repository: function () {},
-                entity: function () {},
-                indexes: [],
-                uuid: 'uuid'
-            }]
-        );
-
-        expect(m instanceof Sy.Storage.Manager).toBe(true);
-
+        expect(factory.make('foo') instanceof Sy.Storage.Manager).toBe(true);
     });
-
 });

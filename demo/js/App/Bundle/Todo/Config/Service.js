@@ -11,8 +11,16 @@ App.Bundle.Todo.Config.Service.prototype = Object.create(Object.prototype, {
                     constructor: 'App.Bundle.Todo.Service.TaskRepoListener',
                     calls: [
                         ['setRest', ['@sy::core::http::rest']],
-                        ['setMediator', ['@sy::core::mediator']],
                         ['setApiPath', ['%api.basePath%']]
+                    ],
+                    tags: [
+                        {name: 'event.subscriber'}
+                    ]
+                },
+                'todo::viewscreen::main': {
+                    constructor: 'App.Bundle.Todo.ViewScreen.Main',
+                    tags: [
+                        {name: 'view.viewscreen', alias: 'Todo::Main'}
                     ]
                 }
             });

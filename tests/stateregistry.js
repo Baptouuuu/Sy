@@ -158,4 +158,18 @@ describe('state registry', function () {
 
     });
 
+    it('should set the registry as strict', function () {
+        var q = new Sy.StateRegistry();
+
+        q.setRegistryFactory(factory);
+        expect(q.setStrict()).toEqual(q);
+
+        q.set('foo', 'foo', 'foo');
+        q.set('bar', 'foo', 'foo');
+
+        expect(q.has('foo', 'foo')).toBe(false);
+        expect(q.has('bar', 'foo')).toBe(true);
+        expect(q.state('foo')).toEqual('bar');
+    });
+
 });

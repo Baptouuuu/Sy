@@ -45,11 +45,11 @@ translator.translate('key', 'domain', 'en');
 
 ## Create
 
-By default the translator comes as a service under the name `sy::core::translator`. But you can build your own if you want.
+By default the translator comes as a service under the name `translator` (alias of `sy::core::translator`). But you can build your own if you want.
 ```js
 var translator = new Sy.Translator();
 translator.setRegistry(new Sy.Registry());
-translator.setStateRegistryFactory(Sy.kernel.getServiceContainer().get('sy::core::stateregistry::factory'));
+translator.setStateRegistryFactory(Sy.kernel.getContainer().get('sy::core::stateregistry::factory'));
 ```
 
 The first dependency is used to hold translations at the language level; and the second is used to ease the process of storing actual translations by domains. (See the file `bootstrap.js` to understand how to create a state registry factory);

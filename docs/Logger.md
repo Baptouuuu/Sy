@@ -15,6 +15,8 @@ At this point you could ask why do I need a logger when I have `console.(debug|l
 
 That's here where the logger is helpful, especially with the notion of handlers. You could imagine setting the `Console` handler when you're in dev mode, and easily switch to another handler when you go to prod without modifying your code. (You could for example create a handler sending all errors to your server)
 
+In the framework, a default logger exist as a service under the name `logger` (alias of `sy::core::logger`).
+
 ## Creation
 
 ```js

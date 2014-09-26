@@ -4,7 +4,7 @@ This object sits on top of the [HTTP Manager](HTTP-Library.md#manager) and allow
 
 ## Creation
 
-If you use the whole framework you can access the rest object through the `sy::core::http::rest` service, so you can omit this section.
+If you use the whole framework you can access the rest object through the `rest` service (alias of `sy::core::http::rest`), so you can omit this section.
 
 ```js
 var rest = new Sy.HTTP.REST();

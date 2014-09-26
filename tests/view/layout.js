@@ -22,6 +22,7 @@ describe('view layout', function () {
         node;
 
     factory.setTemplateEngine(engine);
+    factory.setRegistry(new Sy.Registry());
 
     beforeEach(function () {
         node = rawNode.cloneNode(true);
@@ -59,6 +60,10 @@ describe('view layout', function () {
 
         expect(lists instanceof Array).toBe(true);
         expect(lists.length).toEqual(1);
+    });
+
+    it('should set the viewscreen name', function () {
+        expect(layout.setViewScreenName('foo')).toEqual(layout);
     });
 
 });

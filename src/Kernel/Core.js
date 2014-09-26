@@ -10,9 +10,11 @@ namespace('Sy.Kernel');
 
 Sy.Kernel.Core = function () {
     this.config = new Sy.Configurator();
-    this.container = new Sy.ServiceContainer('sy::core');
+    this.container = new Sy.ServiceContainer.Core();
     this.controllerManager = new Sy.Kernel.ControllerManager();
     this.actionDispatcher = new Sy.Kernel.ActionDispatcher();
+
+    this.container.setCompiler(new Sy.ServiceContainer.Compiler());
 };
 Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
@@ -34,7 +36,7 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
      * @return {Sy.ServiceContainer}
      */
 
-    getServiceContainer: {
+    getContainer: {
         value: function () {
             return this.container;
         }
@@ -58,23 +60,30 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                 parser.setLogger(this.container.get('sy::core::logger'));
             }
 
-            this.config.set('parameters.app.meta', {
+            this.config.set('app.meta', {
                 bundles: parser.getBundles(),
                 controllers: parser.getControllers(),
-                entities: parser.getEntities(),
-                viewscreens: parser.getViewScreens()
+                entities: parser.getEntities()
             });
 
             parser
-                .buildServices(this.container)
                 .buildConfig(this.config)
-                .registerValidationRules(this.container);
+                .buildServices(this.container);
+
+            this
+                .registerShutdownListener()
+                .registerFormTypes()
+                .registerEventSubscribers()
+                .registerViewPasses()
+                .registerStoragePasses();
+
+            this.container.compile();
+
+            parser.registerValidationRules(this.container);
 
             this
                 .registerControllers(parser.getControllers())
-                .configureLogger()
-                .registerShutdownListener();
-
+                .configureLogger();
         }
     },
 
@@ -179,6 +188,84 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                     return error.message;
                 }
             }.bind(this), false);
+
+            return this;
+        }
+    },
+
+    /**
+     * Retrieve services tagged as form type and register them in the form builder
+     *
+     * @return {Sy.Kernel.Core} self
+     */
+
+    registerFormTypes: {
+        value: function () {
+            this.container.addPass(
+                new Sy.Kernel.CompilerPass.FormTypePass()
+            );
+
+            return this;
+        }
+    },
+
+    /**
+     * Retrieve services tagged as event subscriber and register them
+     * in the mediator
+     *
+     * @return {Sy.Kernel.Core} self
+     */
+
+    registerEventSubscribers: {
+        value: function () {
+            var pass = new Sy.Kernel.CompilerPass.EventSubscriberPass();
+
+            this.container.addPass(
+                pass,
+                pass.AFTER_REMOVING
+            );
+
+            return this;
+        }
+    },
+
+    /**
+     * Add the compiler passes related to the view engine to the container
+     *
+     * @return {Sy.Kernel.Core} self
+     */
+
+    registerViewPasses: {
+        value: function () {
+            var vs = new Sy.Kernel.CompilerPass.RegisterViewScreenWrapperPass(),
+                layout = new Sy.Kernel.CompilerPass.RegisterLayoutWrapperPass(),
+                list = new Sy.Kernel.CompilerPass.RegisterListWrapperPass(),
+                logger = this.container.get('sy::core::logger');
+
+            vs.setLogger(logger);
+            layout.setLogger(logger);
+            list.setLogger(logger);
+
+            this.container
+                .addPass(vs)
+                .addPass(layout)
+                .addPass(list);
+
+            return this;
+        }
+    },
+
+    /**
+     * Register all the passes to make the storage engine work
+     *
+     * @return {Sy.Kernel.Core} self
+     */
+
+    registerStoragePasses: {
+        value: function () {
+            this.container.addPass(
+                new Sy.Kernel.CompilerPass.RegisterDriverFactoryPass()
+            );
 
             return this;
         }

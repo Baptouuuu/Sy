@@ -1,7 +1,7 @@
 namespace('Sy.Storage');
 
 /**
- * Handles entity modifications done through repositories
+ * Bridge between database driver and entity level
  *
  * @package Sy
  * @subpackage Storage
@@ -9,84 +9,182 @@ namespace('Sy.Storage');
  */
 
 Sy.Storage.UnitOfWork = function () {
+    this.driver = null;
+    this.map = null;
+    this.entities = null;
     this.states = null;
-    this.engine = null;
+    this.propertyAccessor = null;
+    this.scheduledForInsert = [];
+    this.scheduledForUpdate = [];
+    this.scheduledForDelete = [];
+    this.logger = null;
     this.generator = null;
-    this.name = null;
-    this.entityKey = null;
+    this.mediator = null;
 };
 Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
 
-    SCHEDULED_FOR_CREATION: {
-        value: 'create',
+    STATE_NEW: {
+        value: 'new',
+        writable: false,
+    },
+
+    STATE_MANAGED: {
+        value: 'managed',
         writable: false
     },
 
-    SCHEDULED_FOR_UPDATE: {
-        value: 'update',
+    STATE_DETACHED: {
+        value: 'detached',
         writable: false
     },
 
-    SCHEDULED_FOR_REMOVAL: {
-        value: 'remove',
+    STATE_REMOVED: {
+        value: 'removed',
         writable: false
     },
 
     /**
-     * Set a state registry to hold scheduled entities
+     * Set the database driver
      *
-     * @param {Sy.StateRegistryInterface} states
+     * @param {Sy.Storage.Dbal.DriverInterface} driver
      *
-     * @return {Sy.Storage.UnitOfWork}
+     * @return {Sy.Storage.UnitOfWork} self
      */
 
-    setStateRegistry: {
-        value: function (states) {
+    setDriver: {
+        value: function (driver) {
+            if (!(driver instanceof Sy.Storage.Dbal.DriverInterface)) {
+                throw new TypeError('Invalid database driver');
+            }
 
-            if (!(states instanceof Sy.StateRegistryInterface)) {
+            this.driver = driver;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the identity map
+     *
+     * @param {Sy.Storage.IdentityMap} map
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setIdentityMap: {
+        value: function (map) {
+            if (!(map instanceof Sy.Storage.IdentityMap)) {
+                throw new TypeError('Invalid identity map');
+            }
+
+            this.map = map;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the identity map
+     *
+     * @return {Sy.Storage.IdentityMap}
+     */
+
+    getIdentityMap: {
+        value: function () {
+            return this.map;
+        }
+    },
+
+    /**
+     * Set a state registry to hold loaded entities
+     *
+     * @param {Sy.StateRegistryInterface} registry
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setEntitiesRegistry: {
+        value: function (registry) {
+            if (!(registry instanceof Sy.StateRegistryInterface)) {
                 throw new TypeError('Invalid state registry');
             }
 
-            this.states = states;
+            this.entities = registry;
 
             return this;
-
         }
     },
 
     /**
-     * Set the engine it will use to apply modifications to
+     * Set a property accessor
      *
-     * @param {Sy.Storage.EngineInterface} engine
+     * @param {Sy.PropertyAccessor} accessor
      *
-     * @return {Sy.Storage.UnitOfWork}
+     * @return {Sy.Storage.UnitOfWork} self
      */
 
-    setEngine: {
-        value: function (engine) {
-
-            if (!(engine instanceof Sy.Storage.EngineInterface)) {
-                throw new TypeError('Invalid engine');
+    setPropertyAccessor: {
+        value: function (accessor) {
+            if (!(accessor instanceof Sy.PropertyAccessor)) {
+                throw new TypeError('Invalid property accessor');
             }
 
-            this.engine = engine;
+            this.propertyAccessor = accessor;
 
             return this;
-
         }
     },
 
     /**
-     * Set generator to build entities UUIDs
+     * Set a state registry to hold entities states
+     *
+     * @param {Sy.StateRegistryInterface} registry
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setStatesRegistry: {
+        value: function (registry) {
+            if (!(registry instanceof Sy.StateRegistryInterface)) {
+                throw new TypeError('Invalid state registry');
+            }
+
+            this.states = registry;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a logger
+     *
+     * @param {Sy.Lib.Logger.Interface} logger
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setLogger: {
+        value: function (logger) {
+            if (!(logger instanceof Sy.Lib.Logger.Interface)) {
+                throw new TypeError('Invalid logger');
+            }
+
+            this.logger = logger;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a generator
      *
      * @param {Sy.Lib.Generator.Interface} generator
      *
-     * @return {Sy.Storage.UnitOfWork}
+     * @return {Sy.Storage.UnitOfWork} self
      */
 
     setGenerator: {
         value: function (generator) {
-
             if (!(generator instanceof Sy.Lib.Generator.Interface)) {
                 throw new TypeError('Invalid generator');
             }
@@ -94,170 +192,458 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
             this.generator = generator;
 
             return this;
-
         }
     },
 
     /**
-     * Set the store name this uow depends on
+     * Set the mediator
      *
-     * @param {String} name Store name
+     * @param {Sy.Lib.Mediator} mediator
      *
-     * @return {Sy.Storage.UnitOfWork}
+     * @return {Sy.Storage.UnitOfWork} self
      */
 
-    setName: {
-        value: function (name) {
+    setMediator: {
+        value: function (mediator) {
+            if (!(mediator instanceof Sy.Lib.Mediator)) {
+                throw new TypeError('Invalid mediator');
+            }
 
-            this.name = name;
+            this.mediator = mediator;
 
             return this;
-
         }
     },
 
     /**
-     * Set the entity identifier key name
+     * Find an entity for the specified id
      *
-     * @param {String} key
+     * @param {String} alias
+     * @param {String} id
      *
-     * @return {Sy.Storage.UnitOfWork}
+     * @return {Promise}
      */
 
-    setEntityKey: {
-        value: function (key) {
+    find: {
+        value: function (alias, id) {
+            if (this.entities.has(alias, id)) {
+                return new Promise(function (resolve) {
+                    resolve(this.entities.get(alias, id));
+                }.bind(this));
+            }
 
-            this.entityKey = key;
-
-            return this;
-
+            return this.driver
+                .read(alias, id)
+                .then(function (data) {
+                    return this.buildEntity(alias, data);
+                }.bind(this));
         }
     },
 
     /**
-     * Create or update entities
+     * Find all the entities for the given alias
+     *
+     * @param {String} alias
+     *
+     * @return {Promise}
+     */
+
+    findAll: {
+        value: function (alias) {
+            return this.driver
+                .findAll(alias)
+                .then(function (data) {
+                    for (var i = 0, l = data.length; i < l; i++) {
+                        data[i] = this.buildEntity(alias, data[i]);
+                    }
+
+                    return data;
+                }.bind(this));
+        }
+    },
+
+    /**
+     * Find entities matching the given alias and criteria
+     *
+     * @param {String} alias
+     * @param {String} index
+     * @param {mixed} value
+     * @param {Integer} limit
+     *
+     * @return {Promise}
+     */
+
+    findBy: {
+        value: function (alias, index, value, limit) {
+            return this.driver
+                .find(alias, index, value, limit)
+                .then(function (data) {
+                    for (var i = 0, l = data.length; i < l; i++) {
+                        data[i] = this.buildEntity(alias, data[i]);
+                    }
+
+                    return data;
+                }.bind(this));
+        }
+    },
+
+    /**
+     * Build an entity for the specified alias
+     *
+     * @private
+     * @param {String} alias
+     * @param {Object} data
+     *
+     * @return {Sy.EntityInterface}
+     */
+
+    buildEntity: {
+        value: function (alias, data) {
+            var constructor = this.map.getConstructor(alias),
+                key = this.map.getKey(alias),
+                entity;
+
+            if (this.entities.has(alias, data[key])) {
+                entity = this.entities.get(alias, data[key]);
+            } else {
+                entity = new constructor();
+                this.entities.set(alias, data[key], entity);
+
+                (new ObjectObserver(entity))
+                    .open(function () {
+                        this.computeSchedules(entity);
+                    }.bind(this));
+            }
+
+            for (var p in data) {
+                if (data.hasOwnProperty(p)) {
+                    entity.set(p, data[p]);
+                }
+            }
+
+            this.states.set(this.STATE_MANAGED, data[key], data[key]);
+
+            return entity;
+        }
+    },
+
+    /**
+     * Plan the given entity to be persisted
      *
      * @param {Sy.EntityInterface} entity
      *
-     * @return {Sy.Storage.UnitOfWork}
+     * @return {Sy.Storage.UnitOfWork} self
      */
 
-    handle: {
+    persist: {
         value: function (entity) {
-
             if (!(entity instanceof Sy.EntityInterface)) {
                 throw new TypeError('Invalid entity');
             }
 
-            if (!entity.get(this.entityKey)) {
-                entity.set(
-                    this.entityKey,
-                    this.generator.generate()
-                );
+            var alias = this.map.getAlias(entity),
+                key = this.map.getKey(alias),
+                id = this.propertyAccessor.getValue(entity, key),
+                state = this.states.state(id);
+
+            if (state === undefined) {
+                id = this.generator.generate();
                 this.states.set(
-                    this.SCHEDULED_FOR_CREATION,
-                    entity.get(this.entityKey),
-                    entity
+                    this.STATE_NEW,
+                    id,
+                    id
                 );
-            } else if (this.isScheduledForCreation(entity)) {
-                this.states.set(
-                    this.SCHEDULED_FOR_CREATION,
-                    entity.get(this.entityKey),
-                    entity
-                );
+                this.scheduledForInsert.push(entity);
+                this.propertyAccessor.setValue(entity, key, id);
+
+                (new ObjectObserver(entity))
+                    .open(function () {
+                        this.computeSchedules(entity);
+                    }.bind(this));
             } else {
-                this.states.set(
-                    this.SCHEDULED_FOR_UPDATE,
-                    entity.get(this.entityKey),
-                    entity
-                );
+                this.scheduledForUpdate.push(entity);
             }
 
-            return this;
+            this.entities.set(alias, id, entity);
 
+            return this;
         }
     },
 
     /**
-     * Schedule an entity to be removed from storage
-     * If the entity is scheduled to be created it prevents it
+     * Commit the changes to the database
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    commit: {
+        value: function () {
+            Platform.performMicrotaskCheckpoint();
+
+            this.scheduledForInsert.forEach(function (entity) {
+                var alias = this.map.getAlias(entity),
+                    key = this.map.getKey(alias),
+                    id = this.propertyAccessor.getValue(entity, key),
+                    event = new Sy.Storage.LifeCycleEvent(alias, entity);
+
+                this.mediator && this.mediator.publish(
+                    event.PRE_CREATE,
+                    event
+                );
+
+                if (event.isAborted()) {
+                    return;
+                }
+
+                this.driver
+                    .create(alias, this.getEntityData(entity))
+                    .then(function () {
+                        this.states.set(
+                            this.STATE_MANAGED,
+                            id,
+                            id
+                        );
+
+                        this.mediator && this.mediator.publish(
+                            event.POST_CREATE,
+                            event
+                        );
+
+                        this.logger && this.logger.info(
+                            'Entity created',
+                            entity
+                        );
+                    }.bind(this));
+            }, this);
+            this.scheduledForUpdate.forEach(function (entity) {
+                var alias = this.map.getAlias(entity),
+                    key = this.map.getKey(alias),
+                    id = this.propertyAccessor.getValue(entity, key),
+                    event = new Sy.Storage.LifeCycleEvent(alias, entity);
+
+                this.mediator && this.mediator.publish(
+                    event.PRE_UPDATE,
+                    event
+                );
+
+                if (event.isAborted()) {
+                    return;
+                }
+
+                this.driver
+                    .update(
+                        alias,
+                        id,
+                        this.getEntityData(entity)
+                    )
+                    .then(function () {
+                        this.mediator && this.mediator.publish(
+                            event.POST_UPDATE,
+                            event
+                        );
+
+                        this.logger && this.logger.info(
+                            'Entity updated',
+                            entity
+                        );
+                    });
+            }, this);
+            this.scheduledForDelete.forEach(function (entity) {
+                var alias = this.map.getAlias(entity),
+                    key = this.map.getKey(alias),
+                    id = this.propertyAccessor.getValue(entity, key),
+                    event = new Sy.Storage.LifeCycleEvent(alias, entity);
+
+                this.mediator && this.mediator.publish(
+                    event.PRE_REMOVE,
+                    event
+                );
+
+                if (event.isAborted()) {
+                    return;
+                }
+
+                this.driver
+                    .remove(alias, id)
+                    .then(function () {
+                        this.states.set(
+                            this.STATE_REMOVED,
+                            id,
+                            id
+                        );
+
+                        this.mediator && this.mediator.publish(
+                            event.POST_REMOVE,
+                            event
+                        );
+
+                        this.logger && this.logger.info(
+                            'Entity removed',
+                            entity
+                        )
+                    }.bind(this));
+            }, this);
+
+            //reinitialize schedules so 2 close commits can't trigger
+            //an entity to be sent to the driver twice
+            this.scheduledForInsert.splice(0);
+            this.scheduledForUpdate.splice(0);
+            this.scheduledForDelete.splice(0);
+
+            return this;
+        }
+    },
+
+    /**
+     * Plan the entity to be removed from the database
      *
      * @param {Sy.EntityInterface} entity
      *
-     * @return {Sy.Storage.UnitOfWork}
+     * @return {Sy.Storage.UnitOfWork} self
      */
 
     remove: {
         value: function (entity) {
+            if (!(entity instanceof Sy.EntityInterface)) {
+                throw new TypeError('Invalid entity');
+            }
 
-            if (this.isScheduledForCreation(entity)) {
-                this.states.remove(
-                    this.SCHEDULED_FOR_CREATION,
-                    entity.get(this.entityKey)
-                );
-            } else if (this.isScheduledForUpdate(entity)) {
-                this.states.remove(
-                    this.SCHEDULED_FOR_UPDATE,
-                    entity.get(this.entityKey)
+            var alias = this.map.getAlias(entity),
+                key = this.map.getKey(alias),
+                state = this.states.state(
+                    this.propertyAccessor.getValue(entity, key)
                 );
 
-                this.states.set(
-                    this.SCHEDULED_FOR_REMOVAL,
-                    entity.get(this.entityKey),
-                    entity
-                );
-            } else {
-                this.states.set(
-                    this.SCHEDULED_FOR_REMOVAL,
-                    entity.get(this.entityKey),
-                    entity
+            if (state === this.STATE_MANAGED) {
+                if (this.isScheduledForUpdate(entity)) {
+                    this.scheduledForUpdate.splice(
+                        this.scheduledForUpdate.indexOf(entity),
+                        1
+                    );
+                }
+
+                this.scheduledForDelete.push(entity);
+            } else if (state === this.STATE_NEW) {
+                this.scheduledForInsert.splice(
+                    this.scheduledForInsert.indexOf(entity),
+                    1
                 );
             }
 
+            return this;
         }
     },
 
     /**
-     * Check if an entity is scheduled for the specific event
+     * Detach all entities or the ones of the given alias
      *
-     * @param {String} event
-     * @param {Sy.EntityInterface} entity
+     * @param {String} alias optional
      *
-     * @return {Boolean}
+     * @return {Sy.Storage.UnitOfWork} self
      */
 
-    isScheduledFor: {
-        value: function (event, entity) {
+    clear: {
+        value: function (alias) {
+            var entities = this.entities.get(),
+                constructor;
 
-            return this.states.has(
-                event,
-                entity.get(this.entityKey)
-            );
+            for (var a in entities) {
+                if (entities.hasOwnProperty(a)) {
 
+                    if (alias !== undefined && alias !== a) {
+                        continue;
+                    }
+
+                    for (var i = 0, l = entities[a].length; i < l; i++) {
+                        this.detach(entities[a][i]);
+                    }
+
+                    if (alias !== undefined && alias === a) {
+                        break;
+                    }
+                }
+            }
+
+            return this;
         }
     },
 
     /**
-     * Check if the entity is scheduled to be created
+     * Detach the given entity
      *
      * @param {Sy.EntityInterface} entity
      *
-     * @return {Boolean}
+     * @return {Sy.Storage.UnitOfWork} self
      */
 
-    isScheduledForCreation: {
+    detach: {
         value: function (entity) {
+            var alias = this.map.getAlias(entity),
+                key = this.map.getKey(alias),
+                id = this.propertyAccessor.getValue(entity, key);
 
-            return this.isScheduledFor(
-                this.SCHEDULED_FOR_CREATION,
-                entity
-            );
+            this.states.set(this.STATE_DETACHED, id, id);
 
+            if (this.isScheduledForInsert(entity)) {
+                this.scheduledForInsert.splice(
+                    this.scheduledForInsert.indexOf(entity),
+                    1
+                );
+            }
+
+            if (this.isScheduledForUpdate(entity)) {
+                this.scheduledForUpdate.splice(
+                    this.scheduledForUpdate.indexOf(entity),
+                    1
+                );
+            }
+
+            if (this.isScheduledForDelete(entity)) {
+                this.scheduledForDelete.splice(
+                    this.scheduledForDelete.indexOf(entity),
+                    1
+                );
+            }
+
+            return this;
         }
     },
 
     /**
-     * Check if the entity is scheduled to be updated
+     * Check if the entity is managed
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Boolean}
+     */
+
+    isManaged: {
+        value: function (entity) {
+            var alias = this.map.getAlias(entity),
+                key = this.map.getKey(alias),
+                id = this.propertyAccessor.getValue(entity, key);
+                state = this.states.state(id);
+
+            return [this.STATE_NEW, this.STATE_MANAGED].indexOf(state) !== -1;
+        }
+    },
+
+    /**
+     * Check if the entity is scheduled for insertion
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Boolean}
+     */
+
+    isScheduledForInsert: {
+        value: function (entity) {
+            return this.scheduledForInsert.indexOf(entity) !== -1;
+        }
+    },
+
+    /**
+     * Check if the entity is scheduled for update
      *
      * @param {Sy.EntityInterface} entity
      *
@@ -266,160 +652,66 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
 
     isScheduledForUpdate: {
         value: function (entity) {
-
-            return this.isScheduledFor(
-                this.SCHEDULED_FOR_UPDATE,
-                entity
-            );
-
+            return this.scheduledForUpdate.indexOf(entity) !== -1;
         }
     },
 
     /**
-     * Check if the entity is sheduled to be removed
+     * Check if the entity is scheduled for removal
      *
      * @param {Sy.EntityInterface} entity
      *
      * @return {Boolean}
      */
 
-    isScheduledForRemoval: {
+    isScheduledForDelete: {
         value: function (entity) {
-
-            return this.isScheduledFor(
-                this.SCHEDULED_FOR_REMOVAL,
-                entity
-            );
-
+            return this.scheduledForDelete.indexOf(entity) !== -1;
         }
     },
 
     /**
-     * Flush modifications to the engine
-     *
-     * @return {Sy.Storage.UnitOfWork}
-     */
-
-    commit: {
-        value: function () {
-
-            var toRemove = this.states.has(this.SCHEDULED_FOR_REMOVAL) ? this.states.get(this.SCHEDULED_FOR_REMOVAL) : [],
-                toUpdate = this.states.has(this.SCHEDULED_FOR_UPDATE) ? this.states.get(this.SCHEDULED_FOR_UPDATE) : [],
-                toCreate = this.states.has(this.SCHEDULED_FOR_CREATION) ? this.states.get(this.SCHEDULED_FOR_CREATION) : [];
-
-            for (var i = 0, l = toRemove.length; i < l; i++) {
-                this.engine.remove(
-                    this.name,
-                    toRemove[i].get(this.entityKey),
-                    this.removalListener.bind(this)
-                );
-            }
-
-            for (i = 0, l = toUpdate.length; i < l; i++) {
-                this.engine.update(
-                    this.name,
-                    toUpdate[i].get(this.entityKey),
-                    this.getEntityData(toUpdate[i]),
-                    this.updateListener.bind(this)
-                );
-            }
-
-            for (i = 0, l = toCreate.length; i < l; i++) {
-                this.engine.create(
-                    this.name,
-                    this.getEntityData(toCreate[i]),
-                    this.createListener.bind(this)
-                );
-            }
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Return the raw representation of the entity
+     * Update the schedules for the given entity
+     * If entity scheduled for insert leave as is
+     * otherwise plan for update except if planned for delete
      *
      * @private
      * @param {Sy.EntityInterface} entity
+     */
+
+    computeSchedules: {
+        value: function (entity) {
+            var alias = this.map.getAlias(entity),
+                key = this.map.getKey(alias),
+                state = this.states.state(
+                    this.propertyAccessor.getValue(entity, key)
+                );
+
+            if (state === this.STATE_MANAGED && !this.isScheduledForUpdate(entity)) {
+                this.scheduledForUpdate.push(entity);
+            }
+        }
+    },
+
+    /**
+     * Extract the data as a POJO from an entity
+     *
+     * @private
+     * @param {Sy.EtityInterface} entity
      *
      * @return {Object}
      */
 
     getEntityData: {
         value: function (entity) {
+            var data = {},
+                refl = new ReflectionObject(entity);
 
-            var raw = {},
-                keys = Object.keys(entity.attributes),
-                refl = new ReflectionObject(entity),
-                getter;
+            refl.getProperties().forEach(function (refl) {
+                data[refl.getName()] = refl.getValue();
+            });
 
-            for (var i = 0, l = keys.length; i < l; i++) {
-                getter = 'get' + keys[i].substr(0, 1).toUpperCase() + keys[i].substr(1);
-                if (refl.hasMethod(getter)) {
-                    raw[keys[i]] = refl.getMethod(getter).call();
-                } else {
-                    raw[keys[i]] = entity.get(keys[i]);
-                }
-
-                if (raw[keys[i]] instanceof Sy.EntityInterface) {
-                    raw[keys[i]] = raw[keys[i]].get(raw[keys[i]].UUID);
-                }
-            }
-
-            return raw;
-
-        }
-    },
-
-    /**
-     * Engine removal listener callback
-     *
-     * @private
-     * @param {String} identifier
-     *
-     * @return {void}
-     */
-
-    removalListener: {
-        value: function (identifier) {
-
-            this.states.remove('remove', identifier);
-
-        }
-    },
-
-    /**
-     * Engine update listener callback
-     *
-     * @private
-     * @param {object} object
-     *
-     * @return {void}
-     */
-
-    updateListener: {
-        value: function (object) {
-
-            this.states.remove('update', object[this.entityKey]);
-
-        }
-    },
-
-    /**
-     * Engine create listener callback
-     *
-     * @private
-     * @param {String} identifier
-     *
-     * @return {void}
-     */
-
-    createListener: {
-        value: function (identifier) {
-
-            this.states.remove('create', identifier);
-
+            return data;
         }
     }
 

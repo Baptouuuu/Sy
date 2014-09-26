@@ -21,7 +21,7 @@ Bare in mind that until the release 1.0 some methods of those libraries may chan
 
 ## Documentation
 
-Please read the framework [book](docs/book/), you should also take a look at the [components documentations](docs/Index.md).
+Please read the framework [book](docs/book/), you should also take a look at the [components documentations](docs/README.md).
 
 ## Conventions
 

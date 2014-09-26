@@ -12,7 +12,6 @@ Sy.Kernel.AppParser = function () {
     this.bundles = [];
     this.controllers = [];
     this.entities = [];
-    this.viewscreens = [];
     this.logger = null;
 };
 Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
@@ -130,10 +129,12 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
                         entity = bundleEntities[name];
 
                         this.entities.push({
-                            name: alias,
-                            repository: bundleRepositories[name] || Sy.Storage.Repository,
+                            alias: alias,
+                            bundle: this.bundles[i],
+                            name: name,
+                            repository: bundleRepositories[name],
                             entity: entity,
-                            indexes: (new entity()).indexes,
+                            indexes: entity.prototype.INDEXES,
                             uuid: entity.prototype.UUID
                         });
 
@@ -152,49 +153,10 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Return the list of viewscreens wrappers
-     *
-     * @return {Array}
-     */
-
-    getViewScreens: {
-        value: function () {
-
-            if (this.viewscreens.length > 0) {
-                return this.viewscreens;
-            }
-
-            var bundleViewScreens;
-
-            for (var i = 0, l = this.bundles.length; i < l; i++) {
-                bundleViewScreens = App.Bundle[this.bundles[i]].ViewScreen;
-
-                if (!bundleViewScreens) {
-                    this.logger && this.logger.debug('No viewscreen wrapper found in', this.bundles[i]);
-                    continue;
-                }
-
-                for (var name in bundleViewScreens) {
-                    if (bundleViewScreens.hasOwnProperty(name)) {
-                        this.viewscreens.push({
-                            name: this.bundles[i] + '::' + name,
-                            creator: bundleViewScreens[name]
-                        });
-                        this.logger && this.logger.debug('ViewScreen wrapper found', this.bundles[i] + '::' + name);
-                    }
-                }
-            }
-
-            return this.viewscreens;
-
-        }
-    },
-
-    /**
      * Walk through the app services definitions object
      * and call them to register them
      *
-     * @param {Sy.ServiceContainerInterface} $container
+     * @param {Sy.ServiceContainer.Core} $container
      *
      * @return {Sy.Kernel.AppParser}
      */
@@ -202,7 +164,7 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
     buildServices: {
         value: function (container) {
 
-            if (!(container instanceof Sy.ServiceContainerInterface)) {
+            if (!(container instanceof Sy.ServiceContainer.Core)) {
                 throw new TypeError('Invalid service container');
             }
 
@@ -266,14 +228,14 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
      * Walk through the app validation rules definitions object
      * and call them to register them in the validator
      *
-     * @param {Sy.ServiceContainerInterface} container
+     * @param {Sy.ServiceContainer.Core} container
      *
      * @return {Sy.Kernel.AppParser}
      */
 
     registerValidationRules: {
         value: function (container) {
-            if (!(container instanceof Sy.ServiceContainerInterface)) {
+            if (!(container instanceof Sy.ServiceContainer.Core)) {
                 throw new TypeError('Invalid service container');
             }
 

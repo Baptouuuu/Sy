@@ -79,7 +79,7 @@ Sy.View.Manager.prototype = Object.create(Object.prototype, {
             }
 
             if (this.views.has(name.trim())) {
-                throw new ReferenceError('A view with the name "' + name.trim() + '"');
+                throw new ReferenceError('A view with the name "' + name.trim() + '" already exist');
             }
 
             this.views.set(
@@ -97,7 +97,7 @@ Sy.View.Manager.prototype = Object.create(Object.prototype, {
      *
      * @param {string} name
      *
-     * @return {Sy.View.ViewScreenInterface}
+     * @return {Sy.View.ViewScreen}
      */
 
     getViewScreen: {

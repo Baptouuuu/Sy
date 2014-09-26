@@ -17,7 +17,7 @@ This the top layer in your app, it's the node containing all what's displayed by
 
 It's accessed via the service container as follows:
 ```js
-var viewport = Sy.kernel.getServiceContainer().get('sy::core::viewport');
+var viewport = Sy.kernel.getContainer().get('sy::core::viewport');
 ```
 
 In order to work, your SPA html must look like this:
@@ -59,15 +59,15 @@ If there's no ViewScreen already set in the viewport, it's no problem.
 You can create your own `ViewScreen` wrapper by creating a class inheriting from the default one and then register it in the appropriate factory.
 Sample:
 ```js
-var factory = Sy.kernel.getServiceContainer().get('sy::core::view::factory::viewscreen'),
+var factory = Sy.kernel.getContainer().get('sy::core::view::factory::viewscreen'),
     Wrapper = function () {
       Sy.View.ViewScreen.call(this);
     };
 Wrapper.prototype = Object.create(Sy.View.ViewScreen.prototype);
-factory.setViewScreenWrapper('name', Wrapper);
+factory.setViewScreenWrapper('name', new Wrapper());
 ```
 
-With this code when the engine will create a wrapper for a viewscreen node, if the defined name on the node matches the one you registered, the factory will instanciate `Wrapper` instead of [`Sy.View.ViewScreen`](../src/View/ViewScreen.js). So you can add your custom methods to a wrapper.
+With this code, when the engine will retrieve a wrapper for a viewscreen node, if the defined name on the node matches the one you registered, the factory will return the instance of `Wrapper` instead of [`Sy.View.ViewScreen`](../src/View/ViewScreen.js). So you can add your custom methods to a wrapper.
 
 ## Layout
 
@@ -91,6 +91,22 @@ var layouts = viewscreen.getLayouts();
 ```
 
 **Note**: this layer is here to help you access part of the UI in a logical way, but all your ViewScreen markup don't have to be inside a layout.
+
+### Custom wrappers
+
+You can create your own `Layout` wrapper by creating a class inheriting from the default one and then register it in the appropriate factory.
+Sample:
+```js
+var factory = Sy.kernel.getContainer().get('sy::core::view::factory::layout'),
+    Wrapper = function () {
+      Sy.View.Layout.call(this);
+    };
+Wrapper.prototype = Object.create(Sy.View.Layout.prototype);
+factory.setLayoutWrapper('viewscreen name', 'name', new Wrapper());
+```
+The first parameter of `setLayoutWrapper` is the viewscreen name where the layout is located, it's needed so you can reuse the same layout name in different viewscreens.
+
+With this code, when the engine will retrieve a wrapper for a layout node, if the defined name on the node matches the one you registered, the factory will return the instance of `Wrapper` instead of [`Sy.View.Layout`](../src/View/Layout.js). So you can add your custom methods to a wrapper.
 
 ## List
 
@@ -163,6 +179,22 @@ To access to all the lists of the layout:
 layout.getLayouts();
 ```
 
+### Custom wrappers
+
+You can create your own `List` wrapper by creating a class inheriting from the default one and then register it in the appropriate factory.
+Sample:
+```js
+var factory = Sy.kernel.getContainer().get('sy::core::view::factory::list'),
+    Wrapper = function () {
+      Sy.View.List.call(this);
+    };
+Wrapper.prototype = Object.create(Sy.View.List.prototype);
+factory.setListWrapper('viewscreen name', 'layout name', 'name', new Wrapper());
+```
+The first parameter of `setListWrapper` is the viewscreen name where the layout is located, and the second one is for the layout it belongs to. It's needed so you can reuse the same list name in different viewscreens.
+
+With this code, when the engine will retrieve a wrapper for a layout node, if the defined name on the node matches the one you registered, the factory will return the instance of `Wrapper` instead of [`Sy.View.Layout`](../src/View/Layout.js). So you can add your custom methods to a wrapper.
+
 ## Rendering
 
 `ViewScreen`s and `Layout`s can be independently rendered via the method `render` taking an object as argument.
@@ -202,7 +234,7 @@ The rendering of the layers described above is based on the object [`Sy.View.Tem
 
 The only method you have to care about on this object is `render` and is used as follows:
 ```js
-var renderer = Sy.kernel.getServiceContainer().get('sy::core::view::template::engine');
+var renderer = Sy.kernel.getContainer().get('sy::core::view::template::engine');
 renderer.render(node, {
   attr: {
     nested: [

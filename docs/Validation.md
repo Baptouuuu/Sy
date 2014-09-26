@@ -6,7 +6,7 @@ That's where this validation component comes into place, it helps you do data va
 
 ## Creation
 
-If you use the validator inside the framework you can get it with the [service](Service-container.md) `sy::core::validator`, and skip this section.
+If you use the validator inside the framework you can get it with the [service](Service-container.md) `validator` (alias of `sy::core::validator`), and skip this section.
 
 Here is the full code to get the validator up and running:
 ```js

@@ -135,7 +135,7 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
     setServiceContainer: {
         value: function (container) {
 
-            if (!(container instanceof Sy.ServiceContainerInterface)) {
+            if (!(container instanceof Sy.ServiceContainer.Core)) {
                 throw new TypeError('Invalid service container');
             }
 
@@ -249,6 +249,18 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
             return this.container
                 .get('sy::core::form')
                 .createForm(formType, object, options);
+        }
+    },
+
+    /**
+     * Shortcut to retrieve the storage engine
+     *
+     * @return {Sy.Storage.Core}
+     */
+
+    getStorage: {
+        value: function () {
+            return this.container.get('sy::core::storage');
         }
     }
 

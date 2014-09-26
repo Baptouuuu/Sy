@@ -1,7 +1,7 @@
 namespace('Sy.Storage');
 
 /**
- * Generates UnitOfWork objects
+ * Create a generic unit of work
  *
  * @package Sy
  * @subpackage Storage
@@ -10,44 +10,53 @@ namespace('Sy.Storage');
  */
 
 Sy.Storage.UnitOfWorkFactory = function () {
-    this.generator = null;
+    this.identityMap = new Sy.Storage.IdentityMap();
     this.stateRegistryFactory = null;
+    this.propertyAccessor = null;
+    this.logger = null;
+    this.generator = null;
+    this.mediator = null;
 };
 Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
 
     /**
-     * Set the common generator for all unit of works
+     * Set all entities metadata
      *
-     * @param {Sy.Lib.Generator.Interface} generator
+     * @param {Array} metadata
      *
-     * @return {Sy.Storage.UnitOfWorkFactory}
+     * @return {Sy.Storage.UnitOfWorkFactory} self
      */
 
-    setGenerator: {
-        value: function (generator) {
-
-            if (!(generator instanceof Sy.Lib.Generator.Interface)) {
-                throw new TypeError('Invalid generator');
+    setEntitiesMetadata: {
+        value: function (metadata) {
+            if (!(metadata instanceof Array)) {
+                throw new TypeError('Invalid metadata array');
             }
 
-            this.generator = generator;
+            for (var i = 0, l = metadata.length; i < l; i++) {
+                this.identityMap.set(
+                    metadata[i].alias,
+                    metadata[i].entity,
+                    metadata[i].uuid
+                );
+            }
+
+            this.identityMap.lock();
 
             return this;
-
         }
     },
 
     /**
      * Set the state registry factory
      *
-     * @param {Sy.StateRegistry} factory
+     * @param {Sy.StateRegistryFactory} factory
      *
-     * @return {Sy.Storage.UnitOfWorkFactory}
+     * @return {Sy.Storage.UnitOfWorkFactory} self
      */
 
     setStateRegistryFactory: {
         value: function (factory) {
-
             if (!(factory instanceof Sy.StateRegistryFactory)) {
                 throw new TypeError('Invalid state registry factory');
             }
@@ -55,7 +64,86 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
             this.stateRegistryFactory = factory;
 
             return this;
+        }
+    },
 
+    /**
+     * Set a property accessor
+     *
+     * @param {Sy.PropertyAccessor} accessor
+     *
+     * @return {Sy.Storage.UnitOfWorkFactory} self
+     */
+
+    setPropertyAccessor: {
+        value: function (accessor) {
+            if (!(accessor instanceof Sy.PropertyAccessor)) {
+                throw new TypeError('Invalid property accessor');
+            }
+
+            this.propertyAccessor = accessor;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a logger
+     *
+     * @param {Sy.Lib.Logger.Interface} logger
+     *
+     * @return {Sy.Storage.UnitOfWorkFactory} self
+     */
+
+    setLogger: {
+        value: function (logger) {
+            if (!(logger instanceof Sy.Lib.Logger.Interface)) {
+                throw new TypeError('Invalid logger');
+            }
+
+            this.logger = logger;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a generator
+     *
+     * @param {Sy.Lib.Generator.Interface} generator
+     *
+     * @return {Sy.Storage.UnitOfWorkFactory} self
+     */
+
+    setGenerator: {
+        value: function (generator) {
+            if (!(generator instanceof Sy.Lib.Generator.Interface)) {
+                throw new TypeError('Invalid generator');
+            }
+
+            this.generator = generator;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the mediator
+     *
+     * @param {Sy.Lib.Mediator} mediator
+     *
+     * @return {Sy.Storage.UnitOfWorkFactory} self
+     */
+
+    setMediator: {
+        value: function (mediator) {
+            if (!(mediator instanceof Sy.Lib.Mediator)) {
+                throw new TypeError('Invalid mediator');
+            }
+
+            this.mediator = mediator;
+
+            return this;
         }
     },
 
@@ -64,18 +152,21 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
      */
 
     make: {
-        value: function (name, entityKey) {
-
+        value: function () {
             var uow = new Sy.Storage.UnitOfWork();
 
-            uow
-                .setStateRegistry(this.stateRegistryFactory.make())
+            return uow
+                .setIdentityMap(this.identityMap)
+                .setEntitiesRegistry(this.stateRegistryFactory.make())
+                .setStatesRegistry(
+                    this.stateRegistryFactory
+                        .make()
+                        .setStrict()
+                )
+                .setPropertyAccessor(this.propertyAccessor)
+                .setLogger(this.logger)
                 .setGenerator(this.generator)
-                .setName(name)
-                .setEntityKey(entityKey);
-
-            return uow;
-
+                .setMediator(this.mediator);
         }
     }
 

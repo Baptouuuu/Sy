@@ -2,20 +2,13 @@ namespace('App.Bundle.Todo.Service');
 
 App.Bundle.Todo.Service.TaskRepoListener = function () {
     this.rest = null;
-    this.mediator = null;
     this.basePath = null;
 };
-App.Bundle.Todo.Service.TaskRepoListener.prototype = Object.create(Object.prototype, {
+App.Bundle.Todo.Service.TaskRepoListener.prototype = Object.create(Sy.EventSubscriberInterface.prototype, {
 
     setRest: {
         value: function (rest) {
             this.rest = rest;
-        }
-    },
-
-    setMediator: {
-        value: function (mediator) {
-            this.mediator = mediator;
         }
     },
 
@@ -25,62 +18,55 @@ App.Bundle.Todo.Service.TaskRepoListener.prototype = Object.create(Object.protot
         }
     },
 
-    boot: {
+    getSubscribedEvents: {
         value: function () {
-            this.mediator.subscribe({
-                channel: 'app::storage::on::post::create',
-                fn: this.create,
-                context: this,
-                async: true
-            });
-            this.mediator.subscribe({
-                channel: 'app::storage::on::post::update',
-                fn: this.update,
-                context: this,
-                async: true
-            });
-            this.mediator.subscribe({
-                channel: 'app::storage::on::post::remove',
-                fn: this.remove,
-                context: this,
-                async: true
-            });
+            return {
+                'storage.post.create': {
+                    method: 'create'
+                },
+                'storage.post.update': {
+                    method: 'update'
+                },
+                'storage.post.remove': {
+                    method: 'remove'
+                }
+            };
         }
     },
 
     create: {
-        value: function (storeName, data) {
+        value: function (event) {
 
             return;
 
             this.rest.post({
                 uri: this.basePath + '/task',
-                data: data
+                data: event.getEntity()
             });
 
         }
     },
 
     update: {
-        value: function (storeName, identifier, data) {
+        value: function (event) {
 
             return;
 
             this.rest.put({
                 uri: this.basePath + '/task/' + identifier,
-                data: data
+                data: event.getEntity()
             });
 
         }
     },
 
     remove: {
-        value: function (storeName, identifier) {
+        value: function (event) {
 
             return;
 
             this.rest.remove({
-                uri: this.basePath + '/task/' + identifier
+                uri: this.basePath + '/task/' + event.getEntity().get('uuid')
             });
 
         }

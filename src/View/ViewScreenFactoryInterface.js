@@ -64,13 +64,13 @@ Sy.View.ViewScreenFactoryInterface.prototype = Object.create(Sy.FactoryInterface
      * Set viewscreen wrapper constructor
      *
      * @param {String} name Viewscreen name it's attached to
-     * @param {Function} viewscreenConstructor
+     * @param {Sy.View.ViewScreen} viewscreen
      *
-     * @return {Sy.View.ViewScreenFactoryInterface}
+     * @return {Sy.View.ViewScreenFactoryInterface} self
      */
 
     setViewScreenWrapper: {
-        value: function (name, viewscreenConstructor) {}
+        value: function (name, viewscreen) {}
     }
 
 });

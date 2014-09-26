@@ -30,7 +30,7 @@ Like said before, it's the center of your app UI. Everything's displayed inside 
 
 By javascript you have access to a service to modify the viewscreen displayed in the viewport:
 ```js
-Sy.kernel.getServiceContainer()
+Sy.kernel.getContainer()
     .get('sy::core::viewport')
     .display('viewscreen name');
 ```
@@ -71,7 +71,7 @@ So if you want to display `bar` in your viewscreen, you only need to write a pla
 
 ### Custom wrapper
 
-Thanks to the code structure imposed by the framework it can autoload your custom viewscreens wrappers. A custom one could look like the one below:
+Thanks to the [service container tags](../Service-container.md#tagging) it can autoload your custom viewscreens wrappers. A custom one could look like the one below:
 
 ```js
 namespace('App.Bundle.Foo.ViewScreen');
@@ -94,7 +94,21 @@ App.Bundle.Foo.ViewScreen.Bar.prototype = Object.create(Sy.View.ViewScreen.proto
     }
 });
 ```
-Now if you want this wrapper to loaded you only have to name your viewscreen `Foo::Bar` and the engine will automatically create a instance of your wrapper.
+Now you have to register your wrapper as a service like so:
+```js
+container.set({
+    'my::wrapper': {
+        constructor: 'App.Bundle.Foo.ViewScreen.Bar',
+        tags: [
+            {name: 'view.viewscreen', alias: 'Foo::Bar'}
+        ]
+    }
+});
+```
+
+Now, when you'll access the viewscreen named `Foo::Bar` it will load your custom wrapper. And as it's a service you benefit from all the service container features, but do so wisely.
+
+**Note**: you can add many `view.viewscreen` tags to a single service so it can be used for many nodes, but you need to flag your service as a [`prototype`](../Service-container.md#prototype-services) otherwise you'll encounter unexpected behaviours.
 
 ## Layout
 
@@ -111,6 +125,47 @@ To access a layout wrapper, you can achieve it like this:
 ```js
 viewscreenWrapper.getLayout('bar');
 ```
+
+### Custom wrapper
+
+Like the viewscreen you can create your own layout wrapper.
+
+```js
+namespace('App.Bundle.Foo.Layout');
+
+App.Bundle.Foo.Layout.Bar = function () {
+    Sy.View.Layout.call(this);
+};
+App.Bundle.Foo.Layout.Bar.prototype = Object.create(Sy.View.Layout.prototype, {
+    customMethod: {
+        value: function () {
+            this.getNode(); //to access to the actual DOM node
+        }
+    },
+
+    setNode: {                                              //this method is used to inject the node in the wrapper, use it carefully
+        value: function (node) {
+            Sy.View.Layout.prototype.call(this, node);      //don't forget to call the parent method, otherwise it will break some features
+            // do your stuff
+        }
+    }
+});
+```
+Now you have to register your wrapper as a service like so:
+```js
+container.set({
+    'my::wrapper': {
+        constructor: 'App.Bundle.Foo.Layout.Bar',
+        tags: [
+            {name: 'view.layout', alias: 'Bar', viewscreen: 'ViewScreenName'}
+        ]
+    }
+});
+```
+
+Now, when you'll access the layout named `Bar`, inside the viewscreen `ViewScreenName`, it will load your custom wrapper. And as it's a service you benefit from all the service container features, but do so wisely.
+
+**Note**: you can add many `view.layout` tags to a single service so it can be used for many nodes, but you need to flag your service as a [`prototype`](../Service-container.md#prototype-services) otherwise you'll encounter unexpected behaviours.
 
 ## List
 
@@ -141,6 +196,47 @@ layoutWrapper.getList('list name').prepend(dataObject, 'A');
 The same goes for `append`. If you ommit the type when calling one of those methods, it will use the first type declared in the DOM (in this case `A`).
 
 With this wrapper, the `render` method has been modified to only accept `Array`s. It will loop over this array and call the `append` method for every element of this one. Now to specify a `type` for each element, you need to add a `_type` property on the array's objects.
+
+### Custom wrapper
+
+Like the viewscreen, or the layout, you can create your own layout wrapper.
+
+```js
+namespace('App.Bundle.Foo.List');
+
+App.Bundle.Foo.List.Bar = function () {
+    Sy.View.List.call(this);
+};
+App.Bundle.Foo.List.Bar.prototype = Object.create(Sy.View.List.prototype, {
+    customMethod: {
+        value: function () {
+            this.getNode(); //to access to the actual DOM node
+        }
+    },
+
+    setNode: {                                            //this method is used to inject the node in the wrapper, use it carefully
+        value: function (node) {
+            Sy.View.List.prototype.call(this, node);      //don't forget to call the parent method, otherwise it will break some features
+            // do your stuff
+        }
+    }
+});
+```
+Now you have to register your wrapper as a service like so:
+```js
+container.set({
+    'my::wrapper': {
+        constructor: 'App.Bundle.Foo.List.Bar',
+        tags: [
+            {name: 'view.list', alias: 'Bar', viewscreen: 'ViewScreenName', layout: 'LayoutName'}
+        ]
+    }
+});
+```
+
+Now, when you'll access the listt named `Bar`, inside the layout `LayoutName` itself inside the viewscreen `ViewScreenName`, it will load your custom wrapper. And as it's a service you benefit from all the service container features, but do so wisely.
+
+**Note**: you can add many `view.layout` tags to a single service so it can be used for many nodes, but you need to flag your service as a [`prototype`](../Service-container.md#prototype-services) otherwise you'll encounter unexpected behaviours.
 
 ## Rendering engine
 

@@ -29,28 +29,26 @@ module.exports = function (grunt) {
         ],
         storage = [
             'src/EntityInterface.js',
-            'src/Storage/RepositoryInterface.js',
-            'src/Storage/EngineInterface.js',
-            'src/Storage/StoreMapperInterface.js',
+            'src/Entity.js',
             'src/Storage/Core.js',
-            'src/Storage/Event/LifecycleEvent.js',
-            'src/Storage/Engine/IndexedDB.js',
-            'src/Storage/Engine/Localstorage.js',
-            'src/Storage/Engine/Rest.js',
-            'src/Storage/EngineFactory/AbstractFactory.js',
-            'src/Storage/EngineFactory/Core.js',
-            'src/Storage/EngineFactory/IndexedDBFactory.js',
-            'src/Storage/EngineFactory/LocalstorageFactory.js',
-            'src/Storage/EngineFactory/RestFactory.js',
+            'src/Storage/IdentityMap.js',
+            'src/Storage/LifeCycleEvent.js',
             'src/Storage/Manager.js',
             'src/Storage/ManagerFactory.js',
             'src/Storage/Repository.js',
             'src/Storage/RepositoryFactory.js',
-            'src/Storage/StoreMapper/IndexedDBMapper.js',
-            'src/Storage/StoreMapper/LocalstorageMapper.js',
-            'src/Storage/StoreMapper/RestMapper.js',
+            'src/Storage/RepositoryFactoryConfigurator.js',
             'src/Storage/UnitOfWork.js',
-            'src/Storage/UnitOfWorkFactory.js'
+            'src/Storage/UnitOfWorkFactory.js',
+            'src/Storage/Dbal/DriverFactoryInterface.js',
+            'src/Storage/Dbal/DriverInterface.js',
+            'src/Storage/Dbal/Factory.js',
+            'src/Storage/Dbal/IndexedDB.js',
+            'src/Storage/Dbal/IndexedDBFactory.js',
+            'src/Storage/Dbal/Localstorage.js',
+            'src/Storage/Dbal/LocalstorageFactory.js',
+            'src/Storage/Dbal/Rest.js',
+            'src/Storage/Dbal/RestFactory.js',
         ],
         validator = [
             'src/Validator/ConstraintInterface.js',
@@ -135,6 +133,7 @@ module.exports = function (grunt) {
             'src/View/List.js',
             'src/View/ListFactory.js',
             'src/View/Manager.js',
+            'src/View/ManagerConfigurator.js',
             'src/View/Parser.js',
             'src/View/TemplateEngine.js',
             'src/View/ViewPort.js',
@@ -156,9 +155,17 @@ module.exports = function (grunt) {
             'src/StateRegistryFactory.js',
         ],
         serviceContainer = [
-            'src/ServiceContainerInterface.js',
-            'src/ParamProxy.js',
-            'src/ServiceContainer.js',
+            'src/ServiceContainer/Core.js',
+            'src/ServiceContainer/Alias.js',
+            'src/ServiceContainer/Compiler.js',
+            'src/ServiceContainer/CompilerPassInterface.js',
+            'src/ServiceContainer/Definition.js',
+            'src/ServiceContainer/Parameter.js',
+            'src/ServiceContainer/Reference.js',
+            'src/ServiceContainer/CompilerPass/ApplyParentDefinition.js',
+            'src/ServiceContainer/CompilerPass/RemoveAbstractDefinitions.js',
+            'src/ServiceContainer/CompilerPass/ResolveParameterPlaceholder.js',
+            'src/ServiceContainer/CompilerPass/ResolveReferencePlaceholder.js',
         ],
         translator = [
             'src/Translator.js',
@@ -168,6 +175,9 @@ module.exports = function (grunt) {
         ],
         dom = [
             'src/DOM.js'
+        ],
+        propertyAccessor = [  //need the reflection.js vendor
+            'src/PropertyAccessor.js'
         ],
         framework = [
             'src/functions.js',
@@ -180,8 +190,15 @@ module.exports = function (grunt) {
             'src/Event/AppShutdownEvent.js',
             'src/Event/ControllerEvent.js',
             'src/Controller.js',
-            'src/EntityInterface.js',
-            'src/Entity.js',
+            'src/EventSubscriberInterface.js'
+        ],
+        frameworkPasses = [
+            'src/Kernel/CompilerPass/EventSubscriberPass.js',
+            'src/Kernel/CompilerPass/FormTypePass.js',
+            'src/Kernel/CompilerPass/RegisterDriverFactoryPass.js',
+            'src/Kernel/CompilerPass/RegisterLayoutWrapperPass.js',
+            'src/Kernel/CompilerPass/RegisterListWrapperPass.js',
+            'src/Kernel/CompilerPass/RegisterViewScreenWrapperPass.js',
         ],
         unique = function (el, idx, array) {
             if (array.indexOf(el) !== idx && array.indexOf(el) < idx) {
@@ -194,7 +211,7 @@ module.exports = function (grunt) {
     generator.unshift('src/functions.js');
     logger.unshift('src/functions.js');
     configurator.unshift('src/functions.js');
-    serviceContainer.unshift('src/functions.js');
+    serviceContainer = serviceContainer.concat(propertyAccessor);
     registry = factory.concat(registry);
     mediator = mediator
         .concat(generator)
@@ -205,14 +222,15 @@ module.exports = function (grunt) {
     http = http
         .concat(generator)
         .concat(registry);
-    storage = factory
+    storage = factory  //need the observe-js vendor
         .concat(logger)
         .concat(http)
         .concat(mediator)
         .concat(registry)
         .concat(stateRegistry)
         .concat(generator)
-        .concat(storage);
+        .concat(storage)
+        .concat(propertyAccessor);
     validator = factory
         .concat(registry)
         .concat(validator);
@@ -229,6 +247,7 @@ module.exports = function (grunt) {
         .concat(registry)
         .concat(stateRegistry);
 
+    serviceContainer.unshift('src/functions.js');
     mediator.unshift('src/functions.js');
     registry.unshift('src/functions.js');
     stateRegistry.unshift('src/functions.js');
@@ -244,6 +263,7 @@ module.exports = function (grunt) {
         .concat(factory)
         .concat(mediator)
         .concat(http)
+        .concat(propertyAccessor)
         .concat(storage)
         .concat(validator)
         .concat(form)
@@ -252,11 +272,13 @@ module.exports = function (grunt) {
         .concat(registry)
         .concat(stateRegistry)
         .concat(serviceContainer)
+        .concat(frameworkPasses)
         .concat(translator)
         .concat(dom);
 
     framework.push('bootstrap.js');
 
+    serviceContainer = serviceContainer.filter(unique);
     registry = registry.filter(unique);
     stateRegistry = stateRegistry.filter(unique);
     http = http.filter(unique);
@@ -286,7 +308,8 @@ module.exports = function (grunt) {
                     'dist/registry.min.js': registry,
                     'dist/state-registry.min.js': stateRegistry,
                     'dist/service-container.min.js': serviceContainer,
-                    'dist/translator.min.js': translator
+                    'dist/translator.min.js': translator,
+                    'dist/property-accessor.min.js': propertyAccessor
                 }
             }
         },
@@ -345,6 +368,10 @@ module.exports = function (grunt) {
             translator: {
                 src: translator,
                 dest: 'dist/translator.js'
+            },
+            propertyAccessor: {
+                src: propertyAccessor,
+                dest: 'dist/property-accessor.js'
             }
         },
         'bower-install': {
