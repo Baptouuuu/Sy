@@ -2,7 +2,7 @@
 
 [< Previous chapter (Service container)](service-container.md) | [Next chapter (Validation) >](validation.md)
 
-Another important point of the framework is the global config object. It's there that you put all your global variables used afterward by your services. It's a really useful features, as you can easily declare some sort of flags so you can quickly change the behaviour of your app when switching environments. An example of that is the `env` key used by the framework, in normal case the logger used by the framework handles every log level, but in the case where `env` is set to `prod` the framework kernel will disable all levels except the `ERROR` one, as you only care about errors happening in your prod environment.
+Another important point of the framework is the global config object. It's there that you put all your global variables used afterward by your services. It's a really useful feature, as you can easily declare some sort of flags so you can quickly change the behaviour of your app when switching environments. An example of that is the `env` key used by the framework, in normal case the logger used by the framework handles every log level, but in the case where the `debug` key is set to `false` the framework kernel will disable all levels except the `ERROR` one, as you only care about errors happening in your prod environment.
 
 But now, how to define those variables and where?
 
@@ -12,7 +12,7 @@ The first approach is to keep your global configuration is a neutral place (no c
 
 Here's an example:
 ```js
-Sy.kernel.getConfig()
+app.getConfig()
     .set('env', 'dev');
 
 //... kernel boot

@@ -12,7 +12,7 @@ The loosely coupled principle is taken a step further, by taking applying it to 
 
 ## Service/Event centric
 
-Almost every part of the framework is accessible through a service (see the [`ServiceContainer`](../Service-container.md) doc). It helps bootstrap complex mechanism by easily resolving dependencies, and by keeping an abtraction between each component. Think: "I want to use this, and don't want to care how to build you".
+Almost every part of the framework is accessible through a service (see the [`ServiceContainer`](../Service-container.md) doc). It helps bootstrap complex mechanism by easily resolving dependencies, and by keeping an abtraction between each component. Think: "I want to use this, and don't want to care how to build it".
 
 Javascript is an event based, asynchronous, language and so is this framework. Events is a good way to keep your code loosely coupled, that's why Sy comes with a component called [`Mediator`](../Mediator.md) to help you create/subscribe to channels (aka *events*).
 
@@ -41,7 +41,7 @@ That's where namespacing shines. With this framework, your global footprint is r
 * `App`: where all *your* code is put
 * `Sy`: where all the framework code is contained
 
-Everything inside `App` is only classes declarations, every object instanciation will be contained inside `Sy.kernel` which is the instanciation of [`Sy.Kernel.Core`](../../src/Kernel/Core.js).
+Everything inside `App` is only classes declarations, every object instanciation will be contained inside a *kernel* variable which is the instanciation of [`Sy.Kernel.Core`](../../src/Kernel/Core.js).
 
 To resume, by using namespaces you can avoid the problem of global variables **and** avoid the heavy memory cost of closures (and its impact on garbage collection).
 
@@ -51,17 +51,16 @@ To resume, by using namespaces you can avoid the problem of global variables **a
 
 In the other chapters you'll see how to define your classes inside your bundles, but it does not tell you how to initiate your application.
 
-Usually, it's done inside a small file added in last inside your html page, this one will be responsible to define your [app configuration](config.md), boot the framework kernel and display the first viewscreen.
+Usually, it's done inside a small file added at the very end of your html page, this one will be responsible to define your [app configuration](config.md), boot the framework kernel and display the first viewscreen.
 
 Example:
 ```js
-Sy.kernel.getConfig()
-    .set('some.config', 'value');
-
 try {
-    Sy.kernel.boot();
+    var app = new App.Kernel('prod', false);
 
-    Sy.kernel.getContainer()
+    app.boot();
+
+    app.getContainer()
         .get('sy::core::viewport')
         .display('home');
 } catch (error) {
@@ -72,6 +71,20 @@ This is a typical file on how to launch your app. Remember to call the `boot` me
 
 Please take a look at the working demo available at the root of this repository for a real example.
 
+### The kernel
+
+You may have noticed the `App.Kernel` class used in the example above. This is a class you have to create yourself, it's used to define the bundles being used by the app. To ease the creation of this class, you can copy the [`dist`](../../AppKernel.js.dist) file at the root of this repository.
+
+As you can see there's already defined bundles in the dist file. These are the bundles required for the framework to work. To load your bundle just add an array to the one returned like so:
+```js
+return [
+    //core bundles
+    ['BundleName', Namespace.Containing.Bundle]
+];
+```
+The first array element is the name you want to give to your bundle, and the second one is the object containing all the classes of your bundle. But take a look at the [demo `kernel`](../../demo/js/App/Kernel.js) to better understand.
+
+The 2 variables in the kernel constructor are the environment name and a boolean to activate or not debug features. These can be retrieved as a service container parameter under the respective keys `app.environment` and `app.debug`. By default the framework don't rely on the environment name, but use the debug flag to modify a bit its behaviour.
 
 ## What is does not
 

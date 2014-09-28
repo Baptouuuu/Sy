@@ -30,7 +30,7 @@ Like said before, it's the center of your app UI. Everything's displayed inside 
 
 By javascript you have access to a service to modify the viewscreen displayed in the viewport:
 ```js
-Sy.kernel.getContainer()
+app.getContainer()
     .get('sy::core::viewport')
     .display('viewscreen name');
 ```

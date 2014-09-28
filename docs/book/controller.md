@@ -42,7 +42,7 @@ When first loading a controller the framework automatically inject a set of depe
 
 *Each of this setters can be overidden, so you can modify the attributes where those are saved in your controller.*
 
-The service container injected in each controller is the same as the one returned by the kernel (via `Sy.kernel.getContainer()`).
+The service container injected in each controller is the same as the one returned by the kernel (via `app.getContainer()`).
 
 The viewscreen is the wrapper of the node being displayed and that the controller is related to.
 
@@ -124,12 +124,14 @@ By default the framework will keep a reference of every controller it instanciat
 
 That's why you can configure how many controllers the framework can keep reference to.
 ```js
-Sy.kernel.getConfig().set('controllers.cacheLength', cacheLengthInteger);
+app.getConfig().set('controllers.cacheLength', cacheLengthInteger);
 ```
 This configuration must be set before the kernel boots.
 
 If you don't want cache at all, you can disable it like so:
 ```js
-Sy.kernel.getConfig().set('controllers.cache', false);
+app.getConfig().set('controllers.cache', false);
 ```
 Once again, it must be set before kernel boot.
+
+**Note**: you can still put this configuration in a bundle configuration as bundles are loaded before the controller manager is built.

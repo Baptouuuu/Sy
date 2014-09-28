@@ -45,7 +45,7 @@ The manager is your interface where you'll say an entity must be created/updated
 
 But first, let's look at how to define a manager:
 ```js
-Sy.kernel.getConfig()
+app.getConfig()
   .set('storage.dbal.connections.myconn', {
     driver: 'indexeddb',
     dbname: 'myapp or wathever you want',

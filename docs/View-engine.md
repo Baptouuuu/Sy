@@ -17,7 +17,7 @@ This the top layer in your app, it's the node containing all what's displayed by
 
 It's accessed via the service container as follows:
 ```js
-var viewport = Sy.kernel.getContainer().get('sy::core::viewport');
+var viewport = app.getContainer().get('sy::core::viewport');
 ```
 
 In order to work, your SPA html must look like this:
@@ -59,7 +59,7 @@ If there's no ViewScreen already set in the viewport, it's no problem.
 You can create your own `ViewScreen` wrapper by creating a class inheriting from the default one and then register it in the appropriate factory.
 Sample:
 ```js
-var factory = Sy.kernel.getContainer().get('sy::core::view::factory::viewscreen'),
+var factory = app.getContainer().get('sy::core::view::factory::viewscreen'),
     Wrapper = function () {
       Sy.View.ViewScreen.call(this);
     };
@@ -97,7 +97,7 @@ var layouts = viewscreen.getLayouts();
 You can create your own `Layout` wrapper by creating a class inheriting from the default one and then register it in the appropriate factory.
 Sample:
 ```js
-var factory = Sy.kernel.getContainer().get('sy::core::view::factory::layout'),
+var factory = app.getContainer().get('sy::core::view::factory::layout'),
     Wrapper = function () {
       Sy.View.Layout.call(this);
     };
@@ -184,7 +184,7 @@ layout.getLayouts();
 You can create your own `List` wrapper by creating a class inheriting from the default one and then register it in the appropriate factory.
 Sample:
 ```js
-var factory = Sy.kernel.getContainer().get('sy::core::view::factory::list'),
+var factory = app.getContainer().get('sy::core::view::factory::list'),
     Wrapper = function () {
       Sy.View.List.call(this);
     };
@@ -234,7 +234,7 @@ The rendering of the layers described above is based on the object [`Sy.View.Tem
 
 The only method you have to care about on this object is `render` and is used as follows:
 ```js
-var renderer = Sy.kernel.getContainer().get('sy::core::view::template::engine');
+var renderer = app.getContainer().get('sy::core::view::template::engine');
 renderer.render(node, {
   attr: {
     nested: [
