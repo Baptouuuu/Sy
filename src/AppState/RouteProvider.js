@@ -78,6 +78,18 @@ Sy.AppState.RouteProvider.prototype = Object.create(Object.prototype, {
         value: function (name) {
             return this.routes.get(name);
         }
+    },
+
+    /**
+     * Return all routes
+     *
+     * @return {Array}
+     */
+
+    getRoutes: {
+        value: function () {
+            return this.routes.get();
+        }
     }
 
 });

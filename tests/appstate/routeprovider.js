@@ -30,4 +30,12 @@ describe('appstate route provider', function () {
         expect(p.setRoute('baz', '/{baz}', undefined, {baz: '\\d+'})).toBe(p);
         expect(p.getRoute('baz') instanceof Sy.AppState.Route).toBe(true);
     });
+
+    it('should return all routes', function () {
+        p.setRegistry(new Sy.Registry());
+        p.setRoute('foo', '/foo');
+
+        expect(p.getRoutes() instanceof Array).toBe(true);
+        expect(p.getRoutes().length).toEqual(1);
+    });
 });
