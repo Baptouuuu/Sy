@@ -13,7 +13,7 @@ Sy.ValidatorBundle.Config.Service.prototype = Object.create(Object.prototype, {
     define: {
         value: function (container) {
             container.set({
-                'validator': '@sy::core::validator',
+                validator: '@sy::core::validator',
                 'sy::core::validator': {
                     constructor: 'Sy.Validator.Core',
                     calls: [

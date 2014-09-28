@@ -18,7 +18,7 @@ Sy.FrameworkBundle.Config.Service.prototype = Object.create(Object.prototype, {
                 'sy::core::generator::uuid': {
                     constructor: 'Sy.Lib.Generator.UUID'
                 },
-                'mediator': '@sy::core::mediator',
+                mediator: '@sy::core::mediator',
                 'sy::core::mediator': {
                     constructor: 'Sy.Lib.Mediator',
                     calls: [
@@ -29,7 +29,7 @@ Sy.FrameworkBundle.Config.Service.prototype = Object.create(Object.prototype, {
                 'sy::core::registry::factory': {
                     constructor: 'Sy.RegistryFactory'
                 },
-                'registry': '@sy::core::registry',
+                registry: '@sy::core::registry',
                 'sy::core::registry': {
                     constructor: 'Sy.Registry',
                     factory: ['sy::core::registry::factory', 'make'],
@@ -41,13 +41,13 @@ Sy.FrameworkBundle.Config.Service.prototype = Object.create(Object.prototype, {
                         ['setRegistryFactory', ['@sy::core::registry::factory']]
                     ]
                 },
-                'stateregistry': '@sy::core::stateregistry',
+                stateregistry: '@sy::core::stateregistry',
                 'sy::core::stateregistry': {
                     constructor: 'Sy.StateRegistry',
                     fatory: ['sy::core::stateregistry::factory', 'make'],
                     prototype: true
                 },
-                'logger': '@sy::core::logger',
+                logger: '@sy::core::logger',
                 'sy::core::logger': {
                     constructor: 'Sy.Lib.Logger.CoreLogger',
                     calls: [

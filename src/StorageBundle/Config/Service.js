@@ -53,7 +53,7 @@ Sy.StorageBundle.Config.Service.prototype = Object.create(Object.prototype, {
                         {name: 'storage.driver_factory', alias: 'rest'}
                     ]
                 },
-                'storage': '@sy::core::storage',
+                storage: '@sy::core::storage',
                 'sy::core::storage': {
                     constructor: 'Sy.Storage.Core',
                     calls: [

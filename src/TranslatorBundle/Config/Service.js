@@ -13,7 +13,7 @@ Sy.TranslatorBundle.Config.Service.prototype = Object.create(Object.prototype, {
     define: {
         value: function (container) {
             container.set({
-                'translator': '@sy::core::translator',
+                translator: '@sy::core::translator',
                 'sy::core::translator': {
                     constructor: 'Sy.Translator',
                     calls: [
