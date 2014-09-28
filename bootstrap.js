@@ -17,7 +17,6 @@ Sy.kernel.getConfig().set({
 });
 
 Sy.kernel.getContainer()
-    .setParameters(Sy.kernel.getConfig())
     .set({
         'sy::core::generator::uuid': {
             constructor: 'Sy.Lib.Generator.UUID'

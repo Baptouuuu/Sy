@@ -85,6 +85,8 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                 entities: parser.getEntities()
             });
 
+            this.container.setParameters(this.config);
+
             parser
                 .buildConfig(this.config)
                 .buildServices(this.container);
