@@ -38,4 +38,14 @@ describe('appstate route provider', function () {
         expect(p.getRoutes() instanceof Array).toBe(true);
         expect(p.getRoutes().length).toEqual(1);
     });
+
+    it('should say a route exist', function () {
+        p.setRegistry(new Sy.Registry());
+
+        expect(p.hasRoute('foo')).toBe(false);
+
+        p.setRoute('foo', '/foo');
+
+        expect(p.hasRoute('foo')).toBe(true);
+    });
 });

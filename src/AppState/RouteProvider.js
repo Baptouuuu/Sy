@@ -92,6 +92,20 @@ Sy.AppState.RouteProvider.prototype = Object.create(Object.prototype, {
         value: function () {
             return this.routes.get();
         }
+    },
+
+    /**
+     * Check if a route name exist
+     *
+     * @param {String} name
+     *
+     * @return {Boolean}
+     */
+
+    hasRoute: {
+        value: function (name) {
+            return this.routes.has(name);
+        }
     }
 
 });
