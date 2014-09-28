@@ -149,6 +149,18 @@ Sy.View.ViewScreen.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
         value: function (name) {
             return this.layouts.get(name);
         }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    render: {
+        value: function (data) {
+            this.engine.render(this.node, data, '[data-sy-list]');
+
+            return this;
+        }
     }
 
 });
