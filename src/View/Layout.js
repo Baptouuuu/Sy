@@ -170,6 +170,18 @@ Sy.View.Layout.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
         value: function (name) {
             return this.lists.get(name);
         }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    render: {
+        value: function (data) {
+            this.engine.render(this.node, data, '[data-sy-list]');
+
+            return this;
+        }
     }
 
 });
