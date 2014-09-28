@@ -65,7 +65,7 @@ Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface
      */
 
     render: {
-        value: function (node, data) {
+        value: function (node, data, exempt) {
 
             if (!node.dataset.syUuid) {
                 this.register(node);
@@ -73,12 +73,12 @@ Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface
 
             if (node.dataset.syUuid && this.registry.has(node.dataset.syUuid)) {
                 this.renderAllAttributes(node, data);
-                this.renderContent(node, data);
+                this.renderContent(node, data, exempt);
             }
 
             if (node.childElementCount > 0) {
                 for (var i = 0, l = node.childElementCount; i < l; i++) {
-                    this.render(node.children[i], data);
+                    this.render(node.children[i], data, exempt);
                 }
             }
 
@@ -203,14 +203,19 @@ Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface
      * @private
      * @param {HTMLElement} node
      * @param {Object} data
+     * @param {String} exempt CSS selector to exempt nodes of being rendered
      *
      * @return {void}
      */
 
     renderContent: {
-        value: function (node, data) {
+        value: function (node, data, exempt) {
 
             if (node.childElementCount > 0) {
+                return node;
+            }
+
+            if (exempt && DOM(node).matches(exempt)) {
                 return node;
             }
 
