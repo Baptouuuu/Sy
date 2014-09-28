@@ -12,6 +12,10 @@ Sy.ViewBundle.Config.Service = function () {};
 Sy.ViewBundle.Config.Service.prototype = Object.create(Object.prototype, {
     define: {
         value: function (container) {
+            var vs = new Sy.ViewBundle.CompilerPass.RegisterViewScreenWrapperPass(),
+                layout = new Sy.ViewBundle.CompilerPass.RegisterLayoutWrapperPass(),
+                list = new Sy.ViewBundle.CompilerPass.RegisterListWrapperPass();
+
             container.set({
                 'sy::core::view::parser': {
                     constructor: 'Sy.View.Parser'
@@ -71,6 +75,11 @@ Sy.ViewBundle.Config.Service.prototype = Object.create(Object.prototype, {
                     ]
                 }
             });
+
+            container
+                .addPass(vs)
+                .addPass(layout)
+                .addPass(list);
         }
     }
 });

@@ -101,6 +101,10 @@ Sy.StorageBundle.Config.Service.prototype = Object.create(Object.prototype, {
                     ]
                 }
             });
+
+            container.addPass(
+                new Sy.StorageBundle.CompilerPass.RegisterDriverFactoryPass()
+            );
         }
     }
 });

@@ -87,12 +87,7 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                 .buildConfig(this.config)
                 .buildServices(this.container);
 
-            this
-                .registerShutdownListener()
-                .registerFormTypes()
-                .registerEventSubscribers()
-                .registerViewPasses()
-                .registerStoragePasses();
+            this.registerShutdownListener();
 
             this.container.compile();
 
@@ -205,84 +200,6 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                     return error.message;
                 }
             }.bind(this), false);
-
-            return this;
-        }
-    },
-
-    /**
-     * Retrieve services tagged as form type and register them in the form builder
-     *
-     * @return {Sy.Kernel.Core} self
-     */
-
-    registerFormTypes: {
-        value: function () {
-            this.container.addPass(
-                new Sy.Kernel.CompilerPass.FormTypePass()
-            );
-
-            return this;
-        }
-    },
-
-    /**
-     * Retrieve services tagged as event subscriber and register them
-     * in the mediator
-     *
-     * @return {Sy.Kernel.Core} self
-     */
-
-    registerEventSubscribers: {
-        value: function () {
-            var pass = new Sy.Kernel.CompilerPass.EventSubscriberPass();
-
-            this.container.addPass(
-                pass,
-                pass.AFTER_REMOVING
-            );
-
-            return this;
-        }
-    },
-
-    /**
-     * Add the compiler passes related to the view engine to the container
-     *
-     * @return {Sy.Kernel.Core} self
-     */
-
-    registerViewPasses: {
-        value: function () {
-            var vs = new Sy.Kernel.CompilerPass.RegisterViewScreenWrapperPass(),
-                layout = new Sy.Kernel.CompilerPass.RegisterLayoutWrapperPass(),
-                list = new Sy.Kernel.CompilerPass.RegisterListWrapperPass(),
-                logger = this.container.get('sy::core::logger');
-
-            vs.setLogger(logger);
-            layout.setLogger(logger);
-            list.setLogger(logger);
-
-            this.container
-                .addPass(vs)
-                .addPass(layout)
-                .addPass(list);
-
-            return this;
-        }
-    },
-
-    /**
-     * Register all the passes to make the storage engine work
-     *
-     * @return {Sy.Kernel.Core} self
-     */
-
-    registerStoragePasses: {
-        value: function () {
-            this.container.addPass(
-                new Sy.Kernel.CompilerPass.RegisterDriverFactoryPass()
-            );
 
             return this;
         }

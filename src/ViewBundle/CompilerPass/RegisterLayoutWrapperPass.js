@@ -1,31 +1,17 @@
-namespace('Sy.Kernel.CompilerPass');
+namespace('Sy.ViewBundle.CompilerPass');
 
 /**
  * Scan for services tagged as layout wrappers
  * and reference them to the appropriate factory
  *
  * @package Sy
- * @subpackage Kernel
+ * @subpackage ViewBundle
  * @class
  * @implements {Sy.ServiceContainer.CompilerPassInterface}
  */
 
-Sy.Kernel.CompilerPass.RegisterLayoutWrapperPass = function () {
-    this.logger = null;
-};
-Sy.Kernel.CompilerPass.RegisterLayoutWrapperPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
-
-    /**
-     * Set the logger
-     *
-     * @param {Sy.Lib.Logger.Interface} logger
-     */
-
-    setLogger: {
-        value: function (logger) {
-            this.logger = logger;
-        }
-    },
+Sy.ViewBundle.CompilerPass.RegisterLayoutWrapperPass = function () {};
+Sy.ViewBundle.CompilerPass.RegisterLayoutWrapperPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
 
     /**
      * @inheritDoc
@@ -40,22 +26,10 @@ Sy.Kernel.CompilerPass.RegisterLayoutWrapperPass.prototype = Object.create(Sy.Se
                 .forEach(function (el) {
                     for (var i = 0, l = el.tags.length; i < l; i++) {
                         if (!el.tags[i][1].alias) {
-                            if (this.logger) {
-                                this.logger.info(
-                                    'Missing alias statement for layout wrapper',
-                                    {service: el.id}
-                                );
-                            }
                             continue;
                         }
 
                         if (!el.tags[i][1].viewscreen) {
-                            if (this.logger) {
-                                this.logger.info(
-                                    'Missing viewscreen statement for layout wrapper',
-                                    {service: el.id}
-                                );
-                            }
                             continue;
                         }
 
