@@ -211,6 +211,36 @@ Sy.AppState.Route.prototype = Object.create(Object.prototype, {
         value: function (url) {
             return (new RegExp(this.regex)).test(url);
         }
+    },
+
+    /**
+     * Return the variables from the url
+     *
+     * @param {String} url
+     *
+     * @return {Object}
+     */
+
+    getVariables: {
+        value: function (url) {
+            var placeholders = this.path.match(new RegExp(/{\w+}/g)),
+                values = url.match(new RegExp(this.regex)),
+                data = {};
+
+            placeholders = placeholders.map(function (p) {
+                return p.substring(1, p.length - 1);
+            });
+
+            values = values.filter(function (val) {
+                return val !== url;
+            });
+
+            for (var i = 0, l = placeholders.length; i < l; i++) {
+                data[placeholders[i]] = values[i];
+            }
+
+            return data;
+        }
     }
 
 });

@@ -114,4 +114,14 @@ describe('appstate route', function () {
 
         expect(r.matches('/foo/42/baz')).toBe(true);
     });
+
+    it('should return the variables from the url', function () {
+        r.setPath('/foo/{bar}/foobar/{baz}');
+        r.buildRegex();
+
+        expect(r.getVariables('/foo/bar/foobar/42')).toEqual({
+            bar: 'bar',
+            baz: '42'
+        });
+    });
 });
