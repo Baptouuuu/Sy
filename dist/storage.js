@@ -1,4 +1,4 @@
-/*! sy#0.6.0 - 2014-06-11 */
+/*! sy#0.7.0 - 2014-09-28 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -434,7 +434,9 @@ Sy.Lib.Logger.Handler.Console = function (level) {
 
     this.level = null;
 
-    this.setLevel(level);
+    if (level !== undefined) {
+        this.setLevel(level);
+    }
 
 };
 
@@ -1757,6 +1759,53 @@ Sy.HTTP.HTMLResponse.prototype = Object.create(Sy.HTTP.Response.prototype);
 namespace('Sy.HTTP');
 
 /**
+ * Object for requesting images via ajax
+ *
+ * @package Sy
+ * @subpackage HTTP
+ * @extends {Sy.HTTP.Request}
+ * @class
+ */
+
+Sy.HTTP.ImageRequest = function () {
+    Sy.HTTP.Request.call(this);
+    this.setType('blob');
+    this.setHeader('Accept', 'image/*');
+};
+Sy.HTTP.ImageRequest.prototype = Object.create(Sy.HTTP.Request.prototype);
+
+namespace('Sy.HTTP');
+
+/**
+ * Image request response as blob
+ *
+ * @package Sy
+ * @subpackage HTTP
+ * @extends {Sy.HTTP.Response}
+ * @lass
+ */
+
+Sy.HTTP.ImageResponse = function () {
+    Sy.HTTP.Response.call(this);
+};
+Sy.HTTP.ImageResponse.prototype = Object.create(Sy.HTTP.Response.prototype, {
+
+    /**
+     * Return the image blob
+     *
+     * @return {Blob}
+     */
+
+    getBlob: {
+        value: function () {
+            return this.getBody();
+        }
+    }
+
+})
+namespace('Sy.HTTP');
+
+/**
  * Accept Request objects and handle launching them,
  * it's possible to cancel them as well
  *
@@ -2021,6 +2070,14 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
                     response = new Sy.HTTP.HTMLResponse();
 
+                } else if (
+                    headers['Content-Type'] !== undefined &&
+                    headers['Content-Type'].indexOf('image/') !== -1 &&
+                    request.obj.getType() === 'blob'
+                ) {
+
+                    response = new Sy.HTTP.ImageResponse();
+
                 } else {
 
                     response = new Sy.HTTP.Response();
@@ -2072,6 +2129,18 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
             return this;
 
+        }
+    },
+
+    /**
+     * Return an array of all pending xhrs
+     *
+     * @return {Array}
+     */
+
+    getStack: {
+        value: function () {
+            return this.requests.get();
         }
     }
 
@@ -3152,6 +3221,16 @@ Sy.StateRegistryInterface.prototype = Object.create(Object.prototype, {
 
     remove: {
         value: function (state, key) {}
+    },
+
+    /**
+     * Set the registry as strict, meaning a key can only exist in one state
+     *
+     * @return {Sy.StateRegistryInterface}
+     */
+
+    setStrict: {
+        value: function () {}
     }
 
 });
@@ -3166,11 +3245,10 @@ namespace('Sy');
  */
 
 Sy.StateRegistry = function () {
-
     this.data = null;
     this.states = [];
     this.registryFactory = null;
-
+    this.strict = false;
 };
 
 Sy.StateRegistry.prototype = Object.create(Sy.StateRegistryInterface.prototype, {
@@ -3212,6 +3290,14 @@ Sy.StateRegistry.prototype = Object.create(Sy.StateRegistryInterface.prototype, 
                 this.data.set(state, r);
                 this.states.push(state);
 
+            }
+
+            if (this.strict === true) {
+                var oldState = this.state(key);
+
+                if (oldState !== undefined) {
+                    this.remove(oldState, key);
+                }
             }
 
             this.data
@@ -3323,6 +3409,18 @@ Sy.StateRegistry.prototype = Object.create(Sy.StateRegistryInterface.prototype, 
             return this;
 
         }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    setStrict: {
+        value: function () {
+            this.strict = true;
+
+            return this;
+        }
     }
 
 });
@@ -3391,11 +3489,12 @@ namespace('Sy');
  * @interface
  */
 
-Sy.EntityInterface = function () {
-
-};
-
+Sy.EntityInterface = function () {};
 Sy.EntityInterface.prototype = Object.create(Object.prototype, {
+
+    UUID: {
+        value: 'uuid'
+    },
 
     /**
      * Set an attribute value to the entity
@@ -3424,341 +3523,62 @@ Sy.EntityInterface.prototype = Object.create(Object.prototype, {
 
     get: {
         value: function (attr) {}
-    },
-
-    /**
-     * Register an attribute as index or as a connection to another entity
-     *
-     * @param {string} attr
-     * @param {string} entity If set it will link the attribute to another entity, this param must follow this pattern: \w+::\w+
-     *
-     * @return {Sy.EntityInterface}
-     */
-
-    register: {
-        value: function (attr, entity) {}
-    },
-
-    /**
-     * Block the available attributes for this entity. Once set, the list won't be mutable.
-     *
-     * @param {Array} attributes
-     *
-     * @return {Sy.EntityInterface}
-     */
-
-    lock: {
-        value: function (attributes) {}
     }
 
 });
-namespace('Sy.Storage');
+namespace('Sy');
 
 /**
- * Interface showing how a repository must handle entities
- * Each Entity Repository must implement this interface
+ * Default implementation of an entity
  *
  * @package Sy
- * @subpackage Storage
- * @interface
+ * @class
+ * @implements {Sy.EntityInterface}
  */
 
-Sy.Storage.RepositoryInterface = function () {};
+Sy.Entity = function () {};
+Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
 
-Sy.Storage.RepositoryInterface.prototype = Object.create(Object.prototype, {
-
-    /**
-     * Set a unit of work to handle modifications of entities
-     *
-     * @param {Sy.Storage.UnitOfWork} uow
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    setUnitOfWork: {
-        value: function (uow) {}
+    INDEXES: {
+        value: [],
+        enumerable: false
     },
 
     /**
-     * Set the entity cache registry
-     *
-     * @param {Sy.RegistryInterface} registry
-     *
-     * @return {Sy.Storage.RepositoryInterface}
+     * @inheritDoc
      */
 
-    setCacheRegistry: {
-        value: function (registry) {}
+    set: {
+        value: function (attr, value) {
+            if (attr instanceof Object) {
+                for (var p in attr) {
+                    if (attr.hasOwnProperty(p)) {
+                        this.set(p, attr[p]);
+                    }
+                }
+            } else {
+                this[attr] = value;
+            }
+
+            return this;
+        }
     },
 
     /**
-     * Set the alias name of entities handled by the repository
-     *
-     * @param {string} name
-     *
-     * @return {Sy.Storage.RepositoryInterface}
+     * @inheritDoc
      */
 
-    setName: {
-        value: function (name) {}
-    },
-
-    /**
-     * Set the storage engine
-     *
-     * @param {Sy.Storage.EngineInterface} engine
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    setEngine: {
-        value: function (engine) {}
-    },
-
-    /**
-     * Set the entity property acting as identifier
-     *
-     * @param {string} key
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    setEntityKey: {
-        value: function (key) {}
-    },
-
-    /**
-     * Set the constructor for the handled entity
-     *
-     * @param {Sy.EntityInterface} constructor Entity constructor
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    setEntityConstructor: {
-        value: function (constructor) {}
-    },
-
-    /**
-     * Set the indexes of the entity
-     *
-     * @param {Array} indexes
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    setIndexes: {
-        value: function (indexes) {}
-    },
-
-    /**
-     * Set the identifier generator
-     *
-     * @param {Sy.Lib.Generator.Interface} generator
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    setGenerator: {
-        value: function (generator) {}
-    },
-
-    /**
-     * Persist a new entity
-     *
-     * If trying to persist an entity not handled by the repo, raise a TypeError
-     *
-     * @param {Sy.EntityInterface} entity
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    persist: {
-        value: function (entity) {}
-    },
-
-    /**
-     * Remove an entity
-     *
-     * @param {Sy.EntityInterface} entity
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    remove: {
-        value: function (entity) {}
-    },
-
-    /**
-     * Apply the changes to the storage (create/update/delete)
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    flush: {
-        value: function () {}
-    },
-
-    /**
-     * Find one entity in the storage
-     * Only indexes can be searchable
-     *
-     * @param {object} args Allowed properties: index, value, callback
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    findOneBy: {
-        value: function (args) {}
-    },
-
-    /**
-     * Find a set of entities in the storage
-     * Only indexes can be searchable
-     *
-     * @param {object} args Allowed properties: index, value, callback
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    findBy: {
-        value: function (args) {}
+    get: {
+        value: function (attr) {
+            return this[attr];
+        }
     }
 
 });
 namespace('Sy.Storage');
 
 /**
- * Interface explaining how the engines must work
- *
- * @package Sy
- * @subpackage Storage
- * @interface
- * @param {mixed} meta Informations about the engine
- */
-
-Sy.Storage.EngineInterface = function (meta) {};
-
-Sy.Storage.EngineInterface.prototype = Object.create(Object.prototype, {
-
-    /**
-     * Add a new store in the engine (where objects will be putted)
-     *
-     * @param {string} alias Callable store
-     * @param {string} name Actual name used to construct the store
-     * @param {string} identifier Property used as identifier
-     * @param {Array} indexes
-     *
-     * @return {Sy.Storage.EngineInterface}
-     */
-
-    setStore: {
-        value: function (alias, name, identifier, indexes) {}
-    },
-
-    /**
-     * Retrieve an item by its identifier
-     *
-     * @param {string} store Alias name of the store
-     * @param {string} identifier
-     * @param {function} callback Called when the item is retrieved with the whole object as argument
-     *
-     * @return {Sy.Storage.EngineInterface}
-     */
-
-    read: {
-        value: function (store, identifier, callback) {}
-    },
-
-    /**
-     * Create a new element
-     *
-     * @param {string} store Alias name of the store
-     * @param {object} object
-     * @param {function} callback Called when the item is created with its id as argument
-     *
-     * @return {Sy.Storage.EngineInterface}
-     */
-
-    create: {
-        value: function (store, object, callback) {}
-    },
-
-    /**
-     * Update an element in the storage
-     *
-     * @param {string} store Alias name of the store
-     * @param {string} identifier Object identifier
-     * @param {object} object
-     * @param {function} callback Called when the item is updated with the whole object as argument
-     *
-     * @return {Sy.Storage.EngineInterface}
-     */
-
-    update: {
-        value: function (store, identifier, object, callback) {}
-    },
-
-    /**
-     * Remove an element from the storage
-     *
-     * @param {string} store Alias name of the store
-     * @param {string} identifier
-     * @param {function} callback Called when the item is deleted with the id as argument
-     *
-     * @return {Sy.Storage.EngineInterface}
-     */
-
-    remove: {
-        value: function (store, identifier, callback) {}
-    },
-
-    /**
-     * Find (an) element(s) in the storage
-     *
-     * @param {string} store Alias name of the store
-     * @param {object} args Available properties: index, value, limit, callback
-     *
-     * @return {Sy.Storage.EngineInterface}
-     */
-
-    find: {
-        value: function (store, args) {}
-    }
-
-});
-namespace('Sy.Storage');
-
-/**
- * Interface to define how to transform entities metadata
- * into store informations readable by a storage engine
- *
- * @package Sy
- * @subpackage Storage
- * @interface
- */
-
-Sy.Storage.StoreMapperInterface = function () {};
-Sy.Storage.StoreMapperInterface.prototype = Object.create(Object.prototype, {
-
-    /**
-     * Transform an entity metadata into store metadata
-     *
-     * @param {Object} meta
-     *
-     * @return {Object}
-     */
-
-    transform: {
-        value: function (meta) {}
-    }
-
-});
-
-namespace('Sy.Storage');
-
-/**
- * Main entrance to access storage functionalities
+ * Entry point to the storage mechanism
  *
  * @package Sy
  * @subpackage Storage
@@ -3766,193 +3586,2178 @@ namespace('Sy.Storage');
  */
 
 Sy.Storage.Core = function () {
-
     this.managers = null;
-
+    this.defaultName = 'default';
+    this.factory = null;
 };
-
 Sy.Storage.Core.prototype = Object.create(Object.prototype, {
 
     /**
-     * Set a registry holding the managers
+     * Set a registry to hold managers
      *
-     * @param {Sy.Registry} registry
+     * @param {Sy.RegistryInterface} registry
      *
-     * @return {Sy.Storage.Core}
+     * @return {Sy.Storage.Core} self
      */
 
-    setRegistry: {
+    setManagersRegistry: {
         value: function (registry) {
-
-            if (!(registry instanceof Sy.Registry)) {
+            if (!(registry instanceof Sy.RegistryInterface)) {
                 throw new TypeError('Invalid registry');
             }
 
-            this.managers = new Sy.Registry();
+            this.managers = registry;
 
             return this;
-
         }
     },
 
     /**
-     * Set a new manager
+     * Set the default manager name
      *
-     * @param {string} name
-     * @param {Sy.Storage.Manager} manager
+     * @param {String} defaultName
      *
-     * @return {Sy.Storage.Core}
+     * @return {Sy.Storage.Core} self
      */
 
-    setManager: {
-        value: function (name, manager) {
-
-            if (!(manager instanceof Sy.Storage.Manager)) {
-                throw new TypeError('Invalid manager type');
-            }
-
-            this.managers.set(name, manager);
+    setDefaultManager: {
+        value: function (defaultName) {
+            this.defaultName = defaultName || 'default';
 
             return this;
-
         }
     },
 
     /**
-     * Get a manager
+     * Set the manager factory
      *
-     * If the name is not specified it is set to main
+     * @param {Sy.Storage.ManagerFactory} factory
      *
-     * @param {string} manager
+     * @return {Sy.Storage.Core} self
+     */
+
+    setManagerFactory: {
+        value: function (factory) {
+            if (!(factory instanceof Sy.Storage.ManagerFactory)) {
+                throw new TypeError('Invalid manager factory');
+            }
+
+            this.factory = factory;
+
+            return this;
+        }
+    },
+
+    /**
+     * Get an entity manager
+     *
+     * @param {String} name Manager name, optional
      *
      * @return {Sy.Storage.Manager}
      */
 
     getManager: {
-        value: function (manager) {
+        value: function (name) {
+            name = name || this.defaultName;
 
-            manager = manager || 'main';
+            if (this.managers.has(name)) {
+                return this.managers.get(name);
+            }
 
-            return this.managers.get(manager);
+            var manager = this.factory.make(name);
 
+            this.managers.set(name, manager);
+
+            return manager;
         }
     }
 
 });
-namespace('Sy.Storage.Event');
+
+namespace('Sy.Storage');
 
 /**
- * Event fired when modification happens at the storage engine level
- * meaning create/update/remove actions are called
+ * Hold the relation between an alias and an entity constructor
  *
  * @package Sy
- * @subpackage Storage.Event
+ * @subpackage Storage
  * @class
  */
 
-Sy.Storage.Event.LifecycleEvent = function (storageName, storeName, identifier, object) {
-    this.storageName = storageName;
-    this.storeName = storeName;
-    this.identifier = identifier;
-    this.object = object;
+Sy.Storage.IdentityMap = function () {
+    this.aliases = [];
+    this.constructors = [];
+    this.prototypes = [];
+    this.keys = [];
 };
-Sy.Storage.Event.LifecycleEvent.prototype = Object.create(Object.prototype, {
+Sy.Storage.IdentityMap.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set a new entity definition
+     *
+     * @param {String} alias
+     * @param {Function} entity
+     * @param {String} key
+     *
+     * @return {Sy.Storage.IdentityMap} self
+     */
+
+    set: {
+        value: function (alias, entity, key) {
+            if (Object.isFrozen(this.aliases)) {
+                return this;
+            }
+
+            this.aliases.push(alias);
+            this.constructors.push(entity);
+            this.prototypes.push(entity.prototype);
+            this.keys.push(key);
+
+            return this;
+        }
+    },
+
+    /**
+     * Lock the definitions so indexes are preserved (no addition nor removal)
+     *
+     * @return {Sy.Storage.IdentityMap} self
+     */
+
+    lock: {
+        value: function () {
+            Object.freeze(this.aliases);
+            Object.freeze(this.constructors);
+            Object.freeze(this.prototypes);
+            Object.freeze(this.keys);
+
+            return this;
+        }
+    },
+
+    /**
+     * Check if the given alias is defined
+     *
+     * @param {String} alias
+     *
+     * @return {Boolean}
+     */
+
+    hasAlias: {
+        value: function (alias) {
+            return this.aliases.indexOf(alias) !== -1;
+        }
+    },
+
+    /**
+     * Check if the given entity is defined
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Boolean}
+     */
+
+    hasEntity: {
+        value: function (entity) {
+            var refl = new ReflectionObject(entity);
+
+            return this.prototypes.indexOf(refl.getPrototype()) !== -1;
+        }
+    },
+
+    /**
+     * Return the alias for the given entity
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {String}
+     */
+
+    getAlias: {
+        value: function (entity) {
+            var refl = new ReflectionObject(entity),
+                idx = this.prototypes.indexOf(refl.getPrototype());
+
+            return this.aliases[idx];
+        }
+    },
+
+    /**
+     * Return the entity constructor for the given alias
+     *
+     * @param {String} alias
+     *
+     * @return {Sy.EntityInterface}
+     */
+
+    getConstructor: {
+        value: function (alias) {
+            var idx = this.aliases.indexOf(alias);
+
+            return this.constructors[idx];
+        }
+    },
+
+    /**
+     * Return the key for the specified alias
+     *
+     * @param {String} alias
+     *
+     * @return {String}
+     */
+
+    getKey: {
+        value: function (alias) {
+            var idx = this.aliases.indexOf(alias);
+
+            return this.keys[idx];
+        }
+    }
+
+});
+
+namespace('Sy.Storage');
+
+/**
+ * Event fired before/after an entity is committed to the database
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ */
+
+Sy.Storage.LifeCycleEvent = function (alias, entity) {
+    this.alias = alias;
+    this.entity = entity;
+    this.aborted = false;
+};
+Sy.Storage.LifeCycleEvent.prototype = Object.create(Object.prototype, {
 
     PRE_CREATE: {
-        value: 'storage::on::pre::create',
+        value: 'storage.pre.create',
         writable: false
     },
 
     POST_CREATE: {
-        value: 'storage::on::post::create',
+        value: 'storage.post.create',
         writable: false
     },
 
     PRE_UPDATE: {
-        value: 'storage::on::pre:update',
+        value: 'storage.pre.update',
         writable: false
     },
 
     POST_UPDATE: {
-        value: 'storage::on::post::update',
+        value: 'storage.post.update',
         writable: false
     },
 
     PRE_REMOVE: {
-        value: 'storage::on::pre::remove',
+        value: 'storage.pre.remove',
         writable: false
     },
 
     POST_REMOVE: {
-        value: 'storage::on::post::remove',
+        value: 'storage.post.remove',
         writable: false
     },
 
     /**
-     * Return the storage name of the storage engine
+     * Return the alias of the entity being committed
      *
      * @return {String}
      */
 
-    getStorageName: {
+    getAlias: {
         value: function () {
-            return this.storageName;
+            return this.alias;
         }
     },
 
     /**
-     * Return the store name of the data being manipulated
+     * Return the entity being committed
      *
-     * @return {String}
+     * @return {Sy.EntityInterface}
      */
 
-    getStoreName: {
+    getEntity: {
         value: function () {
-            return this.storeName;
+            return this.entity;
         }
     },
 
     /**
-     * Return the identifier of the object being manipulated,
-     * available for update and remove events
+     * Abort the commit to the database for this entity
      *
-     * @return {String}
+     * @return {Sy.Storage.LifeCycleEvent} self
      */
 
-    getIdentifier: {
+    abort: {
         value: function () {
-            return this.identifier;
+            this.aborted = true;
+
+            return this;
         }
     },
 
     /**
-     * Return the data being manipulated
+     * Check if the commit needs to be aborted
      *
-     * @return {Object}
+     * @return {Boolean}
      */
 
-    getData: {
+    isAborted: {
         value: function () {
-            return this.object;
+            return this.aborted;
         }
     }
 
 });
 
-namespace('Sy.Storage.Engine');
+namespace('Sy.Storage');
 
 /**
- * Engine persisiting data to the IndexedDB html5 API
+ * Entity manager
  *
  * @package Sy
- * @subpackage Storage.Engine
- * @implements {Sy.Storage.EngineInterface}
+ * @subpackage Storage
  * @class
  */
 
-Sy.Storage.Engine.IndexedDB = function (version) {
+Sy.Storage.Manager = function () {
+    this.driver = null;
+    this.uow = null;
+    this.mappings = null;
+    this.repoFactory = null;
+};
+Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
 
-    this.version = version;
+    /**
+     * Set the database driver
+     *
+     * @param {Sy.Storage.Dbal.DriverInterface} driver
+     *
+     * @return {Sy.Storage.Manager} self
+     */
+
+    setDriver: {
+        value: function (driver) {
+            if (!(driver instanceof Sy.Storage.Dbal.DriverInterface)) {
+                throw new TypeError('Invalid dbal driver');
+            }
+
+            this.driver = driver;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the driver
+     *
+     * @return {Sy.Storage.Dbal.DriverInterface}
+     */
+
+    getDriver: {
+        value: function () {
+            return this.driver;
+        }
+    },
+
+    /**
+     * Set the unit of work
+     *
+     * @param {Sy.Storage.UnitOfWork} uow
+     *
+     * @return {Sy.Storage.Manager} self
+     */
+
+    setUnitOfWork: {
+        value: function (uow) {
+            if (!(uow instanceof Sy.Storage.UnitOfWork)) {
+                throw new TypeError('Invalid unit of work');
+            }
+
+            this.uow = uow;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the UnitOfWork
+     *
+     * @return {Sy.Storage.UnitOfWork}
+     */
+
+    getUnitOfWork: {
+        value: function () {
+            return this.uow;
+        }
+    },
+
+    /**
+     * Set the allowed entities to be managed here
+     *
+     * @param {Array} mappings
+     *
+     * @return {Sy.Storage.Manager} self
+     */
+
+    setMappings: {
+        value: function (mappings) {
+            if (!(mappings instanceof Array)) {
+                throw new TypeError('Invalid mappings array');
+            }
+
+            this.mappings = mappings;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the repository factory
+     *
+     * @param {Sy.Storage.RepositoryFactory} factory
+     *
+     * @return {Sy.Storage.Manager} self
+     */
+
+    setRepositoryFactory: {
+        value: function (factory) {
+            if (!(factory instanceof Sy.Storage.RepositoryFactory)) {
+                throw new TypeError('Invalid repository factory');
+            }
+            this.repoFactory = factory;
+
+            return this;
+        }
+    },
+
+    /**
+     * Get the repository for the given alias
+     *
+     * @param {String} alias
+     *
+     * @return {Sy.Storage.Repository}
+     */
+
+    getRepository: {
+        value: function (alias) {
+            if (!this.isHandled(alias)) {
+                throw new ReferenceError('Entity not handled by this manager');
+            }
+
+            return this.repoFactory.make(this, alias);
+        }
+    },
+
+    /**
+     * Find an entity by its id
+     *
+     * @param {String} alias Entity name alias (ie: 'Bundle::Entity')
+     * @param {String} id
+     *
+     * @return {Promise}
+     */
+
+    find: {
+        value: function (alias, id) {
+            if (!this.isHandled(alias)) {
+                throw new ReferenceError('Entity not handled by this manager');
+            }
+
+            return this.uow.find(alias, id);
+        }
+    },
+
+    /**
+     * Plan an entity to be persisted to the database
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Sy.Storage.Manager} self
+     */
+
+    persist: {
+        value: function (entity) {
+            if (!this.isHandled(this.uow.getIdentityMap().getAlias(entity))) {
+                throw new ReferenceError('Entity not handled by this manager');
+            }
+
+            this.uow.persist(entity);
+
+            return this;
+        }
+    },
+
+    /**
+     * Commit the changes to the database
+     *
+     * @return {Sy.Storage.Manager} self
+     */
+
+    flush: {
+        value: function () {
+            this.uow.commit();
+
+            return this;
+        }
+    },
+
+    /**
+     * Plan an entity to be removed from the database
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Sy.Storage.Manager} self
+     */
+
+    remove: {
+        value: function (entity) {
+            if (!this.isHandled(this.uow.getIdentityMap().getAlias(entity))) {
+                throw new ReferenceError('Entity not handled by this manager');
+            }
+
+            this.uow.remove(entity);
+
+            return this;
+        }
+    },
+
+    /**
+     * Detach all the entities managed
+     *
+     * @param {String} alias Entity alias, optional
+     *
+     * @return {Sy.Storage.Manager} self
+     */
+
+    clear: {
+        value: function (alias) {
+            this.uow.clear(alias);
+
+            return this;
+        }
+    },
+
+    /**
+     * Detach an entity from the manager,
+     * any changes to the entity will not be persisted
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Sy.Storage.Manager} self
+     */
+
+    detach: {
+        value: function (entity) {
+            if (!this.isHandled(this.uow.getIdentityMap().getAlias(entity))) {
+                throw new ReferenceError('Entity not handled by this manager');
+            }
+
+            this.uow.detach(entity);
+
+            return this;
+        }
+    },
+
+    /**
+     * Tell if the entity is managed by this manager
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Boolean}
+     */
+
+    contains: {
+        value: function (entity) {
+            if (!this.isHandled(this.uow.getIdentityMap().getAlias(entity))) {
+                throw new ReferenceError('Entity not handled by this manager');
+            }
+
+            return this.uow.isManaged(entity);
+        }
+    },
+
+    /**
+     * Check if the alias is managed by this manager
+     *
+     * @private
+     * @param {String} alias
+     *
+     * @return {Boolean}
+     */
+
+    isHandled: {
+        value: function (alias) {
+            if (this.mappings.length === 0) {
+                return true;
+            }
+
+            return this.mappings.indexOf(alias) !== -1;
+        }
+    }
+
+});
+
+namespace('Sy.Storage');
+
+/**
+ * Build entity manager instances
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ * @implements {Sy.FactoryInterface}
+ */
+
+Sy.Storage.ManagerFactory = function () {
+    this.definitions = {};
+    this.dbals = null;
+    this.repoFactory = null;
+    this.uowFactory = null;
+};
+Sy.Storage.ManagerFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
+
+    /**
+     * Set the managers definitions
+     *
+     * @param {Object} definitions
+     *
+     * @return {Sy.Storage.ManagerFactory} self
+     */
+
+    setDefinitions: {
+        value: function (definitions) {
+            this.definitions = definitions || {};
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the factory to build dbals
+     *
+     * @param {Sy.Storage.Dbal.Factory} factory
+     *
+     * @return {Sy.Storage.ManagerFactory} self
+     */
+
+    setDbalFactory: {
+        value: function (factory) {
+            if (!(factory instanceof Sy.Storage.Dbal.Factory)) {
+                throw new TypeError('Invalid dbal factory');
+            }
+
+            this.dbals = factory;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the repository factory
+     *
+     * @param {Sy.Storage.RepositoryFactory} factory
+     *
+     * @return {Sy.Storage.ManagerFactory} self
+     */
+
+    setRepositoryFactory: {
+        value: function (factory) {
+            if (!(factory instanceof Sy.Storage.RepositoryFactory)) {
+                throw new TypeError('Invalid repository factory');
+            }
+
+            this.repoFactory = factory;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the unit of work factory
+     *
+     * @param {Sy.Storage.UnitOfWorkFactory} factory
+     *
+     * @return {Sy.Storage.ManagerFactory} self
+     */
+
+    setUnitOfWorkFactory: {
+        value: function (factory) {
+            if (!(factory instanceof Sy.Storage.UnitOfWorkFactory)) {
+                throw new TypeError('Invalid unit of work factory');
+            }
+
+            this.uowFactory = factory;
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    make: {
+        value: function (name) {
+            if (!this.definitions.hasOwnProperty(name)) {
+                throw new ReferenceError('Unknown manager definition');
+            }
+
+            var manager = new Sy.Storage.Manager(),
+                uow = this.uowFactory.make(),
+                driver = this.dbals.make(
+                    this.definitions[name].connection
+                );
+
+            uow.setDriver(driver);
+
+            return manager
+                .setDriver(driver)
+                .setRepositoryFactory(this.repoFactory)
+                .setMappings(
+                    this.definitions[name].mappings || []
+                )
+                .setUnitOfWork(uow);
+        }
+    }
+
+});
+
+namespace('Sy.Storage');
+
+/**
+ * Entity repository
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ * @param {Sy.Storage.Manager} em
+ * @param {String} alias
+ */
+
+Sy.Storage.Repository = function (em, alias) {
+    if (!(em instanceof Sy.Storage.Manager)) {
+        throw new TypeError('Invalid entity manager');
+    }
+
+    this.em = em;
+    this.alias = alias;
+};
+Sy.Storage.Repository.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Detach all the entities for this entity type
+     *
+     * @return {Sy.Storage.Repository} self
+     */
+
+    clear: {
+        value: function () {
+            this.em.clear(this.alias);
+
+            return this;
+        }
+    },
+
+    /**
+     * Find an entity by its id
+     *
+     * @param {String} id
+     *
+     * @return {Promise}
+     */
+
+    find: {
+        value: function (id) {
+            return this.em.find(this.alias, id);
+        }
+    },
+
+    /**
+     * Find all entities
+     *
+     * @return {Promise}
+     */
+
+    findAll: {
+        value: function () {
+            return this.em
+                .getUnitOfWork()
+                .findAll(this.alias);
+        }
+    },
+
+    /**
+     * Find all entities matching the criteria
+     *
+     * @param {String} index
+     * @param {mixed} value Value or array of bounds
+     * @param {Integer} limit optional
+     *
+     * @return {Promise}
+     */
+
+    findBy: {
+        value: function (index, value, limit) {
+            return this.em
+                .getUnitOfWork()
+                .findBy(this.alias, index, value, limit);
+        }
+    },
+
+    /**
+     * Find one entity matching the criteria
+     *
+     * @param {String} index
+     * @param {mixed} value Value or array of bounds
+     *
+     * @return {Promise}
+     */
+
+    findOneBy: {
+        value: function (index, value) {
+            return this.em
+                .getUnitOfWork()
+                .findBy(this.alias, index, value, 1)
+                .then(function (entities) {
+                    if (entities.length === 1) {
+                        return entities[0];
+                    }
+
+                    throw new ReferenceError('Entity not found');
+                });
+        }
+    }
+
+});
+
+namespace('Sy.Storage');
+
+/**
+ * Build a repository for the specified alias
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ * @implements {Sy.FactoryInterface}
+ */
+
+Sy.Storage.RepositoryFactory = function () {
+    this.metadata = null;
+    this.loaded = null;
+};
+Sy.Storage.RepositoryFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
+
+    /**
+     * Set a registry to hold entities metadata
+     *
+     * @param {Sy.RegistryInterface} registry
+     *
+     * @return {Sy.Storage.RepositoryFactory} self
+     */
+
+    setMetadataRegistry: {
+        value: function (registry) {
+            if (!(registry instanceof Sy.RegistryInterface)) {
+                throw new TypeError('Invalid registry');
+            }
+
+            this.metadata = registry;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a registry to hold loaded repositories
+     *
+     * @param {Sy.RegistryInterface} registry
+     *
+     * @return {Sy.Storage.RepositoryFactory} self
+     */
+
+    setRepositoriesRegistry: {
+        value: function (registry) {
+            if (!(registry instanceof Sy.RegistryInterface)) {
+                throw new TypeError('Invalid registry');
+            }
+
+            this.loaded = registry;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a new entity definition
+     *
+     * @param {String} alias
+     * @param {Function} repository Repository constructor
+     *
+     * @return {Sy.Storage.RepositoryFactory} self
+     */
+
+    setRepository: {
+        value: function (alias, repository) {
+            this.metadata.set(alias, repository);
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    make: {
+        value: function (em, alias) {
+            if (this.loaded.has(alias)) {
+                return this.loaded.get(alias);
+            }
+
+            if (!this.metadata.has(alias)) {
+                throw new ReferenceError('Unknown entity alias "' + alias + '"');
+            }
+
+            var repo = new (this.metadata.get(alias))(
+                em,
+                alias
+            );
+
+            if (!(repo instanceof Sy.Storage.Repository)) {
+                throw new TypeError('Invalid repository');
+            }
+
+            this.loaded.set(alias, repo);
+
+            return repo;
+        }
+    }
+
+});
+
+namespace('Sy.Storage');
+
+/**
+ * Extract necessary information from entities metadata
+ * and inject properly the repositories definition in the factory
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ */
+
+Sy.Storage.RepositoryFactoryConfigurator = function () {
+    this.metadata = null;
+};
+Sy.Storage.RepositoryFactoryConfigurator.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set the entities metadata
+     *
+     * @param {Array} metadata
+     */
+
+    setMetadata: {
+        value: function (metadata) {
+            this.metadata = metadata;
+        }
+    },
+
+    /**
+     * Inject the repositories definitions in the factory
+     *
+     * @param {Sy.Storage.RepositoryFactory} factory
+     */
+
+    configure: {
+        value: function (factory) {
+            if (!(factory instanceof Sy.Storage.RepositoryFactory)) {
+                throw new TypeError('Invalid repository factory');
+            }
+
+            for (var i = 0, l = this.metadata.length; i < l; i++) {
+                factory.setRepository(
+                    this.metadata[i].alias,
+                    this.metadata[i].repository || Sy.Storage.Repository
+                );
+            }
+        }
+    }
+
+});
+
+namespace('Sy.Storage');
+
+/**
+ * Bridge between database driver and entity level
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ */
+
+Sy.Storage.UnitOfWork = function () {
+    this.driver = null;
+    this.map = null;
+    this.entities = null;
+    this.states = null;
+    this.propertyAccessor = null;
+    this.scheduledForInsert = [];
+    this.scheduledForUpdate = [];
+    this.scheduledForDelete = [];
+    this.logger = null;
+    this.generator = null;
+    this.mediator = null;
+};
+Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
+
+    STATE_NEW: {
+        value: 'new',
+        writable: false,
+    },
+
+    STATE_MANAGED: {
+        value: 'managed',
+        writable: false
+    },
+
+    STATE_DETACHED: {
+        value: 'detached',
+        writable: false
+    },
+
+    STATE_REMOVED: {
+        value: 'removed',
+        writable: false
+    },
+
+    /**
+     * Set the database driver
+     *
+     * @param {Sy.Storage.Dbal.DriverInterface} driver
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setDriver: {
+        value: function (driver) {
+            if (!(driver instanceof Sy.Storage.Dbal.DriverInterface)) {
+                throw new TypeError('Invalid database driver');
+            }
+
+            this.driver = driver;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the identity map
+     *
+     * @param {Sy.Storage.IdentityMap} map
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setIdentityMap: {
+        value: function (map) {
+            if (!(map instanceof Sy.Storage.IdentityMap)) {
+                throw new TypeError('Invalid identity map');
+            }
+
+            this.map = map;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the identity map
+     *
+     * @return {Sy.Storage.IdentityMap}
+     */
+
+    getIdentityMap: {
+        value: function () {
+            return this.map;
+        }
+    },
+
+    /**
+     * Set a state registry to hold loaded entities
+     *
+     * @param {Sy.StateRegistryInterface} registry
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setEntitiesRegistry: {
+        value: function (registry) {
+            if (!(registry instanceof Sy.StateRegistryInterface)) {
+                throw new TypeError('Invalid state registry');
+            }
+
+            this.entities = registry;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a property accessor
+     *
+     * @param {Sy.PropertyAccessor} accessor
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setPropertyAccessor: {
+        value: function (accessor) {
+            if (!(accessor instanceof Sy.PropertyAccessor)) {
+                throw new TypeError('Invalid property accessor');
+            }
+
+            this.propertyAccessor = accessor;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a state registry to hold entities states
+     *
+     * @param {Sy.StateRegistryInterface} registry
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setStatesRegistry: {
+        value: function (registry) {
+            if (!(registry instanceof Sy.StateRegistryInterface)) {
+                throw new TypeError('Invalid state registry');
+            }
+
+            this.states = registry;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a logger
+     *
+     * @param {Sy.Lib.Logger.Interface} logger
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setLogger: {
+        value: function (logger) {
+            if (!(logger instanceof Sy.Lib.Logger.Interface)) {
+                throw new TypeError('Invalid logger');
+            }
+
+            this.logger = logger;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a generator
+     *
+     * @param {Sy.Lib.Generator.Interface} generator
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setGenerator: {
+        value: function (generator) {
+            if (!(generator instanceof Sy.Lib.Generator.Interface)) {
+                throw new TypeError('Invalid generator');
+            }
+
+            this.generator = generator;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the mediator
+     *
+     * @param {Sy.Lib.Mediator} mediator
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setMediator: {
+        value: function (mediator) {
+            if (!(mediator instanceof Sy.Lib.Mediator)) {
+                throw new TypeError('Invalid mediator');
+            }
+
+            this.mediator = mediator;
+
+            return this;
+        }
+    },
+
+    /**
+     * Find an entity for the specified id
+     *
+     * @param {String} alias
+     * @param {String} id
+     *
+     * @return {Promise}
+     */
+
+    find: {
+        value: function (alias, id) {
+            if (this.entities.has(alias, id)) {
+                return new Promise(function (resolve) {
+                    resolve(this.entities.get(alias, id));
+                }.bind(this));
+            }
+
+            return this.driver
+                .read(alias, id)
+                .then(function (data) {
+                    return this.buildEntity(alias, data);
+                }.bind(this));
+        }
+    },
+
+    /**
+     * Find all the entities for the given alias
+     *
+     * @param {String} alias
+     *
+     * @return {Promise}
+     */
+
+    findAll: {
+        value: function (alias) {
+            return this.driver
+                .findAll(alias)
+                .then(function (data) {
+                    for (var i = 0, l = data.length; i < l; i++) {
+                        data[i] = this.buildEntity(alias, data[i]);
+                    }
+
+                    return data;
+                }.bind(this));
+        }
+    },
+
+    /**
+     * Find entities matching the given alias and criteria
+     *
+     * @param {String} alias
+     * @param {String} index
+     * @param {mixed} value
+     * @param {Integer} limit
+     *
+     * @return {Promise}
+     */
+
+    findBy: {
+        value: function (alias, index, value, limit) {
+            return this.driver
+                .find(alias, index, value, limit)
+                .then(function (data) {
+                    for (var i = 0, l = data.length; i < l; i++) {
+                        data[i] = this.buildEntity(alias, data[i]);
+                    }
+
+                    return data;
+                }.bind(this));
+        }
+    },
+
+    /**
+     * Build an entity for the specified alias
+     *
+     * @private
+     * @param {String} alias
+     * @param {Object} data
+     *
+     * @return {Sy.EntityInterface}
+     */
+
+    buildEntity: {
+        value: function (alias, data) {
+            var constructor = this.map.getConstructor(alias),
+                key = this.map.getKey(alias),
+                entity;
+
+            if (this.entities.has(alias, data[key])) {
+                entity = this.entities.get(alias, data[key]);
+            } else {
+                entity = new constructor();
+                this.entities.set(alias, data[key], entity);
+
+                (new ObjectObserver(entity))
+                    .open(function () {
+                        this.computeSchedules(entity);
+                    }.bind(this));
+            }
+
+            for (var p in data) {
+                if (data.hasOwnProperty(p)) {
+                    entity.set(p, data[p]);
+                }
+            }
+
+            this.states.set(this.STATE_MANAGED, data[key], data[key]);
+
+            return entity;
+        }
+    },
+
+    /**
+     * Plan the given entity to be persisted
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    persist: {
+        value: function (entity) {
+            if (!(entity instanceof Sy.EntityInterface)) {
+                throw new TypeError('Invalid entity');
+            }
+
+            var alias = this.map.getAlias(entity),
+                key = this.map.getKey(alias),
+                id = this.propertyAccessor.getValue(entity, key),
+                state = this.states.state(id);
+
+            if (state === undefined) {
+                id = this.generator.generate();
+                this.states.set(
+                    this.STATE_NEW,
+                    id,
+                    id
+                );
+                this.scheduledForInsert.push(entity);
+                this.propertyAccessor.setValue(entity, key, id);
+
+                (new ObjectObserver(entity))
+                    .open(function () {
+                        this.computeSchedules(entity);
+                    }.bind(this));
+            } else {
+                this.scheduledForUpdate.push(entity);
+            }
+
+            this.entities.set(alias, id, entity);
+
+            return this;
+        }
+    },
+
+    /**
+     * Commit the changes to the database
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    commit: {
+        value: function () {
+            Platform.performMicrotaskCheckpoint();
+
+            this.scheduledForInsert.forEach(function (entity) {
+                var alias = this.map.getAlias(entity),
+                    key = this.map.getKey(alias),
+                    id = this.propertyAccessor.getValue(entity, key),
+                    event = new Sy.Storage.LifeCycleEvent(alias, entity);
+
+                this.mediator && this.mediator.publish(
+                    event.PRE_CREATE,
+                    event
+                );
+
+                if (event.isAborted()) {
+                    return;
+                }
+
+                this.driver
+                    .create(alias, this.getEntityData(entity))
+                    .then(function () {
+                        this.states.set(
+                            this.STATE_MANAGED,
+                            id,
+                            id
+                        );
+
+                        this.mediator && this.mediator.publish(
+                            event.POST_CREATE,
+                            event
+                        );
+
+                        this.logger && this.logger.info(
+                            'Entity created',
+                            entity
+                        );
+                    }.bind(this));
+            }, this);
+            this.scheduledForUpdate.forEach(function (entity) {
+                var alias = this.map.getAlias(entity),
+                    key = this.map.getKey(alias),
+                    id = this.propertyAccessor.getValue(entity, key),
+                    event = new Sy.Storage.LifeCycleEvent(alias, entity);
+
+                this.mediator && this.mediator.publish(
+                    event.PRE_UPDATE,
+                    event
+                );
+
+                if (event.isAborted()) {
+                    return;
+                }
+
+                this.driver
+                    .update(
+                        alias,
+                        id,
+                        this.getEntityData(entity)
+                    )
+                    .then(function () {
+                        this.mediator && this.mediator.publish(
+                            event.POST_UPDATE,
+                            event
+                        );
+
+                        this.logger && this.logger.info(
+                            'Entity updated',
+                            entity
+                        );
+                    });
+            }, this);
+            this.scheduledForDelete.forEach(function (entity) {
+                var alias = this.map.getAlias(entity),
+                    key = this.map.getKey(alias),
+                    id = this.propertyAccessor.getValue(entity, key),
+                    event = new Sy.Storage.LifeCycleEvent(alias, entity);
+
+                this.mediator && this.mediator.publish(
+                    event.PRE_REMOVE,
+                    event
+                );
+
+                if (event.isAborted()) {
+                    return;
+                }
+
+                this.driver
+                    .remove(alias, id)
+                    .then(function () {
+                        this.states.set(
+                            this.STATE_REMOVED,
+                            id,
+                            id
+                        );
+
+                        this.mediator && this.mediator.publish(
+                            event.POST_REMOVE,
+                            event
+                        );
+
+                        this.logger && this.logger.info(
+                            'Entity removed',
+                            entity
+                        )
+                    }.bind(this));
+            }, this);
+
+            //reinitialize schedules so 2 close commits can't trigger
+            //an entity to be sent to the driver twice
+            this.scheduledForInsert.splice(0);
+            this.scheduledForUpdate.splice(0);
+            this.scheduledForDelete.splice(0);
+
+            return this;
+        }
+    },
+
+    /**
+     * Plan the entity to be removed from the database
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    remove: {
+        value: function (entity) {
+            if (!(entity instanceof Sy.EntityInterface)) {
+                throw new TypeError('Invalid entity');
+            }
+
+            var alias = this.map.getAlias(entity),
+                key = this.map.getKey(alias),
+                state = this.states.state(
+                    this.propertyAccessor.getValue(entity, key)
+                );
+
+            if (state === this.STATE_MANAGED) {
+                if (this.isScheduledForUpdate(entity)) {
+                    this.scheduledForUpdate.splice(
+                        this.scheduledForUpdate.indexOf(entity),
+                        1
+                    );
+                }
+
+                this.scheduledForDelete.push(entity);
+            } else if (state === this.STATE_NEW) {
+                this.scheduledForInsert.splice(
+                    this.scheduledForInsert.indexOf(entity),
+                    1
+                );
+            }
+
+            return this;
+        }
+    },
+
+    /**
+     * Detach all entities or the ones of the given alias
+     *
+     * @param {String} alias optional
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    clear: {
+        value: function (alias) {
+            var entities = this.entities.get(),
+                constructor;
+
+            for (var a in entities) {
+                if (entities.hasOwnProperty(a)) {
+
+                    if (alias !== undefined && alias !== a) {
+                        continue;
+                    }
+
+                    for (var i = 0, l = entities[a].length; i < l; i++) {
+                        this.detach(entities[a][i]);
+                    }
+
+                    if (alias !== undefined && alias === a) {
+                        break;
+                    }
+                }
+            }
+
+            return this;
+        }
+    },
+
+    /**
+     * Detach the given entity
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    detach: {
+        value: function (entity) {
+            var alias = this.map.getAlias(entity),
+                key = this.map.getKey(alias),
+                id = this.propertyAccessor.getValue(entity, key);
+
+            this.states.set(this.STATE_DETACHED, id, id);
+
+            if (this.isScheduledForInsert(entity)) {
+                this.scheduledForInsert.splice(
+                    this.scheduledForInsert.indexOf(entity),
+                    1
+                );
+            }
+
+            if (this.isScheduledForUpdate(entity)) {
+                this.scheduledForUpdate.splice(
+                    this.scheduledForUpdate.indexOf(entity),
+                    1
+                );
+            }
+
+            if (this.isScheduledForDelete(entity)) {
+                this.scheduledForDelete.splice(
+                    this.scheduledForDelete.indexOf(entity),
+                    1
+                );
+            }
+
+            return this;
+        }
+    },
+
+    /**
+     * Check if the entity is managed
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Boolean}
+     */
+
+    isManaged: {
+        value: function (entity) {
+            var alias = this.map.getAlias(entity),
+                key = this.map.getKey(alias),
+                id = this.propertyAccessor.getValue(entity, key);
+                state = this.states.state(id);
+
+            return [this.STATE_NEW, this.STATE_MANAGED].indexOf(state) !== -1;
+        }
+    },
+
+    /**
+     * Check if the entity is scheduled for insertion
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Boolean}
+     */
+
+    isScheduledForInsert: {
+        value: function (entity) {
+            return this.scheduledForInsert.indexOf(entity) !== -1;
+        }
+    },
+
+    /**
+     * Check if the entity is scheduled for update
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Boolean}
+     */
+
+    isScheduledForUpdate: {
+        value: function (entity) {
+            return this.scheduledForUpdate.indexOf(entity) !== -1;
+        }
+    },
+
+    /**
+     * Check if the entity is scheduled for removal
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Boolean}
+     */
+
+    isScheduledForDelete: {
+        value: function (entity) {
+            return this.scheduledForDelete.indexOf(entity) !== -1;
+        }
+    },
+
+    /**
+     * Update the schedules for the given entity
+     * If entity scheduled for insert leave as is
+     * otherwise plan for update except if planned for delete
+     *
+     * @private
+     * @param {Sy.EntityInterface} entity
+     */
+
+    computeSchedules: {
+        value: function (entity) {
+            var alias = this.map.getAlias(entity),
+                key = this.map.getKey(alias),
+                state = this.states.state(
+                    this.propertyAccessor.getValue(entity, key)
+                );
+
+            if (state === this.STATE_MANAGED && !this.isScheduledForUpdate(entity)) {
+                this.scheduledForUpdate.push(entity);
+            }
+        }
+    },
+
+    /**
+     * Extract the data as a POJO from an entity
+     *
+     * @private
+     * @param {Sy.EtityInterface} entity
+     *
+     * @return {Object}
+     */
+
+    getEntityData: {
+        value: function (entity) {
+            var data = {},
+                refl = new ReflectionObject(entity);
+
+            refl.getProperties().forEach(function (refl) {
+                data[refl.getName()] = refl.getValue();
+            });
+
+            return data;
+        }
+    }
+
+});
+
+namespace('Sy.Storage');
+
+/**
+ * Create a generic unit of work
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ * @implements {Sy.FactoryInterface}
+ */
+
+Sy.Storage.UnitOfWorkFactory = function () {
+    this.identityMap = new Sy.Storage.IdentityMap();
+    this.stateRegistryFactory = null;
+    this.propertyAccessor = null;
+    this.logger = null;
+    this.generator = null;
+    this.mediator = null;
+};
+Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
+
+    /**
+     * Set all entities metadata
+     *
+     * @param {Array} metadata
+     *
+     * @return {Sy.Storage.UnitOfWorkFactory} self
+     */
+
+    setEntitiesMetadata: {
+        value: function (metadata) {
+            if (!(metadata instanceof Array)) {
+                throw new TypeError('Invalid metadata array');
+            }
+
+            for (var i = 0, l = metadata.length; i < l; i++) {
+                this.identityMap.set(
+                    metadata[i].alias,
+                    metadata[i].entity,
+                    metadata[i].uuid
+                );
+            }
+
+            this.identityMap.lock();
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the state registry factory
+     *
+     * @param {Sy.StateRegistryFactory} factory
+     *
+     * @return {Sy.Storage.UnitOfWorkFactory} self
+     */
+
+    setStateRegistryFactory: {
+        value: function (factory) {
+            if (!(factory instanceof Sy.StateRegistryFactory)) {
+                throw new TypeError('Invalid state registry factory');
+            }
+
+            this.stateRegistryFactory = factory;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a property accessor
+     *
+     * @param {Sy.PropertyAccessor} accessor
+     *
+     * @return {Sy.Storage.UnitOfWorkFactory} self
+     */
+
+    setPropertyAccessor: {
+        value: function (accessor) {
+            if (!(accessor instanceof Sy.PropertyAccessor)) {
+                throw new TypeError('Invalid property accessor');
+            }
+
+            this.propertyAccessor = accessor;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a logger
+     *
+     * @param {Sy.Lib.Logger.Interface} logger
+     *
+     * @return {Sy.Storage.UnitOfWorkFactory} self
+     */
+
+    setLogger: {
+        value: function (logger) {
+            if (!(logger instanceof Sy.Lib.Logger.Interface)) {
+                throw new TypeError('Invalid logger');
+            }
+
+            this.logger = logger;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a generator
+     *
+     * @param {Sy.Lib.Generator.Interface} generator
+     *
+     * @return {Sy.Storage.UnitOfWorkFactory} self
+     */
+
+    setGenerator: {
+        value: function (generator) {
+            if (!(generator instanceof Sy.Lib.Generator.Interface)) {
+                throw new TypeError('Invalid generator');
+            }
+
+            this.generator = generator;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the mediator
+     *
+     * @param {Sy.Lib.Mediator} mediator
+     *
+     * @return {Sy.Storage.UnitOfWorkFactory} self
+     */
+
+    setMediator: {
+        value: function (mediator) {
+            if (!(mediator instanceof Sy.Lib.Mediator)) {
+                throw new TypeError('Invalid mediator');
+            }
+
+            this.mediator = mediator;
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    make: {
+        value: function () {
+            var uow = new Sy.Storage.UnitOfWork();
+
+            return uow
+                .setIdentityMap(this.identityMap)
+                .setEntitiesRegistry(this.stateRegistryFactory.make())
+                .setStatesRegistry(
+                    this.stateRegistryFactory
+                        .make()
+                        .setStrict()
+                )
+                .setPropertyAccessor(this.propertyAccessor)
+                .setLogger(this.logger)
+                .setGenerator(this.generator)
+                .setMediator(this.mediator);
+        }
+    }
+
+});
+
+namespace('Sy.Storage.Dbal');
+
+/**
+ * Factory to build a storage driver instance
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @interface
+ */
+
+Sy.Storage.Dbal.DriverFactoryInterface = function () {};
+Sy.Storage.Dbal.DriverFactoryInterface.prototype = Object.create(Sy.FactoryInterface.prototype, {
+
+    /**
+     * Build a driver instance
+     *
+     * @param {String} dbname
+     * @param {Integer} version
+     * @param {Array} stores
+     * @param {Object} options
+     *
+     * @return {Sy.Storage.Dbal.DriverFactoryInterface} self
+     */
+
+    make: {
+        value: function (dbname, version, stores, options) {}
+    }
+
+});
+
+namespace('Sy.Storage.Dbal');
+
+/**
+ * Minimum signature a driver must implement
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @interface
+ */
+
+Sy.Storage.Dbal.DriverInterface = function () {};
+Sy.Storage.Dbal.DriverInterface.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Retrieve an object by its id
+     *
+     * @param {String} store
+     * @param {String} id
+     *
+     * @return {Promise}
+     */
+
+    read: {
+        value: function (store, id) {}
+    },
+
+    /**
+     * Create a new element in the store
+     *
+     * @param {String} store
+     * @param {Object} object
+     *
+     * @return {Promise}
+     */
+
+    create: {
+        value: function (store, object) {}
+    },
+
+    /**
+     * Update an object in the store
+     *
+     * @param {String} store
+     * @param {String} id
+     * @param {Object} object
+     *
+     * @return {Promise}
+     */
+
+    update: {
+        value: function (store, id, object) {}
+    },
+
+    /**
+     * Delete an object from the store
+     *
+     * @param {String} store
+     * @param {String} id
+     *
+     * @return {Promise}
+     */
+
+    remove: {
+        value: function (store, id) {}
+    },
+
+    /**
+     * Find (an) element(s) in the storage
+     *
+     * @param {String} store
+     * @param {String} index
+     * @param {Mixed} value
+     * @param {Integer} limit Optional
+     *
+     * @return {Promise}
+     */
+
+    find: {
+        value: function (store, index, value, limit) {}
+    },
+
+    /**
+     * Retrieve all the objects from a store
+     *
+     * @param {String} store
+     *
+     * @return {Promise}
+     */
+
+    findAll: {
+        value: function (store) {}
+    }
+
+});
+
+namespace('Sy.Storage.Dbal');
+
+/**
+ * Factory that leverage storage drivers factories to build a specific driver
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ * @implements {Sy.FactoryInterface}
+ */
+
+Sy.Storage.Dbal.Factory = function () {
+    this.factories = null;
+    this.defaultConnection = 'default';
+    this.connections = {};
+};
+Sy.Storage.Dbal.Factory.prototype = Object.create(Sy.FactoryInterface.prototype, {
+
+    /**
+     * Set a registry to hold drivers factories
+     *
+     * @param {Sy.RegistryInterface} registry
+     *
+     * @return {Sy.Storage.Dbal.Factory} self
+     */
+
+    setFactoriesRegistry: {
+        value: function (registry) {
+            if (!(registry instanceof Sy.RegistryInterface)) {
+                throw new TypeError('Invalid registry');
+            }
+
+            this.factories = registry;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a new driver factory
+     *
+     * @param {String} name Driver name
+     * @param {Sy.Storage.Dbal.DriverFactoryInterface} factory
+     *
+     * @return {Sy.Storage.Dbal.Factory} self
+     */
+
+    setDriverFactory: {
+        value: function (name, factory) {
+            if (!(factory instanceof Sy.Storage.Dbal.DriverFactoryInterface)) {
+                throw new TypeError('Invalid driver factory');
+            }
+
+            if (this.factories.has(name)) {
+                throw new ReferenceError('Can\'t redefine the driver factory "' + name + '"');
+            }
+
+            this.factories.set(
+                name,
+                factory
+            );
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the default connection name
+     *
+     * @param {String} name
+     *
+     * @return {Sy.Storage.Dbal.Factory} self
+     */
+
+    setDefaultConnectionName: {
+        value: function (name) {
+            this.defaultConnection = name || 'default';
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the list of available connections
+     *
+     * @param {Object} connections
+     *
+     * @return {Sy.Storage.Dbal.Factory} self
+     */
+
+    setConnections: {
+        value: function (connections) {
+            this.connections = connections || {};
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    make: {
+        value: function (name) {
+            name = name || this.defaultConnection;
+
+            if (!this.connections.hasOwnProperty(name)) {
+                throw new ReferenceError('No connection defined with the name "' + name + '"');
+            }
+
+            var conn = this.connections[name],
+                factory,
+                driver;
+
+            if (!this.factories.has(conn.driver)) {
+                throw new ReferenceError('Unknown driver "' + conn.driver + '"');
+            }
+
+            factory = this.factories.get(conn.driver);
+            driver = factory.make(
+                conn.dbname,
+                conn.version || 1,
+                conn.stores || [],
+                conn.options || {}
+            );
+
+            if (!(driver instanceof Sy.Storage.Dbal.DriverInterface)) {
+                throw new TypeError('Invalid driver instance');
+            }
+
+            return driver;
+        }
+    }
+
+});
+
+namespace('Sy.Storage.Dbal');
+
+/**
+ * Storage driver leveraging IndexedDB to persist objects
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ * @implements {Sy.Storage.Dbal.DriverInterface}
+ */
+
+Sy.Storage.Dbal.IndexedDB = function () {
+    this.version = 1;
     this.connection = null;
     this.transaction = null;
     this.keyRange = null;
@@ -3960,35 +5765,64 @@ Sy.Storage.Engine.IndexedDB = function (version) {
         READ_ONLY: null,
         READ_WRITE: null
     };
-    this.name = 'app::storage';
+    this.name = null;
     this.stores = {};
     this.storage = null;
     this.logger = null;
-    this.mediator = null;
-
+    this.opened = false;
+    this.openingCheckInterval = null;
 };
+Sy.Storage.Dbal.IndexedDB.prototype = Object.create(Sy.Storage.Dbal.DriverInterface.prototype, {
 
-Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface.prototype, {
+    /**
+     * Set the storage name
+     *
+     * @param {String} name
+     *
+     * @return {Sy.Storage.Dbal.IndexedDB} self
+     */
+
+    setName: {
+        value: function (name) {
+            this.name = name;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the storage version
+     *
+     * @param {Integer} version
+     *
+     * @return {Sy.Storage.Dbal.IndexedDB} self
+     */
+
+    setVersion: {
+        value: function (version) {
+            this.version = version || 1;
+
+            return this;
+        }
+    },
 
     /**
      * Set the connection object to IndexedDB
      *
-     * @param {IDBFactory} connection
+     * @param {IDBFactory} conn
      *
-     * @return {Sy.Storage.Engine.IndexedDB}
+     * @return {Sy.Storage.Dbal.IndexedDB} self
      */
 
     setConnection: {
-        value: function (connection) {
-
-            if (!(connection instanceof IDBFactory)) {
+        value: function (conn) {
+            if (!(conn instanceof IDBFactory)) {
                 throw new TypeError('Invalid connection');
             }
 
-            this.connection = connection;
+            this.connection = conn;
 
             return this;
-
         }
     },
 
@@ -3997,71 +5831,45 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
      *
      * @param {IDBTransaction} transaction
      *
-     * @return {Sy.Storage.Engine.IndexedDB}
+     * @return {Sy.Storage.Dbal.IndexedDB} self
      */
 
     setTransaction: {
         value: function (transaction) {
-
             this.transaction = transaction;
-            this.transactionModes = {
-                READ_ONLY: this.transaction.READ_ONLY || 'readonly',
-                READ_WRITE: this.transaction.READ_WRITE || 'readwrite'
-            };
+            this.transactionModes.READ_ONLY = transaction.READ_ONLY || 'readonly';
+            this.transactionModes.READ_WRITE = transaction.READ_WRITE || 'readwrite';
 
             return this;
-
         }
     },
 
     /**
      * Set key range object
      *
-     * @param {IDBKeyRange} keyrange
+     * @param {IDBKeyRange} keyRange
      *
-     * @return {Sy.Storage.Engine.IndexedDB}
+     * @return {Sy.Storage.Dbal.IndexedDB} self
      */
 
     setKeyRange: {
-        value: function (keyrange) {
-
-            this.keyRange = keyrange;
+        value: function (keyRange) {
+            this.keyRange = keyRange;
 
             return this;
-
         }
     },
 
     /**
-     * Set the database name
-     * Default is "app::storage"
-     *
-     * @param {string} name
-     *
-     * @return {Sy.Storage.Engine.IndexedDB}
-     */
-
-    setName: {
-        value: function (name) {
-
-            this.name = name;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set a logger object
+     * Set the logger
      *
      * @param {Sy.Lib.Logger.Interface} logger
      *
-     * @return {Sy.Storage.Engine.IndexedDB}
+     * @return {Sy.Storage.Dbal.IndexedDB} self
      */
 
     setLogger: {
         value: function (logger) {
-
             if (!(logger instanceof Sy.Lib.Logger.Interface)) {
                 throw new TypeError('Invalid logger');
             }
@@ -4069,59 +5877,84 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
             this.logger = logger;
 
             return this;
-
         }
     },
 
     /**
-     * Set the mediator object
+     * Set a new store
      *
-     * @param {Sy.Lib.Mediator} mediator
+     * @param {String} alias
+     * @param {String} name
+     * @param {String} identifier
+     * @param {Array} indexes
      *
-     * @return {Sy.Storage.EngineIndexedDB}
+     * @return {Sy.Storage.Dbal.IndexedDB} self
      */
 
-    setMediator: {
-        value: function (mediator) {
-
-            this.mediator = mediator;
+    setStore: {
+        value: function (alias, name, identifier, indexes) {
+            this.stores[alias] = {
+                path: name,
+                key: identifier,
+                indexes: indexes
+            };
 
             return this;
-
         }
     },
 
     /**
-     * Open a connection to the database
+     * Open the connection to the database
      *
-     * @return {Sy.Storage.Engine.IndexedDB}
+     * @return {Sy.Storage.Dbal.IndexedDB} self
      */
 
     open: {
         value: function () {
-
             var request = this.connection.open(this.name, this.version);
 
             request.onupgradeneeded = this.upgradeDatabase.bind(this);
             request.onsuccess = function (event) {
-
                 this.storage = event.target.result;
+                this.opened = true;
                 this.storage.onerror = function (event) {
-                    this.logger.error('Database operation failed', event);
-                }.bind(this);
+                    this.logger && this.logger.error('Database operation failed', [this.name, event]);
+                };
 
-                this.logger.info('Database opened');
-
+                this.logger && this.logger.info('Database opened', this.name);
             }.bind(this);
             request.onerror = function (event) {
-                this.logger.error('Database opening failed', event);
+                this.logger && this.logger.error('Database opening failed', [this.name, event]);
             }.bind(this);
             request.onblocked = function (event) {
-                this.logger.error('Database opening failed! (blocked by browser setting)', event);
+                this.logger && this.logger.error('Database opening failed! (blocked by browser setting)', [this.name, event]);
             }.bind(this);
 
             return this;
+        }
+    },
 
+    /**
+     * Return a promise to know when the database is opened
+     *
+     * @return {Promise}
+     */
+
+    whenOpened: {
+        value: function () {
+            return new Promise(function (resolve) {
+                if (this.opened === true) {
+                    resolve();
+                    return;
+                }
+
+                this.openingCheckInterval = setInterval(function () {
+                    if (this.opened === true) {
+                        resolve();
+                        clearInterval(this.openingCheckInterval);
+                    }
+                }.bind(this), 50);
+            }.bind(this))
         }
     },
 
@@ -4129,23 +5962,19 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
      * Upgrade the definition of the database
      *
      * @private
-     * @param {object} event
-     *
-     * @return {Sy.Storage.Engine.IndexedDB}
+     * @param {Object} event
      */
 
     upgradeDatabase: {
         value: function (event) {
+            var objectStore;
 
-            this.logger.info('Upgrading database...');
+            this.logger && this.logger.info('Upgrading database...', [this.name, this.version]);
 
             this.storage = event.target.result;
 
             for (var store in this.stores) {
                 if (this.stores.hasOwnProperty(store)) {
-
-                    var objectStore;
-
                     store = this.stores[store];
 
                     if (!this.storage.objectStoreNames.contains(store.path)) {
@@ -4175,28 +6004,8 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
                             );
                         }
                     }
-
                 }
             }
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    setStore: {
-        value: function (alias, name, identifier, indexes) {
-
-            this.stores[alias] = {
-                path: name,
-                key: identifier,
-                indexes: indexes
-            };
-
-            return this;
-
         }
     },
 
@@ -4205,39 +6014,38 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
      */
 
     read: {
-        value: function (storeName, identifier, callback) {
+        value: function (storeName, id) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
 
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Invalid store');
-            }
+                var store = this.stores[storeName];
 
-            var store = this.stores[storeName];
+                try {
+                    var transaction = this.storage.transaction(
+                            [store.path],
+                            this.transactionModes.READ_ONLY
+                        ),
+                        objectStore = transaction.objectStore(store.path),
+                        request = objectStore.get(id);
 
-            try {
-
-                var transaction = this.storage.transaction(
-                        [store.path],
-                        this.transactionModes.READ_ONLY
-                    ),
-                    objectStore = transaction.objectStore(store.path),
-                    request = objectStore.get(identifier);
-
-                request.addEventListener('success', function (event) {
-                    callback(event.target.result);
-                }.bind(this));
-
-                request.addEventListener('error', function (event) {
-                    this.logger.error('Read operation failed!', event);
-                }.bind(this));
-
-            } catch (e) {
-
-                this.logger.error('Read operation failed!', e);
-
-            }
-
-            return this;
-
+                    request.addEventListener('success', function (event) {
+                        resolve(event.target.result);
+                    }.bind(this));
+                    request.addEventListener('error', function (event) {
+                        this.logger && this.logger.error('Read operation failed!', [this.name, event]);
+                        reject(event);
+                    }.bind(this));
+                } catch (e) {
+                    this.logger && this.logger.error('Read operation failed!', [
+                        this.name,
+                        e
+                    ]);
+                    reject(e);
+                }
+            }.bind(this));
         }
     },
 
@@ -4246,54 +6054,38 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
      */
 
     create: {
-        value: function (storeName, object, callback) {
+        value: function (storeName, object) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
 
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Invalid store');
-            }
+                var store = this.stores[storeName];
 
-            var store = this.stores[storeName],
-                evt = new Sy.Storage.Event.LifecycleEvent(
-                    this.name,
-                    storeName,
-                    null,
-                    object
-                );
+                try {
+                    var transaction = this.storage.transaction(
+                            [store.path],
+                            this.transactionModes.READ_WRITE
+                        ),
+                        objectStore = transaction.objectStore(store.path),
+                        request = objectStore.put(object);
 
-            try {
-
-                this.mediator.publish(
-                    evt.PRE_CREATE,
-                    evt
-                );
-
-                var transaction = this.storage.transaction(
-                        [store.path],
-                        this.transactionModes.READ_WRITE
-                    ),
-                    objectStore = transaction.objectStore(store.path),
-                    request = objectStore.put(object);
-
-                request.addEventListener('success', function (event) {
-                    callback(event.target.result);
-                    this.mediator.publish(
-                        evt.POST_CREATE,
-                        evt
-                    );
-                }.bind(this));
-
-                request.addEventListener('error', function (event) {
-                    this.logger.error('Create operation failed!', event);
-                }.bind(this));
-
-            } catch (e) {
-
-                this.logger.error('Create operation failed!', e);
-
-            }
-
-            return this;
-
+                    request.addEventListener('success', function (event) {
+                        resolve(event.target.result);
+                    }.bind(this));
+                    request.addEventListener('error', function (event) {
+                        this.logger && this.logger.error('Create operation failed!', [this.name, event]);
+                        reject(event);
+                    }.bind(this));
+                } catch (e) {
+                    this.logger && this.logger.error('Create operation failed!', [
+                        this.name,
+                        e
+                    ]);
+                    reject(e);
+                }
+            }.bind(this));
         }
     },
 
@@ -4302,54 +6094,38 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
      */
 
     update: {
-        value: function (storeName, identifier, object, callback) {
+        value: function (storeName, id, object) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
 
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Invalid store');
-            }
+                var store = this.stores[storeName];
 
-            var store = this.stores[storeName],
-                evt = new Sy.Storage.Event.LifecycleEvent(
-                    this.name,
-                    storeName,
-                    identifier,
-                    object
-                );
+                try {
+                    var transaction = this.storage.transaction(
+                            [store.path],
+                            this.transactionModes.READ_WRITE
+                        ),
+                        objectStore = transaction.objectStore(store.path),
+                        request = objectStore.put(object);
 
-            try {
-
-                this.mediator.publish(
-                    evt.PRE_UPDATE,
-                    evt
-                );
-
-                var transaction = this.storage.transaction(
-                        [store.path],
-                        this.transactionModes.READ_WRITE
-                    ),
-                    objectStore = transaction.objectStore(store.path),
-                    request = objectStore.put(object);
-
-                request.addEventListener('success', function (event) {
-                    callback(event.target.result);
-                    this.mediator.publish(
-                        evt.POST_UPDATE,
-                        evt
-                    );
-                }.bind(this));
-
-                request.addEventListener('error', function (event) {
-                    this.logger.error('Update operation failed!', event);
-                }.bind(this));
-
-            } catch (e) {
-
-                this.logger.error('Update operation failed!', e);
-
-            }
-
-            return this;
-
+                    request.addEventListener('success', function (event) {
+                        resolve(event.target.result);
+                    }.bind(this));
+                    request.addEventListener('error', function (event) {
+                        this.logger && this.logger.error('Update operation failed!', [this.name, event]);
+                        reject(event);
+                    }.bind(this));
+                } catch (e) {
+                    this.logger && this.logger.error('Update operation failed!', [
+                        this.name,
+                        e
+                    ]);
+                    reject(e);
+                }
+            }.bind(this));
         }
     },
 
@@ -4358,898 +6134,211 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
      */
 
     remove: {
-        value: function (storeName, identifier, callback) {
+        value: function (storeName, id) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
 
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Invalid store');
-            }
+                var store = this.stores[storeName];
 
-            var store = this.stores[storeName],
-                evt = new Sy.Storage.Event.LifecycleEvent(
-                    this.name,
-                    storeName,
-                    identifier,
-                    null
-                );
+                try {
+                    var transaction = this.storage.transaction(
+                            [store.path],
+                            this.transactionModes.READ_WRITE
+                        ),
+                        objectStore = transaction.objectStore(store.path),
+                        request = objectStore.delete(id);
 
-            try {
+                    request.addEventListener('success', function (event) {
+                        resolve(event.target.result);
+                    }.bind(this));
 
-                this.mediator.publish(
-                    evt.PRE_REMOVE,
-                    evt
-                );
-
-                var transaction = this.storage.transaction(
-                        [store.path],
-                        this.transactionModes.READ_WRITE
-                    ),
-                    objectStore = transaction.objectStore(store.path),
-                    request = objectStore.delete(identifier);
-
-                request.addEventListener('success', function (event) {
-                    callback(event.target.result);
-                    this.mediator.publish(
-                        evt.POST_REMOVE,
-                        evt
-                    );
-                }.bind(this));
-
-                request.addEventListener('error', function (event) {
-                    this.logger.error('Delete operation failed!', event);
-                }.bind(this));
-
-            } catch (e) {
-
-                this.logger.error('Delete operation failed!', e);
-
-            }
-
-            return this;
-
+                    request.addEventListener('error', function (event) {
+                        this.logger && this.logger.error('Delete operation failed!', [this.name, event]);
+                        reject(event);
+                    }.bind(this));
+                } catch (e) {
+                    this.logger && this.logger.error('Delete operation failed!', [
+                        this.name,
+                        e
+                    ]);
+                    reject(e);
+                }
+            }.bind(this));
         }
     },
 
     /**
-     * Find (an) element(s) in the storage
-     *
-     * @param {string} store Alias name of the store
-     * @param {object} args Available properties: index, value, limit, callback
-     *
-     * @return {Sy.Storage.EngineInterface}
+     * @inheritDoc
      */
 
     find: {
-        value: function (store, args) {
-
-            if (!this.stores[store]) {
-                throw new ReferenceError('Invalid store');
-            }
-
-            store = this.stores[store];
-
-            try {
-
-                var transaction = this.storage.transaction(
-                        [store.path],
-                        this.transactionModes.READ_ONLY
-                    ),
-                    objectStore = transaction.objectStore(store.path),
-                    index = objectStore.index(args.index),
-                    results = [],
-                    keyRange,
-                    request;
-
-                if (args.value instanceof Array && args.value.length === 2) {
-
-                    if (args.value[0] === undefined) {
-                        keyRange = this.keyRange.upperBound(args.value[1]);
-                    } else if (args.value[1] === undefined) {
-                        keyRange = this.keyRange.lowerBound(args.value[0]);
-                    } else {
-                        keyRange = this.keyRange.bound(args.value[0], args.value[1]);
-                    }
-
-                } else {
-                    keyRange = this.keyRange.only(args.value);
+        value: function (storeName, indexName, value, limit) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
                 }
 
-                request = index.openCursor(keyRange);
+                var store = this.stores[storeName];
 
-                request.addEventListener('success', function (event) {
+                try {
+                    var transaction = this.storage.transaction(
+                            [store.path],
+                            this.transactionModes.READ_ONLY
+                        ),
+                        objectStore = transaction.objectStore(store.path),
+                        index = objectStore.index(indexName),
+                        results = [],
+                        keyRange,
+                        request;
 
-                    var result = event.target.result;
+                    if (value instanceof Array && value.length === 2) {
 
-                    if (!!result === false) {
-                        if (args.limit) {
-                            args.callback(results.slice(0, args.limit));
+                        if (value[0] === undefined) {
+                            keyRange = this.keyRange.upperBound(value[1]);
+                        } else if (value[1] === undefined) {
+                            keyRange = this.keyRange.lowerBound(value[0]);
                         } else {
-                            args.callback(results);
-                        }
-                        return;
-                    }
-
-                    results.push(result.value);
-                    result.continue();
-
-                });
-
-                request.addEventListener('error', function (event) {
-                    this.logger.error('Search operation failed!', event);
-                }.bind(this));
-
-            } catch (e) {
-
-                this.logger.error('Search operation failed!', e);
-
-            }
-
-            return this;
-
-        }
-    }
-
-});
-namespace('Sy.Storage.Engine');
-
-/**
- * Storage engine persisting data into browser LocalStorage API
- *
- * @package Sy
- * @subpackage Storage.Engine
- * @implements {Sy.Storage.EngineInterface}
- * @class
- */
-
-Sy.Storage.Engine.Localstorage = function (version) {
-
-    if (!JSON) {
-        throw new Error('JSON object missing! Please load a polyfill in order to use this engine!');
-    }
-
-    this.storage = null;
-    this.stores = {};
-    this.data = null;
-    this.storageKey = 'app::storage';
-    this.mediator = null;
-
-};
-
-Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterface.prototype, {
-
-    /**
-     * Set the storage key in LocalStorage
-     * If not set, it will use "app::storage"
-     *
-     * @param {string} storageKey
-     *
-     * @return {Sy.Storage.Engine.Localstorage}
-     */
-
-    setStorageKey: {
-        value: function (storageKey) {
-
-            this.storageKey = storageKey;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the LocalStorage API object
-     *
-     * @param {object} storage
-     *
-     * @return {Sy.Storage.Engine.Localstorage}
-     */
-
-    setStorage: {
-        value: function (storage) {
-
-            this.storage = storage;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set mediator object
-     *
-     * @param {Sy.Lib.Mediator} mediator
-     *
-     * @return {Sy.Storage.Engine.Localstorage}
-     */
-
-    setMediator: {
-        value: function (mediator) {
-
-            this.mediator = mediator;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Load data stored in the browser
-     * If first time loaded, it creates the storage
-     *
-     * @return {Sy.Storage.Engine.Localstorage}
-     */
-
-    open: {
-        value: function () {
-
-            if (!this.storage) {
-                throw new Error('Storage API object missing');
-            }
-
-            var data = this.storage.getItem(this.storageKey);
-
-            if (!data) {
-                this.createStorage();
-            } else {
-                this.data = JSON.parse(data);
-            }
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Create the storage
-     *
-     * @private
-     * @return {Sy.Storage.Engine.Localstorage}
-     */
-
-    createStorage: {
-        value: function () {
-
-            this.data = {};
-
-            for (var store in this.stores) {
-                if (this.stores.hasOwnProperty(store)) {
-                    this.data[this.stores[store].path] = {};
-                }
-            }
-
-            this.flush();
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Write all the data to the LocalStorage
-     *
-     * @private
-     * @return {Sy.Storage.Engine.Localstorage}
-     */
-
-    flush: {
-        value: function () {
-
-            this.storage.setItem(this.storageKey, JSON.stringify(this.data));
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    setStore: {
-        value: function (alias, name, identifier, indexes) {
-
-            this.stores[alias] = {
-                path: name,
-                key: identifier,
-                indexes: indexes
-            };
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    read: {
-        value: function (storeName, identifier, callback) {
-
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Unknown store');
-            }
-
-            var store = this.stores[storeName];
-
-            if (this.data[store.path][identifier]) {
-                setTimeout(
-                    callback,
-                    0,
-                    this.data[store.path][identifier]
-                );
-            }
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    create: {
-        value: function (storeName, object, callback) {
-
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Unknown store');
-            }
-
-            var store = this.stores[storeName],
-                key = store.key,
-                evt = new Sy.Storage.Event.LifecycleEvent(
-                    this.storageKey,
-                    storeName,
-                    null,
-                    object
-                );
-
-            this.mediator.publish(
-                evt.PRE_CREATE,
-                evt
-            );
-
-            this.data[store.path][object[key]] = object;
-
-            this.flush();
-
-            this.mediator.publish(
-                evt.POST_CREATE,
-                evt
-            );
-
-            setTimeout(
-                callback,
-                0,
-                object[key]
-            );
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    update: {
-        value: function (storeName, identifier, object, callback) {
-
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Unknown store');
-            }
-
-            var store = this.stores[storeName],
-                evt = new Sy.Storage.Event.LifecycleEvent(
-                    this.storageKey,
-                    storeName,
-                    identifier,
-                    object
-                );
-
-            this.mediator.publish(
-                evt.PRE_UPDATE,
-                evt
-            );
-
-            this.data[store.path][identifier] = object;
-
-            this.flush();
-
-            this.mediator.publish(
-                evt.POST_UPDATE,
-                evt
-            );
-
-            setTimeout(
-                callback,
-                0,
-                object
-            );
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    remove: {
-        value: function (storeName, identifier, callback) {
-
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Unknown store');
-            }
-
-            var store = this.stores[storeName],
-                key = store.key,
-                evt = new Sy.Storage.Event.LifecycleEvent(
-                    this.storageKey,
-                    storeName,
-                    identifier,
-                    null
-                );
-
-            this.mediator.publish(
-                evt.PRE_REMOVE,
-                evt
-            );
-
-            delete this.data[store.path][identifier];
-
-            this.flush();
-
-            this.mediator.publish(
-                evt.POST_REMOVE,
-                evt
-            );
-
-            setTimeout(
-                callback,
-                0,
-                identifier
-            );
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Find (an) element(s) in the storage
-     *
-     * @param {string} store Alias name of the store
-     * @param {object} args Available properties: index, value, limit, callback
-     *
-     * @return {Sy.Storage.EngineInterface}
-     */
-
-    find: {
-        value: function (store, args) {
-
-            if (!this.stores[store]) {
-                throw new ReferenceError('Unknown store');
-            }
-
-            store = this.stores[store];
-
-            var data = [];
-
-            for (var key in this.data[store.path]) {
-                if (this.data[store.path].hasOwnProperty(key)) {
-
-                    var d = this.data[store.path][key];
-
-                    if (args.value instanceof Array) {
-
-                        if (
-                            (
-                                args.value[0] === undefined &&
-                                d[args.index] <= args.value[1]
-                            ) ||
-                            (
-                                args.value[1] === undefined &&
-                                d[args.index] >= args.value[0]
-                            ) ||
-                            (
-                                d[args.index] >= args.value[0] &&
-                                d[args.index] <= args.value[1]
-                            )
-                        ) {
-                            data.push(d);
+                            keyRange = this.keyRange.bound(value[0], value[1]);
                         }
 
-                    } else if (d[args.index] === args.value) {
-                        data.push(d);
+                    } else {
+                        keyRange = this.keyRange.only(value);
                     }
 
+                    request = index.openCursor(keyRange);
+
+                    request.addEventListener('success', function (event) {
+
+                        var result = event.target.result;
+
+                        if (!!result === false) {
+                            if (limit !== undefined) {
+                                resolve(results.slice(0, limit));
+                            } else {
+                                resolve(results);
+                            }
+                            return;
+                        }
+
+                        results.push(result.value);
+                        result.continue();
+
+                    });
+                    request.addEventListener('error', function (event) {
+                        this.logger && this.logger.error('Search operation failed!', [this.name, event]);
+                        reject(event);
+                    }.bind(this));
+                } catch (e) {
+                    this.logger && this.logger.error('Search operation failed!', [
+                        this.name,
+                        e
+                    ]);
+                    reject(e);
                 }
-            }
+            }.bind(this));
+        }
+    },
 
-            if (args.limit) {
-                data = data.slice(0, args.limit);
-            }
+    /**
+     * @inheritDoc
+     */
 
-            setTimeout(
-                args.callback,
-                0,
-                data
-            );
+    findAll: {
+        value: function (storeName) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
 
-            return this;
+                var store = this.stores[storeName];
 
+                try {
+                    var transaction = this.storage.transaction(
+                            [store.path],
+                            this.transactionModes.READ_ONLY
+                        ),
+                        objectStore = transaction.objectStore(store.path),
+                        request = objectStore.openCursor(),
+                        results = [];
+
+                    request.addEventListener('success', function (event) {
+
+                        var result = event.target.result;
+
+                        if (!!result === false) {
+                            resolve(results);
+                            return;
+                        }
+
+                        results.push(result.value);
+                        result.continue();
+
+                    });
+                    request.addEventListener('error', function (event) {
+                        this.logger && this.logger.error('Search operation failed!', [this.name, event]);
+                        reject(event);
+                    }.bind(this));
+                } catch (e) {
+                    this.logger && this.logger.error('Search operation failed!', [
+                        this.name,
+                        e
+                    ]);
+                    reject(e);
+                }
+            }.bind(this));
         }
     }
 
 });
-namespace('Sy.Storage.Engine');
+
+namespace('Sy.Storage.Dbal');
 
 /**
- * Storage engine sending data to a HTTP API via REST calls
+ * IndexedDB driver factory
  *
  * @package Sy
- * @subpackage Storage.Engine
- * @implements {Sy.Storage.EngineInterface}
+ * @subpackage Storage
  * @class
+ * @implements {Sy.Storage.Dbal.DriverFactoryInterface}
  */
 
-Sy.Storage.Engine.Rest = function (version) {
-
-    this.version = version || 1;
-    this.stores = {};
-    this.manager = null;
-    this.basePath = '';
-    this.mediator = null;
-    this.headers = {};
-    this.name = 'app::storage';
-
-};
-
-Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prototype, {
-
-    /**
-     * Set the pattern of the api url
-     * The pattern must at least contain "{{path}}" and "{{key}}" placeholders
-     * An extra "{{version}}" placeholder can be set
-     *
-     * @param {string} pattern
-     *
-     * @return {Sy.Storage.Engine.Rest}
-     */
-
-    setPattern: {
-        value: function (pattern) {
-
-            if (pattern.indexOf('{{path}}') === -1 || pattern.indexOf('{{key}}') === -1) {
-                throw new SyntaxError('Invalid pattern');
-            }
-
-            this.basePath = pattern.replace(/{{version}}/, this.version);
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the rest manager
-     *
-     * @param {Sy.HTTP.REST} manager
-     *
-     * @return {Sy.Storage.Engine.Rest}
-     */
-
-    setManager: {
-        value: function (manager) {
-
-            if (!(manager instanceof Sy.HTTP.REST)) {
-                throw new TypeError('Invalid manager');
-            }
-
-            this.manager = manager;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set mediator object
-     *
-     * @param {Sy.Lib.Mediator} mediator
-     *
-     * @return {Sy.Storage.Engine.Rest}
-     */
-
-    setMediator: {
-        value: function (mediator) {
-
-            this.mediator = mediator;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the headers that will be associated to every request made by the engine
-     * Useful to set authentication tokens
-     *
-     * @param {Object} headers
-     *
-     * @return {Sy.Storage.Engine.Rest}
-     */
-
-    setHeaders: {
-        value: function (headers) {
-            this.headers = headers;
-
-            return this;
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    setStore: {
-        value: function (alias, name, identifier, indexes) {
-
-            this.stores[alias] = {
-                path: name,
-                key: identifier,
-                indexes: indexes
-            };
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    read: {
-        value: function (storeName, identifier, callback) {
-
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Unknown store');
-            }
-
-            var meta = this.stores[storeName];
-
-            this.manager.get({
-                uri: this.basePath
-                    .replace(/{{path}}/, meta.path)
-                    .replace(/{{key}}/, identifier),
-                headers: this.headers,
-                listener: function (resp) {
-
-                    callback(resp.getBody());
-
-                }
-            });
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    create: {
-        value: function (storeName, object, callback) {
-
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Unknown store');
-            }
-
-            var meta = this.stores[storeName],
-                evt = new Sy.Storage.Event.LifecycleEvent(
-                    this.name,
-                    storeName,
-                    null,
-                    object
-                );
-
-            this.mediator.publish(
-                evt.PRE_CREATE,
-                evt
-            );
-
-            this.manager.post({
-                uri: this.basePath
-                    .replace(/{{path}}/, meta.path)
-                    .replace(/{{key}}/, ''),
-                headers: this.headers,
-                data: object,
-                listener: function (resp) {
-
-                    callback(resp.getBody());
-
-                    this.mediator.publish(
-                        evt.POST_CREATE,
-                        evt
-                    );
-
-                }.bind(this)
-            });
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    update: {
-        value: function (storeName, identifier, object, callback) {
-
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Unknown store');
-            }
-
-            var meta = this.stores[storeName],
-                evt = new Sy.Storage.Event.LifecycleEvent(
-                    this.name,
-                    storeName,
-                    identifier,
-                    object
-                );
-
-            this.mediator.publish(
-                evt.PRE_UPDATE,
-                evt
-            );
-
-            this.manager.put({
-                uri: this.basePath
-                    .replace(/{{path}}/, meta.path)
-                    .replace(/{{key}}/, identifier),
-                headers: this.headers,
-                data: object,
-                listener: function (resp) {
-
-                    callback(resp.getBody());
-
-                    this.mediator.publish(
-                        evt.POST_UPDATE,
-                        evt
-                    );
-
-                }.bind(this)
-            });
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    remove: {
-        value: function (storeName, identifier, callback) {
-
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Unknown store');
-            }
-
-            var meta = this.stores[storeName],
-                evt = new Sy.Storage.Event.LifecycleEvent(
-                    this.name,
-                    storeName,
-                    identifier,
-                    null
-                );
-
-            this.mediator.publish(
-                evt.PRE_REMOVE,
-                evt
-            );
-
-            this.manager.remove({
-                uri: this.basePath
-                    .replace(/{{path}}/, meta.path)
-                    .replace(/{{key}}/, identifier),
-                headers: this.headers,
-                listener: function (resp) {
-
-                    callback(identifier);
-
-                    this.mediator.publish(
-                        evt.POST_REMOVE,
-                        evt
-                    );
-
-                }.bind(this)
-            });
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    find: {
-        value: function (args) {
-
-            if (!this.stores[store]) {
-                throw new ReferenceError('Unknown store');
-            }
-
-            var meta = this.stores[store],
-                queries = [];
-
-            if (args.value instanceof Array) {
-                queries.push(args.index + '[]=' + args.value[0] + '&' + args.index + '[]=' + args.value[1]);
-            } else {
-                queries.push(args.index + '=' + args.value);
-            }
-
-            if (args.limit) {
-                queries.push('limit=' + args.limit);
-            }
-
-            this.manager.get({
-                uri: this.basePath
-                    .replace(/{{path}}/, meta.path)
-                    .replace(/{{key}}/, '?' + queries.join('&')),
-                headers: this.headers,
-                listener: function (resp) {
-
-                    callback(resp.getBody());
-
-                }
-            });
-
-            return this;
-
-        }
-    }
-
-});
-namespace('Sy.Storage.EngineFactory');
-
-/**
- * Abstract factory doing nothing, it juste centralize logger + mediator setters
- *
- * @package Sy
- * @subpackage Storage.EngineFactory
- * @class
- * @implements {Sy.FactoryInterface}
- * @abstract
- */
-
-Sy.Storage.EngineFactory.AbstractFactory = function () {
+Sy.Storage.Dbal.IndexedDBFactory = function () {
+    this.meta = [];
     this.logger = null;
-    this.mediator = null;
 };
-Sy.Storage.EngineFactory.AbstractFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
+Sy.Storage.Dbal.IndexedDBFactory.prototype = Object.create(Sy.Storage.Dbal.DriverFactoryInterface.prototype, {
+
+    /**
+     * Set all the defined entities
+     *
+     * @param {Array} meta
+     *
+     * @return {Sy.Storage.Dbal.IndexedDBFactory} self
+     */
+
+    setEntitiesMeta: {
+        value: function (meta) {
+            this.meta = meta;
+
+            return this;
+        }
+    },
 
     /**
      * Set the logger
      *
      * @param {Sy.Lib.Logger.Interface} logger
      *
-     * @return {Sy.Storage.EngineFactory.IndexedDBFactory}
+     * @return {Sy.Storage.Dbal.IndexedDBFactory} self
      */
 
     setLogger: {
         value: function (logger) {
-
             if (!(logger instanceof Sy.Lib.Logger.Interface)) {
                 throw new TypeError('Invalid logger');
             }
@@ -5257,104 +6346,6 @@ Sy.Storage.EngineFactory.AbstractFactory.prototype = Object.create(Sy.FactoryInt
             this.logger = logger;
 
             return this;
-
-        }
-    },
-
-    /**
-     * Set the mediator
-     *
-     * @param {Sy.Lib.Mediator} mediator
-     *
-     * @return {Sy.Storage.EngineFactory.IndexedDBFactory}
-     */
-
-    setMediator: {
-        value: function (mediator) {
-
-            if (!(mediator instanceof Sy.Lib.Mediator)) {
-                throw new TypeError('Invalid mediator');
-            }
-
-            this.mediator = mediator;
-
-            return this;
-
-        }
-    }
-
-});
-
-namespace('Sy.Storage.EngineFactory');
-
-/**
- * Master factory to generate any king of engine based on other engine factories
- *
- * @package Sy
- * @subpackage Storage.EngineFactory
- * @class
- * @implements {Sy.FactoryInterface}
- */
-
-Sy.Storage.EngineFactory.Core = function () {
-    this.engines = null;
-};
-Sy.Storage.EngineFactory.Core.prototype = Object.create(Sy.FactoryInterface.prototype, {
-
-    /**
-     * Set a registry to hold engine facctories
-     *
-     * @param {Sy.RegistryInterface} registry
-     *
-     * @return {Sy.Storage.EngineFactory.Core}
-     */
-
-    setRegistry: {
-        value: function (registry) {
-
-            if (!(registry instanceof Sy.RegistryInterface)) {
-                throw new TypeError('Invalid registry');
-            }
-
-            this.engines = registry;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set a new engine factory
-     *
-     * @param {String} name Engine name it generates
-     * @param {Sy.FactoryInterface} factory Engine factory
-     * @param {Sy.Storage.StoreMapperInterface} mapper
-     *
-     * @return {Sy.Storage.EngineFactory.Core}
-     */
-
-    setEngineFactory: {
-        value: function (name, factory, mapper) {
-
-            if (this.engines.has(name)) {
-                throw new ReferenceError('Factory "' + name + '" already defined');
-            }
-
-            if (!(factory instanceof Sy.FactoryInterface)) {
-                throw new TypeError('Invalid factory');
-            }
-
-            if (!(mapper instanceof Sy.Storage.StoreMapperInterface)) {
-                throw new TypeError('Invalid mapper');
-            }
-
-            this.engines.set(name, {
-                factory: factory,
-                mapper: mapper
-            });
-
-            return this;
-
         }
     },
 
@@ -5363,84 +6354,12 @@ Sy.Storage.EngineFactory.Core.prototype = Object.create(Sy.FactoryInterface.prot
      */
 
     make: {
-        value: function (managerConf, entitiesMetadata) {
+        value: function (dbname, version, stores, options) {
+            var driver = new Sy.Storage.Dbal.IndexedDB();
 
-            var name = managerConf.type;
-
-            if (!this.engines.has(name)) {
-                throw new ReferenceError('Unknown factory named "' + name + '"');
-            }
-
-            var factory = this.engines.get(name).factory,
-                mapper = this.engines.get(name).mapper,
-                stores = [],
-                engine;
-
-            for (var i = 0, l = entitiesMetadata.length; i < l; i++) {
-                stores.push(mapper.transform(entitiesMetadata[i]));
-            }
-
-            engine = factory.make(
-                managerConf.storageName,
-                managerConf.version,
-                stores
-            );
-
-            return engine;
-
-        }
-    }
-
-});
-
-namespace('Sy.Storage.EngineFactory');
-
-/**
- * Generates an instance of an indexedDB storage engine
- *
- * @package Sy
- * @subpackage Storage.EngineFactory
- * @class
- * @extends {Sy.Storage.EngineFactory.AbstractFactory}
- * @implements {Sy.FactoryInterface}
- */
-
-Sy.Storage.EngineFactory.IndexedDBFactory = function () {
-    Sy.Storage.EngineFactory.AbstractFactory.call(this);
-};
-Sy.Storage.EngineFactory.IndexedDBFactory.prototype = Object.create(Sy.Storage.EngineFactory.AbstractFactory.prototype, {
-
-    /**
-     * @inheritDoc
-     */
-
-    make: {
-        value: function (name, version, stores) {
-
-            name = name || 'app::storage';
-            version = version || 1;
-            stores = stores || [];
-
-            var engine = new Sy.Storage.Engine.IndexedDB(version);
-
-            for (var i = 0, l = stores.length; i < l; i++) {
-                engine.setStore(
-                    stores[i].alias,
-                    stores[i].name,
-                    stores[i].identifier,
-                    stores[i].indexes
-                );
-            }
-
-            if (this.logger) {
-                engine.setLogger(this.logger);
-            }
-
-            if (this.mediator) {
-                engine.setMediator(this.mediator);
-            }
-
-            engine
+            driver
+                .setName(dbname)
+                .setVersion(version)
                 .setConnection(
                     window.indexedDB ||
                     window.webkitIndexedDB ||
@@ -5455,1412 +6374,351 @@ Sy.Storage.EngineFactory.IndexedDBFactory.prototype = Object.create(Sy.Storage.E
                     window.IDBKeyRange ||
                     window.webkitIDBKeyRange
                 )
-                .open();
-
-            return engine;
-
-        }
-    }
-
-});
-
-namespace('Sy.Storage.EngineFactory');
-
-/**
- * Generates an instance of a Localstorage engine
- *
- * @package Sy
- * @subpackage Storage.EngineFactory
- * @class
- * @extends {Sy.Storage.EngineFactory.AbstractFactory}
- * @implements {Sy.FactoryInterface}
- */
-
-Sy.Storage.EngineFactory.LocalstorageFactory = function () {
-    Sy.Storage.EngineFactory.AbstractFactory.call(this);
-};
-Sy.Storage.EngineFactory.LocalstorageFactory.prototype = Object.create(Sy.Storage.EngineFactory.AbstractFactory.prototype, {
-
-    /**
-     * @inheritDoc
-     */
-
-    make: {
-        value: function (name, version, stores) {
-
-            name = name || 'app::storage';
-            version = version || 1;
-            stores = stores || [];
-
-            var engine = new Sy.Storage.Engine.Localstorage(version);
-
-            for (var i = 0, l = stores.length; i < l; i++) {
-                engine.setStore(
-                    stores[i].alias,
-                    stores[i].name,
-                    stores[i].identifier,
-                    stores[i].indexes
-                );
-            }
-
-            if (this.mediator) {
-                engine.setMediator(this.mediator);
-            }
-
-            engine
-                .setStorage(window.localStorage)
-                .open();
-
-            return engine;
-
-        }
-    }
-
-});
-
-namespace('Sy.Storage.EngineFactory');
-
-/**
- * Generates an instance of a rest storage engine
- *
- * @package Sy
- * @subpackage Storage.EngineFactory
- * @class
- * @extends {Sy.Storage.EngineFactory.AbstractFactory}
- * @implements {Sy.FactoryInterface}
- */
-
-Sy.Storage.EngineFactory.RestFactory = function () {
-    Sy.Storage.EngineFactory.AbstractFactory.call(this);
-    this.manager = null;
-    this.pattern = '/api/{{version}}/{{path}}/{{key}}';     //right now the pattern is not customisable
-};
-Sy.Storage.EngineFactory.RestFactory.prototype = Object.create(Sy.Storage.EngineFactory.AbstractFactory.prototype, {
-
-    /**
-     * Set the rest manager
-     *
-     * @param {Sy.HTTP.REST} manager
-     *
-     * @return {Sy.Storage.EngineFactory.RestFactory}
-     */
-
-    setManager: {
-        value: function (manager) {
-
-            if (!(manager instanceof Sy.HTTP.REST)) {
-                throw new TypeError('Invalid rest manager');
-            }
-
-            this.manager = manager;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    make: {
-        value: function (name, version, stores) {
-
-            version = version || 1;
-            stores = stores || [];
-
-            var engine = new Sy.Storage.Engine.Rest(version);
-
-            for (var i = 0, l = stores.length; i < l; i++) {
-                engine.setStore(
-                    stores[i].alias,
-                    stores[i].name,
-                    stores[i].identifier,
-                    stores[i].indexes
-                );
-            }
-
-            if (this.mediator) {
-                engine.setMediator(this.mediator);
-            }
-
-            engine
-                .setManager(this.manager)
-                .setPattern(this.pattern);
-
-            return engine;
-
-        }
-    }
-
-});
-
-namespace('Sy.Storage');
-
-/**
- * Handles a set of Entities Repository and control when to apply
- * changes to the engine
- *
- * @package Sy
- * @subpackage Storage
- * @class
- */
-
-Sy.Storage.Manager = function () {
-
-    this.repositoryFact = null;
-    this.mapping = [];
-    this.engine = null;
-
-};
-
-Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
-
-    /**
-     * Set the repository factory
-     *
-     * @param {Sy.Storage.RepositoryFactory} factory
-     *
-     * @return {Sy.Storage.Manager}
-     */
-
-    setRepositoryFactory: {
-        value: function (factory) {
-
-            if (!(factory instanceof Sy.Storage.RepositoryFactory)) {
-                throw new TypeError('Invalid repository factory type');
-            }
-
-            this.repositoryFact = factory;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the list of repository that the manager can handle
-     *
-     * If set to an empty array, there will be no restrictions
-     *
-     * @param {Array} list
-     *
-     * @return {Sy.Storage.Manager}
-     */
-
-    setMapping: {
-        value: function (list) {
-
-            if (!(list instanceof Array)) {
-                throw new TypeError('Invalid argument');
-            }
-
-            this.mapping = list;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the engine associated to the manager
-     *
-     * @param {Sy.Storage.EngineInterface} engine
-     *
-     * @return {Sy.Storage.Manager}
-     */
-
-    setEngine: {
-        value: function (engine) {
-
-            if (!(engine instanceof Sy.Storage.EngineInterface)) {
-                throw new TypeError('Invalid engine');
-            }
-
-            this.engine = engine;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Return the engine
-     * Can be useful when the dev want to add the headers for the http engine
-     *
-     * @return {Sy.Storage.EngineInterface}
-     */
-
-    getEngine: {
-        value: function () {
-            return this.engine;
-        }
-    },
-
-    /**
-     * Return an entity repository
-     *
-     * @param {string} alias
-     *
-     * @return {Sy.Storage.Repository}
-     */
-
-    getRepository: {
-        value: function (alias) {
-
-            if (this.mapping.length > 0 && this.mapping.indexOf(alias) === -1) {
-                throw new ReferenceError('The manager does not handle "' + alias + '"');
-            }
-
-            var repo = this.repositoryFact.make(alias);
-
-            repo.setEngine(this.engine);
-
-            return repo;
-
-        }
-    }
-
-});
-namespace('Sy.Storage');
-
-/**
- * Build new storage managers
- *
- * @package Sy
- * @subpackage Storage
- * @implements {Sy.FactoryInterface}
- * @class
- */
-
-Sy.Storage.ManagerFactory = function () {
-
-    this.engineFact = null;
-    this.repositoryFact = null;
-
-};
-
-Sy.Storage.ManagerFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
-
-    /**
-     * Set the engine factory
-     *
-     * @param {Sy.Storage.EngineFactory.Core} factory
-     *
-     * @return {Sy.Storage.ManagerFactory}
-     */
-
-    setEngineFactory: {
-        value: function (factory) {
-
-            if (!(factory instanceof Sy.Storage.EngineFactory.Core)) {
-                throw new TypeError('Invalid engine factory');
-            }
-
-            this.engineFact = factory;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the Repository factory
-     *
-     * @param {Sy.Storage.RepositoryFactory} factory
-     *
-     * @return {Sy.Storage.ManagerFactory}
-     */
-
-    setRepositoryFactory: {
-        value: function (factory) {
-
-            if (!(factory instanceof Sy.Storage.RepositoryFactory)) {
-                throw new TypeError('Invalid repository factory');
-            }
-
-            this.repositoryFact = factory;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    make: {
-        value: function (name, args, entitiesMeta) {
-
-            var manager = new Sy.Storage.Manager(),
-                meta = [],
-                engine;
-
-                args.mapping = args.mapping || [];
-
-            for (var i = 0, l = entitiesMeta.length; i < l; i++) {
-                if (args.mapping.length === 0 || args.mapping.indexOf(entitiesMeta[i].name) !== -1) {
-                    meta.push(entitiesMeta[i]);
+                .setLogger(this.logger);
+
+            for (var i = 0, l = this.meta.length; i < l; i++) {
+                if (stores.length === 0 || stores.indexOf(this.meta[i].alias) !== -1) {
+                    driver.setStore(
+                        this.meta[i].alias,
+                        this.meta[i].alias.toLowerCase(),
+                        this.meta[i].uuid,
+                        this.meta[i].indexes
+                    );
                 }
             }
 
-            engine = this.engineFact.make(args, meta);
-
-            manager
-                .setRepositoryFactory(this.repositoryFact)
-                .setMapping(args.mapping)
-                .setEngine(engine);
-
-            return manager;
-
+            return driver.open();
         }
     }
 
 });
-namespace('Sy.Storage');
+
+namespace('Sy.Storage.Dbal');
 
 /**
- * Default implementation of the entity repository
+ * Storage driver leveraging Storage to persist objects
  *
  * @package Sy
  * @subpackage Storage
- * @implements {Sy.Storage.RepositoryInterface}
  * @class
+ * @implements {Sy.Storage.Dbal.DriverInterface}
  */
 
-Sy.Storage.Repository = function () {
-
-    this.engine = null;
-    this.entityKey = null;
-    this.entityConstructor = null;
-    this.uow = null;
+Sy.Storage.Dbal.Localstorage = function () {
+    this.storage = null;
+    this.stores = {};
+    this.data = null;
     this.name = null;
-    this.cache = null;
-
 };
-
-Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.prototype, {
-
-    /**
-     * @inheritDoc
-     */
-
-    setUnitOfWork: {
-        value: function (uow) {
-
-            if (!(uow instanceof Sy.Storage.UnitOfWork)) {
-                throw new TypeError('Invalid unit of work');
-            }
-
-            this.uow = uow;
-
-            return this;
-
-        }
-    },
+Sy.Storage.Dbal.Localstorage.prototype = Object.create(Sy.Storage.Dbal.DriverInterface.prototype, {
 
     /**
-     * @inheritDoc
-     */
-
-    setCacheRegistry: {
-        value: function (registry) {
-
-            if (!(registry instanceof Sy.RegistryInterface)) {
-                throw new TypeError('Invalid registry');
-            }
-
-            this.cache = registry;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Return the unit of work
+     * Set the database name
      *
-     * @return {Sy.Storage.UnitOfWork}
-     */
-
-    getUnitOfWork: {
-        value: function () {
-            return this.uow;
-        }
-    },
-
-    /**
-     * @inheritDoc
+     * @param {String} name
+     *
+     * @return {Sy.Storage.Dbal.Localstorage} self
      */
 
     setName: {
         value: function (name) {
-
             this.name = name;
 
             return this;
-
         }
     },
 
     /**
-     * @inheritDoc
+     * Set the storage connection
+     *
+     * @param {Storage} storage
+     *
+     * @return {Sy.Storage.Dbal.Localstorage} self
      */
 
-    setEngine: {
-        value: function (engine) {
-
-            if (!(engine instanceof Sy.Storage.EngineInterface)) {
-                throw new TypeError('Invalid engine');
+    setConnection: {
+        value: function (storage) {
+            if (!(storage instanceof Storage)) {
+                throw new TypeError('Invalid storage');
             }
 
-            this.engine = engine;
-            this.uow.setEngine(engine);
+            this.storage = storage;
 
             return this;
-
         }
     },
 
     /**
-     * @inheritDoc
+     * Set a new store
+     *
+     * @param {String} alias
+     * @param {String} name
+     * @param {String} identifier
+     *
+     * @return {Sy.Storage.Dbal.Localstorage} self
      */
 
-    setEntityKey: {
-        value: function (key) {
-
-            this.entityKey = key;
+    setStore: {
+        value: function (alias, name, identifier) {
+            this.stores[alias] = {
+                path: name,
+                key: identifier
+            };
 
             return this;
-
         }
     },
 
     /**
-     * @inheritDoc
+     * Open the storage and load the data
+     *
+     * @return {Sy.Storage.Dbal.Localstorage} self
      */
 
-    setEntityConstructor: {
-        value: function (constructor) {
-
-            if (!(constructor.prototype instanceof Sy.EntityInterface)) {
-                throw new TypeError('Invalid entity constructor');
-            }
-
-            this.entityConstructor = constructor;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    setIndexes: {
-        value: function (indexes) {
-
-            if (!(indexes instanceof Array)) {
-                throw new TypeError('Invalid indexes definition');
-            }
-
-            this.indexes = indexes;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    persist: {
-        value: function (entity) {
-
-            if (!(entity instanceof this.entityConstructor)) {
-                throw new TypeError('Entity not handled by the repository');
-            }
-
-            this.uow.handle(entity);
-            this.cache.set(
-                entity.get(this.entityKey),
-                entity
-            );
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    remove: {
-        value: function (entity) {
-
-            this.uow.remove(entity);
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    flush: {
+    open: {
         value: function () {
+            var data = this.storage.getItem(this.name);
 
-            this.uow.commit();
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    findOneBy: {
-        value: function (args) {
-
-            if (args.index === this.entityKey) {
-                if (this.cache.has(args.value)) {
-                    setTimeout(
-                        args.callback,
-                        0,
-                        this.cache.get(args.value)
-                    );
-                } else {
-                    this.engine.read(
-                        this.name,
-                        args.value,
-                        function (object) {
-                            args.callback(
-                                this.buildEntity(object)
-                            );
-                        }.bind(this)
-                    );
-                }
+            if (!data) {
+                this.createStorage();
             } else {
-                args.limit = 1;
-                this.findBy(args);
+                this.data = JSON.parse(data);
             }
 
             return this;
-
         }
     },
 
     /**
-     * @inheritDoc
-     */
-
-    findBy: {
-        value: function (args) {
-
-            this.engine.find(
-                this.name,
-                {
-                    index: args.index,
-                    value: args.value,
-                    callback: function (results) {
-                        this.findListener(args.callback, results);
-                    }.bind(this),
-                    limit: args.limit
-                }
-            );
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Intercept raw results and transform objects array into enitites one
+     * Initialize the database structure
      *
      * @private
-     * @param {function} callback
-     * @param {Array} results
-     *
-     * @return {void}
      */
 
-    findListener: {
-        value: function (callback, results) {
+    createStorage: {
+        value: function () {
+            this.data = {};
 
-            var data = [];
-
-            for (var i = 0, l = results.length; i < l; i++) {
-                data.push(
-                    this.buildEntity(results[i])
-                );
+            for (var store in this.stores) {
+                if (this.stores.hasOwnProperty(store)) {
+                    this.data[this.stores[store].path] = {};
+                }
             }
 
-            callback(data);
+            this.commit();
 
+            return this;
         }
     },
 
     /**
-     * Transform a raw object into an entity
+     * Write the data to the database
      *
      * @private
-     * @param {object} object
-     *
-     * @return {Sy.EntityInterface}
-     */
-
-    buildEntity: {
-        value: function (object) {
-
-            if (this.cache.has(object[this.entityKey])) {
-
-                return this.cache.get(object[this.entityKey]);
-
-            } else {
-
-                var entity = new this.entityConstructor();
-
-                entity.set(object);
-
-                return entity;
-
-            }
-
-        }
-    }
-
-});
-namespace('Sy.Storage');
-
-/**
- * Factory that generates entities repository
- *
- * @package Sy
- * @subpackage Storage
- * @implements {Sy.FactoryInterface}
- * @class
- */
-
-Sy.Storage.RepositoryFactory = function () {
-    this.meta = null;
-    this.loaded = null;
-    this.uowFactory = null;
-    this.registryFactory = null;
-};
-
-Sy.Storage.RepositoryFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
-
-    /**
-     * Set the registry factory
-     *
-     * @param {Sy.RegistryFactory} factory
-     *
-     * @return {Sy.Storage.RepositoryFactory}
-     */
-
-    setRegistryFactory: {
-        value: function (factory) {
-
-            if (!(factory instanceof Sy.RegistryFactory)) {
-                throw new TypeError('Invalid registry factory');
-            }
-
-            this.meta = factory.make();
-            this.loaded = factory.make();
-            this.registryFactory = factory;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the informations about repositories
-     *
-     * @param {Array} list
-     *
-     * @return {Sy.Storage.RepositoryFactory}
-     */
-
-    setMeta: {
-        value: function (list) {
-
-            for (var i = 0, l = list.length; i < l; i++) {
-                this.meta.set(
-                    list[i].name,
-                    {
-                        repository: list[i].repository,
-                        entity: list[i].entity,
-                        indexes: list[i].indexes,
-                        uuid: list[i].uuid
-                    }
-                );
-            }
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the UnitOfWork factory
-     *
-     * @param {Sy.Storage.UnitOfWorkFactory} factory
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    setUOWFactory: {
-        value: function (factory) {
-
-            if (!(factory instanceof Sy.Storage.UnitOfWorkFactory)) {
-                throw new TypeError('Invalid factory');
-            }
-
-            this.uowFactory = factory;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    make: {
-        value: function (alias) {
-
-            if (this.loaded.has(alias)) {
-                return this.loaded.get(alias);
-            }
-
-            if (!this.meta.has(alias)) {
-                throw new ReferenceError('Unknown repository "' + alias + '"');
-            }
-
-            var meta = this.meta.get(alias),
-                repo = new meta.repository(),
-                uow = this.uowFactory.make(alias, meta.uuid);
-
-            if (!(repo instanceof Sy.Storage.RepositoryInterface)) {
-                throw new TypeError('Invalid repository "' + alias + '"');
-            }
-
-            repo
-                .setName(alias)
-                .setEntityKey(meta.uuid)
-                .setEntityConstructor(meta.entity)
-                .setIndexes(meta.indexes)
-                .setUnitOfWork(uow)
-                .setCacheRegistry(this.registryFactory.make());
-
-            this.loaded.set(alias, repo);
-
-            return repo;
-
-        }
-    }
-
-});
-namespace('Sy.Storage.StoreMapper');
-
-/**
- * IndexedDB store mapper
- *
- * @package Sy
- * @subpackage Storage.StoreMapper
- * @class
- * @implements {Sy.Storage.StoreMapperInterface}
- */
-
-Sy.Storage.StoreMapper.IndexedDBMapper = function () {};
-Sy.Storage.StoreMapper.IndexedDBMapper.prototype = Object.create(Sy.Storage.StoreMapperInterface.prototype, {
-
-    /**
-     * @inheritDoc
-     */
-
-    transform: {
-        value: function (meta) {
-
-            var store = {};
-
-            store.alias = meta.name;
-            store.name = meta.name.toLowerCase();
-            store.identifier = meta.uuid;
-            store.indexes = meta.indexes;
-
-            return store;
-
-        }
-    }
-
-});
-
-namespace('Sy.Storage.StoreMapper');
-
-/**
- * Localstorage store mapper
- *
- * @package Sy
- * @subpackage Storage.StoreMapper
- * @class
- * @implements {Sy.Storage.StoreMapperInterface}
- */
-
-Sy.Storage.StoreMapper.LocalstorageMapper = function () {};
-Sy.Storage.StoreMapper.LocalstorageMapper.prototype = Object.create(Sy.Storage.StoreMapperInterface.prototype, {
-
-    /**
-     * @inheritDoc
-     */
-
-    transform: {
-        value: function (meta) {
-
-            var store = {};
-
-            store.alias = meta.name;
-            store.name = meta.name.toLowerCase();
-            store.identifier = meta.uuid;
-            store.indexes = meta.indexes;
-
-            return store;
-
-        }
-    }
-
-});
-
-namespace('Sy.Storage.StoreMapper');
-
-/**
- * Rest store mapper
- *
- * @package Sy
- * @subpackage Storage.StoreMapper
- * @class
- * @implements {Sy.Storage.StoreMapperInterface}
- */
-
-Sy.Storage.StoreMapper.RestMapper = function () {};
-Sy.Storage.StoreMapper.RestMapper.prototype = Object.create(Sy.Storage.StoreMapperInterface.prototype, {
-
-    /**
-     * @inheritDoc
-     */
-
-    transform: {
-        value: function (meta) {
-
-            var store = {};
-
-            store.alias = meta.name;
-            store.name = meta.name.toLowerCase().replace('::', '/');
-            store.identifier = meta.uuid;
-            store.indexes = meta.indexes;
-
-            return store;
-
-        }
-    }
-
-});
-
-namespace('Sy.Storage');
-
-/**
- * Handles entity modifications done through repositories
- *
- * @package Sy
- * @subpackage Storage
- * @class
- */
-
-Sy.Storage.UnitOfWork = function () {
-    this.states = null;
-    this.engine = null;
-    this.generator = null;
-    this.name = null;
-    this.entityKey = null;
-};
-Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
-
-    SCHEDULED_FOR_CREATION: {
-        value: 'create',
-        writable: false
-    },
-
-    SCHEDULED_FOR_UPDATE: {
-        value: 'update',
-        writable: false
-    },
-
-    SCHEDULED_FOR_REMOVAL: {
-        value: 'remove',
-        writable: false
-    },
-
-    /**
-     * Set a state registry to hold scheduled entities
-     *
-     * @param {Sy.StateRegistryInterface} states
-     *
-     * @return {Sy.Storage.UnitOfWork}
-     */
-
-    setStateRegistry: {
-        value: function (states) {
-
-            if (!(states instanceof Sy.StateRegistryInterface)) {
-                throw new TypeError('Invalid state registry');
-            }
-
-            this.states = states;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the engine it will use to apply modifications to
-     *
-     * @param {Sy.Storage.EngineInterface} engine
-     *
-     * @return {Sy.Storage.UnitOfWork}
-     */
-
-    setEngine: {
-        value: function (engine) {
-
-            if (!(engine instanceof Sy.Storage.EngineInterface)) {
-                throw new TypeError('Invalid engine');
-            }
-
-            this.engine = engine;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set generator to build entities UUIDs
-     *
-     * @param {Sy.Lib.Generator.Interface} generator
-     *
-     * @return {Sy.Storage.UnitOfWork}
-     */
-
-    setGenerator: {
-        value: function (generator) {
-
-            if (!(generator instanceof Sy.Lib.Generator.Interface)) {
-                throw new TypeError('Invalid generator');
-            }
-
-            this.generator = generator;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the store name this uow depends on
-     *
-     * @param {String} name Store name
-     *
-     * @return {Sy.Storage.UnitOfWork}
-     */
-
-    setName: {
-        value: function (name) {
-
-            this.name = name;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the entity identifier key name
-     *
-     * @param {String} key
-     *
-     * @return {Sy.Storage.UnitOfWork}
-     */
-
-    setEntityKey: {
-        value: function (key) {
-
-            this.entityKey = key;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Create or update entities
-     *
-     * @param {Sy.EntityInterface} entity
-     *
-     * @return {Sy.Storage.UnitOfWork}
-     */
-
-    handle: {
-        value: function (entity) {
-
-            if (!(entity instanceof Sy.EntityInterface)) {
-                throw new TypeError('Invalid entity');
-            }
-
-            if (!entity.get(this.entityKey)) {
-                entity.set(
-                    this.entityKey,
-                    this.generator.generate()
-                );
-                this.states.set(
-                    this.SCHEDULED_FOR_CREATION,
-                    entity.get(this.entityKey),
-                    entity
-                );
-            } else if (this.isScheduledForCreation(entity)) {
-                this.states.set(
-                    this.SCHEDULED_FOR_CREATION,
-                    entity.get(this.entityKey),
-                    entity
-                );
-            } else {
-                this.states.set(
-                    this.SCHEDULED_FOR_UPDATE,
-                    entity.get(this.entityKey),
-                    entity
-                );
-            }
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Schedule an entity to be removed from storage
-     * If the entity is scheduled to be created it prevents it
-     *
-     * @param {Sy.EntityInterface} entity
-     *
-     * @return {Sy.Storage.UnitOfWork}
-     */
-
-    remove: {
-        value: function (entity) {
-
-            if (this.isScheduledForCreation(entity)) {
-                this.states.remove(
-                    this.SCHEDULED_FOR_CREATION,
-                    entity.get(this.entityKey)
-                );
-            } else if (this.isScheduledForUpdate(entity)) {
-                this.states.remove(
-                    this.SCHEDULED_FOR_UPDATE,
-                    entity.get(this.entityKey)
-                );
-
-                this.states.set(
-                    this.SCHEDULED_FOR_REMOVAL,
-                    entity.get(this.entityKey),
-                    entity
-                );
-            } else {
-                this.states.set(
-                    this.SCHEDULED_FOR_REMOVAL,
-                    entity.get(this.entityKey),
-                    entity
-                );
-            }
-
-        }
-    },
-
-    /**
-     * Check if an entity is scheduled for the specific event
-     *
-     * @param {String} event
-     * @param {Sy.EntityInterface} entity
-     *
-     * @return {Boolean}
-     */
-
-    isScheduledFor: {
-        value: function (event, entity) {
-
-            return this.states.has(
-                event,
-                entity.get(this.entityKey)
-            );
-
-        }
-    },
-
-    /**
-     * Check if the entity is scheduled to be created
-     *
-     * @param {Sy.EntityInterface} entity
-     *
-     * @return {Boolean}
-     */
-
-    isScheduledForCreation: {
-        value: function (entity) {
-
-            return this.isScheduledFor(
-                this.SCHEDULED_FOR_CREATION,
-                entity
-            );
-
-        }
-    },
-
-    /**
-     * Check if the entity is scheduled to be updated
-     *
-     * @param {Sy.EntityInterface} entity
-     *
-     * @return {Boolean}
-     */
-
-    isScheduledForUpdate: {
-        value: function (entity) {
-
-            return this.isScheduledFor(
-                this.SCHEDULED_FOR_UPDATE,
-                entity
-            );
-
-        }
-    },
-
-    /**
-     * Check if the entity is sheduled to be removed
-     *
-     * @param {Sy.EntityInterface} entity
-     *
-     * @return {Boolean}
-     */
-
-    isScheduledForRemoval: {
-        value: function (entity) {
-
-            return this.isScheduledFor(
-                this.SCHEDULED_FOR_REMOVAL,
-                entity
-            );
-
-        }
-    },
-
-    /**
-     * Flush modifications to the engine
-     *
-     * @return {Sy.Storage.UnitOfWork}
      */
 
     commit: {
         value: function () {
-
-            var toRemove = this.states.has(this.SCHEDULED_FOR_REMOVAL) ? this.states.get(this.SCHEDULED_FOR_REMOVAL) : [],
-                toUpdate = this.states.has(this.SCHEDULED_FOR_UPDATE) ? this.states.get(this.SCHEDULED_FOR_UPDATE) : [],
-                toCreate = this.states.has(this.SCHEDULED_FOR_CREATION) ? this.states.get(this.SCHEDULED_FOR_CREATION) : [];
-
-            for (var i = 0, l = toRemove.length; i < l; i++) {
-                this.engine.remove(
-                    this.name,
-                    toRemove[i].get(this.entityKey),
-                    this.removalListener.bind(this)
-                );
-            }
-
-            for (i = 0, l = toUpdate.length; i < l; i++) {
-                this.engine.update(
-                    this.name,
-                    toUpdate[i].get(this.entityKey),
-                    this.getEntityData(toUpdate[i]),
-                    this.updateListener.bind(this)
-                );
-            }
-
-            for (i = 0, l = toCreate.length; i < l; i++) {
-                this.engine.create(
-                    this.name,
-                    this.getEntityData(toCreate[i]),
-                    this.createListener.bind(this)
-                );
-            }
-
-            return this;
-
+            this.storage.setItem(this.name, JSON.stringify(this.data));
         }
     },
 
     /**
-     * Return the raw representation of the entity
-     *
-     * @private
-     * @param {Sy.EntityInterface} entity
-     *
-     * @return {Object}
+     * @inheritDoc
      */
 
-    getEntityData: {
-        value: function (entity) {
-
-            var raw = {},
-                keys = Object.keys(entity.attributes),
-                refl = new ReflectionObject(entity),
-                getter;
-
-            for (var i = 0, l = keys.length; i < l; i++) {
-                getter = 'get' + keys[i].substr(0, 1).toUpperCase() + keys[i].substr(1);
-                if (refl.hasMethod(getter)) {
-                    raw[keys[i]] = refl.getMethod(getter).call();
-                } else {
-                    raw[keys[i]] = entity.get(keys[i]);
+    read: {
+        value: function (storeName, id) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
                 }
 
-                if (raw[keys[i]] instanceof Sy.EntityInterface) {
-                    raw[keys[i]] = raw[keys[i]].get(raw[keys[i]].UUID);
+                var store = this.stores[storeName];
+
+                if (this.data[store.path].hasOwnProperty(id)) {
+                    resolve(this.data[store.path][id]);
                 }
-            }
-
-            return raw;
-
+            }.bind(this));
         }
     },
 
     /**
-     * Engine removal listener callback
-     *
-     * @private
-     * @param {String} identifier
-     *
-     * @return {void}
+     * @inheritDoc
      */
 
-    removalListener: {
-        value: function (identifier) {
+    create: {
+        value: function (storeName, object) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
 
-            this.states.remove('remove', identifier);
+                var store = this.stores[storeName];
 
+                this.data[store.path][object[store.key]] = object;
+                this.commit();
+
+                resolve(object[store.key]);
+            }.bind(this));
         }
     },
 
     /**
-     * Engine update listener callback
-     *
-     * @private
-     * @param {object} object
-     *
-     * @return {void}
+     * @inheritDoc
      */
 
-    updateListener: {
-        value: function (object) {
+    update: {
+        value: function (storeName, id, object) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
 
-            this.states.remove('update', object[this.entityKey]);
+                var store = this.stores[storeName];
 
+                this.data[store.path][id] = object;
+                this.commit();
+
+                resolve(object);
+            }.bind(this));
         }
     },
 
     /**
-     * Engine create listener callback
-     *
-     * @private
-     * @param {String} identifier
-     *
-     * @return {void}
+     * @inheritDoc
      */
 
-    createListener: {
-        value: function (identifier) {
+    remove: {
+        value: function (storeName, id) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
 
-            this.states.remove('create', identifier);
+                var store = this.stores[storeName];
 
+                delete this.data[store.path][id];
+                this.commit();
+
+                resolve();
+            }.bind(this));
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    find: {
+        value: function (storeName, index, value, limit) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                }
+
+                var store = this.stores[storeName],
+                    data = [],
+                    d;
+
+                for (var key in this.data[store.path]) {
+                    if (this.data[store.path].hasOwnProperty(key)) {
+                        d = this.data[store.path][key];
+
+                        if (value instanceof Array) {
+                            if (
+                                (
+                                    value[0] === undefined &&
+                                    d[index] <= value[1]
+                                ) ||
+                                (
+                                    value[1] === undefined &&
+                                    d[index] >= value[0]
+                                ) ||
+                                (
+                                    d[index] >= value[0] &&
+                                    d[index] <= value[1]
+                                )
+                            ) {
+                                data.push(d);
+                            }
+
+                        } else if (d[index] === value) {
+                            data.push(d);
+                        }
+                    }
+                }
+
+                if (limit !== undefined) {
+                    data = data.slice(0, limit);
+                }
+
+                resolve(data);
+            }.bind(this));
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    findAll: {
+        value: function (storeName) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
+
+                var store = this.stores[storeName],
+                    data = [];
+
+                for (var key in this.data[store.path]) {
+                    if (this.data[store.path].hasOwnProperty(key)) {
+                        data.push(this.data[store.path][key]);
+                    }
+                }
+
+                resolve(data);
+            }.bind(this));
         }
     }
 
 });
 
-namespace('Sy.Storage');
+namespace('Sy.Storage.Dbal');
 
 /**
- * Generates UnitOfWork objects
+ * LocalStorage driver factory
  *
  * @package Sy
  * @subpackage Storage
  * @class
- * @implements {Sy.FactoryInterface}
+ * @implements {Sy.Storage.Dbal.DriverFactoryInterface}
  */
 
-Sy.Storage.UnitOfWorkFactory = function () {
-    this.generator = null;
-    this.stateRegistryFactory = null;
+Sy.Storage.Dbal.LocalstorageFactory = function () {
+    this.meta = [];
 };
-Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
+Sy.Storage.Dbal.LocalstorageFactory.prototype = Object.create(Sy.Storage.Dbal.DriverFactoryInterface.prototype, {
 
     /**
-     * Set the common generator for all unit of works
+     * Set all the defined entities
      *
-     * @param {Sy.Lib.Generator.Interface} generator
+     * @param {Array} meta
      *
-     * @return {Sy.Storage.UnitOfWorkFactory}
+     * @return {Sy.Storage.Dbal.LocalstorageFactory} self
      */
 
-    setGenerator: {
-        value: function (generator) {
-
-            if (!(generator instanceof Sy.Lib.Generator.Interface)) {
-                throw new TypeError('Invalid generator');
-            }
-
-            this.generator = generator;
+    setEntitiesMeta: {
+        value: function (meta) {
+            this.meta = meta;
 
             return this;
-
-        }
-    },
-
-    /**
-     * Set the state registry factory
-     *
-     * @param {Sy.StateRegistry} factory
-     *
-     * @return {Sy.Storage.UnitOfWorkFactory}
-     */
-
-    setStateRegistryFactory: {
-        value: function (factory) {
-
-            if (!(factory instanceof Sy.StateRegistryFactory)) {
-                throw new TypeError('Invalid state registry factory');
-            }
-
-            this.stateRegistryFactory = factory;
-
-            return this;
-
         }
     },
 
@@ -6869,18 +6727,645 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
      */
 
     make: {
-        value: function (name, entityKey) {
+        value: function (dbname, version, stores, options) {
+            var driver = new Sy.Storage.Dbal.Localstorage();
 
-            var uow = new Sy.Storage.UnitOfWork();
+            driver
+                .setName(dbname)
+                .setConnection(
+                    options.temporary === true ?
+                        localStorage :
+                        sessionStorage
+                );
 
-            uow
-                .setStateRegistry(this.stateRegistryFactory.make())
-                .setGenerator(this.generator)
-                .setName(name)
-                .setEntityKey(entityKey);
+            for (var i = 0, l = this.meta.length; i < l; i++) {
+                if (stores.length === 0 || stores.indexOf(this.meta[i].alias) !== -1) {
+                    driver.setStore(
+                        this.meta[i].alias,
+                        this.meta[i].alias.toLowerCase(),
+                        this.meta[i].uuid
+                    );
+                }
+            }
 
-            return uow;
+            return driver.open();
+        }
+    }
 
+});
+
+namespace('Sy.Storage.Dbal');
+
+/**
+ * Storage driver leveraging HTTP to persist objects
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ * @implements {Sy.Storage.Dbal.DriverInterface}
+ */
+
+Sy.Storage.Dbal.Rest = function () {
+    this.pattern = null;
+    this.version = 1;
+    this.connection = null;
+    this.logger = null;
+    this.headers = {};
+    this.stores = {};
+};
+Sy.Storage.Dbal.Rest.prototype = Object.create(Sy.Storage.Dbal.DriverInterface.prototype, {
+
+    /**
+     * Set the url pattern
+     *
+     * @param {String} pattern
+     *
+     * @return {Sy.Storage.Dbal.Rest} self
+     */
+
+    setURLPattern: {
+        value: function (pattern) {
+            if (!(/.*\/$/).test(pattern)) {
+                pattern += '/';
+            }
+
+            this.pattern = pattern;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the version
+     *
+     * @param {Integer} version
+     *
+     * @return {Sy.Storage.Dbal.Rest} self
+     */
+
+    setVersion: {
+        value: function (version) {
+            if (this.pattern) {
+                this.pattern = this.pattern.replace('{version}', version);
+            }
+
+            this.version = version;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the REST engine
+     *
+     * @param {Sy.HTTP.REST} rest
+     *
+     * @return {Sy.Storage.Dbal.Rest} self
+     */
+
+    setConnection: {
+        value: function (rest) {
+            if (!(rest instanceof Sy.HTTP.REST)) {
+                throw new TypeError('Invalid rest engine');
+            }
+
+            this.connection = rest;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a header to be passed on each http request
+     *
+     * @param {String} name
+     * @param {String} value
+     *
+     * @return {Sy.Storage.Dbal.Rest} self
+     */
+
+    setHeader: {
+        value: function (name, value) {
+            this.headers[name] = value;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a new store
+     *
+     * @param {String} alias
+     * @param {String} bundle
+     * @param {String} name
+     * @param {String} identifier
+     *
+     * @return {Sy.Storage.Dbal.Rest} self
+     */
+
+    setStore: {
+        value: function (alias, bundle, name, identifier) {
+            this.stores[alias] = {
+                bundle: bundle,
+                name: name,
+                key: identifier,
+                path: this.urlPattern
+                    .replace('{bundle}', bundle)
+                    .replace('{name}', name)
+                    .replace('{bundle|lower}', bundle.toLowerCase())
+                    .replace('{name|lower}', name.toLowerCase())
+            };
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    read: {
+        value: function (storeName, id) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
+
+                var store = this.stores[storeName];
+
+                this.connection.get({
+                    uri: store.path + id,
+                    headers: this.headers,
+                    listener: function (resp) {
+                        if (resp.getStatusCode() === resp.HTTP_OK) {
+                            resolve(resp.getBody());
+                        } else {
+                            reject(
+                                resp.getStatusCode().toString() + ' ' +
+                                resp.getStatusText()
+                            );
+                        }
+                    }.bind(this)
+                });
+            }.bind(this));
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    create: {
+        value: function (storeName, object) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
+
+                var store = this.stores[storeName];
+
+                this.connection.post({
+                    uri: store.path,
+                    headers: this.headers,
+                    data: object,
+                    listener: function (resp) {
+                        if (resp.getStatusCode() === resp.HTTP_CREATED) {
+                            resolve(resp.getBody()[store.key]);
+                        } else {
+                            reject(
+                                resp.getStatusCode() + ' ' +
+                                resp.getStatusText()
+                            );
+                        }
+                    }.bind(this)
+                });
+            }.bind(this));
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    update: {
+        value: function (storeName, id, object) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
+
+                var store = this.stores[storeName];
+
+                this.connection.put({
+                    uri: store.path + id,
+                    headers: this.headers,
+                    data: object,
+                    listener: function (resp) {
+                        if (
+                            resp.getStatusCode() === resp.HTTP_OK ||
+                            resp.getStatusCode() === resp.HTTP_CREATED
+                        ) {
+                            resolve(resp.getBody());
+                        } else if (resp.getStatusCode() === resp.HTTP_NO_CONTENT) {
+                            resolve(object);
+                        } else {
+                            reject(
+                                resp.getStatusCode() + ' ' +
+                                resp.getStatusText()
+                            );
+                        }
+                    }.bind(this)
+                });
+            }.bind(this));
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    remove: {
+        value: function (storeName, id) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
+
+                var store = this.stores[storeName];
+
+                this.connection.remove({
+                    uri: store.path + id,
+                    headers: this.headers,
+                    listener: function (resp) {
+                        if (
+                            resp.getStatusCode() === resp.HTTP_OK ||
+                            resp.getStatusCode() === resp.HTTP_ACCEPTED ||
+                            resp.getStatusCode() === resp.HTTP_NO_CONTENT
+                        ) {
+                            resolve()
+                        } else {
+                            reject(
+                                resp.getStatusCode() + ' ' +
+                                resp.getStatusText()
+                            );
+                        }
+                    }
+                });
+            }.bind(this));
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    find: {
+        value: function (storeName, index, value, limit) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
+
+                var store = this.stores[storeName],
+                    path = store.path;
+
+                path += '?' + index + '=' + (value instanceof Array ?
+                    JSON.stringify(value) :
+                    value);
+
+                if (limit !== undefined) {
+                    path += '&limit=' + limit;
+                }
+
+                this.connection.get({
+                    uri: encodeURI(path),
+                    headers: this.headers,
+                    listener: function (resp) {
+                        if (resp.getStatusCode() === resp.HTTP_OK) {
+                            resolve(resp.getBody());
+                        } else {
+                            reject(
+                                resp.getStatusCode() + ' ' +
+                                resp.getStatusText()
+                            );
+                        }
+                    }.bind(this)
+                });
+            }.bind(this));
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    findAll: {
+        value: function (storeName) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
+
+                var store = this.stores[storeName];
+
+                this.connection.get({
+                    uri: store.path,
+                    headers: this.headers,
+                    listener: function (resp) {
+                        if (resp.getStatusCode() === resp.HTTP_OK) {
+                            resolve(resp.getBody());
+                        } else {
+                            reject(
+                                resp.getStatusCode() + ' ' +
+                                resp.getStatusText()
+                            );
+                        }
+                    }.bind(this)
+                });
+            }.bind(this));
+        }
+    }
+
+});
+
+namespace('Sy.Storage.Dbal');
+
+/**
+ * Rest driver factory
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ * @implements {Sy.Storage.Dbal.DriverFactoryInterface}
+ */
+
+Sy.Storage.Dbal.RestFactory = function () {
+    this.meta = [];
+    this.rest = null;
+};
+Sy.Storage.Dbal.RestFactory.prototype = Object.create(Sy.Storage.Dbal.DriverFactoryInterface.prototype, {
+
+    /**
+     * Set all the defined entities
+     *
+     * @param {Array} meta
+     *
+     * @return {Sy.Storage.Dbal.RestFactory} self
+     */
+
+    setEntitiesMeta: {
+        value: function (meta) {
+            this.meta = meta;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the REST engine
+     *
+     * @param {Sy.HTTP.REST} rest
+     *
+     * @return {Sy.Storage.Dbal.RestFactory} self
+     */
+
+    setREST: {
+        value: function (rest) {
+            if (!(rest instanceof Sy.HTTP.REST)) {
+                throw new TypeError('Invalid rest engine');
+            }
+
+            this.rest = rest;
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    make: {
+        value: function (dbname, version, stores, options) {
+            var driver = new Sy.Storage.Dbal.Rest();
+
+            driver
+                .setURLPattern(options.pattern)
+                .setVersion(version)
+                .setConnection(this.rest);
+
+            if (options.headers instanceof Array) {
+                for (var id = 0, l = options.headers.length; i < l; i++) {
+                    driver.setHeader(
+                        options.headers[0],
+                        options.headers[1]
+                    );
+                }
+            }
+
+            for (var i = 0, l = this.meta.length; i < l; i++) {
+                if (stores.length === 0 || stores.indexOf(this.meta[i].alias) !== -1) {
+                    driver.setStore(
+                        this.meta[i].alias,
+                        this.meta[i].bundle,
+                        this.meta[i].name,
+                        this.meta[i].uuid
+                    );
+                }
+            }
+
+            return driver;
+        }
+    }
+
+});
+
+namespace('Sy');
+
+/**
+ * Tool to easily retrieve/set data of a particular path in an object graph
+ *
+ * @package Sy
+ * @class
+ */
+
+Sy.PropertyAccessor = function (disableGetterSetter) {
+    this.disableGetterSetter = !!disableGetterSetter;
+};
+
+Sy.PropertyAccessor.prototype = Object.create(Object.prototype, {
+
+    prefixes: {
+        value: ['get', 'is', 'has'],
+        writable: false,
+        configurable: false
+    },
+
+    /**
+     * Return the value for the given object path
+     *
+     * @param {Object} object Path root
+     * @param {String|Array} path
+     *
+     * @throws {ReferenceError} If the path is not reachable
+     *
+     * @return {mixed}
+     */
+
+    getValue: {
+        value: function (object, path) {
+            var elements = this.transform(path),
+                prop = elements.shift(),
+                refl = new ReflectionObject(object),
+                fromGetter = false,
+                value,
+                method;
+
+            if (!this.disableGetterSetter) {
+                for (var i = 0, l = this.prefixes.length; i < l; i++) {
+                    method = this.prefixes[i] + this.camelize(prop);
+
+                    if (refl.hasMethod(method)) {
+                        value = refl.getMethod(method).call();
+                        fromGetter = true;
+                        break;
+                    }
+                }
+
+                if (!fromGetter && refl.hasMethod('get')) {
+                    value = refl.getMethod('get').call(prop);
+                    fromGetter = true;
+                }
+            }
+
+            if (!fromGetter && refl.hasProperty(prop)) {
+                value = refl.getProperty(prop).getValue();
+            } else if (!fromGetter) {
+                return undefined;
+            }
+
+            if (elements.length === 0) {
+                return value;
+            }
+
+            return this.getValue(value, elements);
+        }
+    },
+
+    /**
+     * Access the specified path in the object and change the value to the one specified
+     *
+     * @param {Object} object
+     * @param {String} path
+     * @param {mixed} value
+     *
+     * @return {Sy.PropertyAccessor} self
+     */
+
+    setValue: {
+        value: function (object, path, value) {
+            var elements = this.transform(path),
+                prop = elements.pop(),
+                refl,
+                method;
+
+            if (elements.length !== 0) {
+                object = this.getValue(object, elements);
+            }
+
+            if (typeof object === 'undefined') {
+                throw new ReferenceError('Path "' + path + '" not writable');
+            }
+
+            if (!this.disableGetterSetter) {
+                method = 'set' + this.camelize(prop);
+                refl = new ReflectionObject(object);
+
+                if (refl.hasMethod(method)) {
+                    refl.getMethod(method).call(value);
+                    return this;
+                }
+            }
+
+            object[prop] = value;
+
+            return this;
+        }
+    },
+
+    /**
+     * Transform a path string into an array of its elements
+     *
+     * @param {String|Array} path
+     *
+     * @return {Array}
+     */
+
+    transform: {
+        value: function (path) {
+            if (path instanceof Array) {
+                return path;
+            }
+
+            if (typeof path !== 'string' || path.trim() === '') {
+                throw new TypeError('Invalid path');
+            }
+
+            return path.split('.');
+        }
+    },
+
+    /**
+     * Camelize a string
+     *
+     * @param {String} string
+     *
+     * @return {String}
+     */
+
+    camelize: {
+        value: function (string) {
+            var pieces = string.split('_');
+
+            pieces.forEach(function (el, id) {
+                this[id] = el.substr(0, 1).toUpperCase() + el.substr(1);
+            }, pieces);
+
+            return pieces.join('');
+        }
+    },
+
+    /**
+     * Activate the use of getters/setters
+     *
+     * @return {Sy.PropertyAccessor} self
+     */
+
+    enableSetterGetter: {
+        value: function () {
+            this.disableGetterSetter = false;
+
+            return this;
+        }
+    },
+
+    /**
+     * Deactivate the use of getters/setters
+     *
+     * @return {Sy.PropertyAccessor} self
+     */
+
+    disableSetterGetter: {
+        value: function () {
+            this.disableGetterSetter = true;
+
+            return this;
         }
     }
 
