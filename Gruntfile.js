@@ -286,8 +286,6 @@ module.exports = function (grunt) {
         .concat(translator)
         .concat(dom);
 
-    framework.push('bootstrap.js');
-
     serviceContainer = serviceContainer.filter(unique);
     registry = registry.filter(unique);
     stateRegistry = stateRegistry.filter(unique);
