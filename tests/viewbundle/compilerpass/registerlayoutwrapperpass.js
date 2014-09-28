@@ -7,38 +7,36 @@
  * @venus-include ../../../src/ServiceContainer/Definition.js
  * @venus-include ../../../src/ServiceContainer/Reference.js
  * @venus-include ../../../src/ServiceContainer/CompilerPassInterface.js
- * @venus-code ../../../src/Kernel/CompilerPass/RegisterListWrapperPass.js
+ * @venus-code ../../../src/ViewBundle/CompilerPass/RegisterLayoutWrapperPass.js
  */
 
-describe('register list wrapper', function () {
+describe('register layout wrapper', function () {
 
     var sc,
         pass;
 
     beforeEach(function () {
         sc = new Sy.ServiceContainer.Core();
-        pass = new Sy.Kernel.CompilerPass.RegisterListWrapperPass();
+        pass = new Sy.ViewBundle.CompilerPass.RegisterLayoutWrapperPass();
 
         sc.set({
-            'sy::core::view::factory::list': {},
-            'list': {
+            'sy::core::view::factory::layout': {},
+            'layout': {
                 tags: [
-                    {name: 'view.list', alias: 'l', viewscreen: 'vs', layout: 'l'},
-                    {name: 'view.list', alias: 'l2', viewscreen: 'vs'},
-                    {name: 'view.list', alias: 'l3', layout: 'l'},
-                    {name: 'view.list', alias: 'l4'},
-                    {name: 'view.list'},
+                    {name: 'view.layout', alias: 'l', viewscreen: 'vs'},
+                    {name: 'view.layout', alias: 'l2'},
+                    {name: 'view.layout'}
                 ]
             },
         });
     });
 
-    it('should register two lists to the factory', function () {
+    it('should register two layouts to the factory', function () {
         pass.process(sc);
 
         expect(
             sc
-                .getDefinition('sy::core::view::factory::list')
+                .getDefinition('sy::core::view::factory::layout')
                 .getCalls()
                 .length
         ).toEqual(1);

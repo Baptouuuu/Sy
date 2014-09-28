@@ -9,51 +9,30 @@ namespace('Sy.Kernel');
  */
 
 Sy.Kernel.AppParser = function () {
-    this.bundles = [];
+    this.bundles = {};
     this.controllers = [];
     this.entities = [];
-    this.logger = null;
 };
 Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
 
     /**
-     * Set the logger
+     * Set a new bundle
      *
-     * @param {Sy.Lib.Logger.Interface} logger
+     * @param {String} name Bundle name
+     * @param {Object} object Object containing the whole bundle code
      *
-     * @return {Sy.Kernle.AppParser}
+     * @return {Sy.Kernel.AppParser}
      */
 
-    setLogger: {
-        value: function (logger) {
-            this.logger = logger;
+    setBundle: {
+        value: function (name, object) {
+            if (this.bundles.hasOwnProperty(name)) {
+                throw new ReferenceError('Bundle "' + name + '" already defined');
+            }
+
+            this.bundles[name] = object;
 
             return this;
-        }
-    },
-
-    /**
-     * Return the list of defined bundles
-     *
-     * @return {Array}
-     */
-
-    getBundles: {
-        value: function () {
-
-            if (this.bundles.length > 0 || !objectGetter('App.Bundle')) {
-                return this.bundles;
-            }
-
-            for (var bundle in App.Bundle) {
-                if (App.Bundle.hasOwnProperty(bundle)) {
-                    this.bundles.push(bundle);
-                    this.logger && this.logger.debug('Bundle found', bundle);
-                }
-            }
-
-            return this.bundles;
-
         }
     },
 
@@ -72,21 +51,21 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
 
             var bundleCtrl;
 
-            for (var i = 0, l = this.bundles.length; i < l; i++) {
-                bundleCtrl = App.Bundle[this.bundles[i]].Controller;
+            for (var name in this.bundles) {
+                if (this.bundles.hasOwnProperty(name)) {
+                    bundleCtrl = this.bundles[name].Controller;
 
-                if (!bundleCtrl) {
-                    this.logger && this.logger.debug('No controller found in', this.bundles[i]);
-                    continue;
-                }
+                    if (!bundleCtrl) {
+                        continue;
+                    }
 
-                for (var ctrl in bundleCtrl) {
-                    if (bundleCtrl.hasOwnProperty(ctrl)) {
-                        this.controllers.push({
-                            name: this.bundles[i] + '::' + ctrl,
-                            creator: bundleCtrl[ctrl]
-                        });
-                        this.logger && this.logger.debug('Controller found', this.bundles[i] + '::' + ctrl);
+                    for (var ctrl in bundleCtrl) {
+                        if (bundleCtrl.hasOwnProperty(ctrl)) {
+                            this.controllers.push({
+                                name: name + '::' + ctrl,
+                                creator: bundleCtrl[ctrl]
+                            });
+                        }
                     }
                 }
             }
@@ -114,35 +93,30 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
                 alias,
                 entity;
 
-            for (var i = 0, l = this.bundles.length; i < l; i++) {
-                bundleEntities = App.Bundle[this.bundles[i]].Entity;
-                bundleRepositories = App.Bundle[this.bundles[i]].Repository || {};
+            for (var bundleName in this.bundles) {
+                if (this.bundles.hasOwnProperty(bundleName)) {
+                    bundleEntities = this.bundles[bundleName].Entity;
+                    bundleRepositories = this.bundles[bundleName].Repository || {};
 
-                if (!bundleEntities) {
-                    this.logger && this.logger.debug('No entity found in', this.bundles[i]);
-                    continue;
-                }
+                    if (!bundleEntities) {
+                        continue;
+                    }
 
-                for (var name in bundleEntities) {
-                    if (bundleEntities.hasOwnProperty(name)) {
-                        alias = this.bundles[i] + '::' + name;
-                        entity = bundleEntities[name];
+                    for (var name in bundleEntities) {
+                        if (bundleEntities.hasOwnProperty(name)) {
+                            alias = bundleName + '::' + name;
+                            entity = bundleEntities[name];
 
-                        this.entities.push({
-                            alias: alias,
-                            bundle: this.bundles[i],
-                            name: name,
-                            repository: bundleRepositories[name],
-                            entity: entity,
-                            indexes: entity.prototype.INDEXES,
-                            uuid: entity.prototype.UUID
-                        });
-
-                        this.logger && this.logger.debug('Entity found ' + alias + (
-                            bundleRepositories[name] ?
-                                ' with custom repository' :
-                                ''
-                        ));
+                            this.entities.push({
+                                alias: alias,
+                                bundle: bundleName,
+                                name: name,
+                                repository: bundleRepositories[name],
+                                entity: entity,
+                                indexes: entity.prototype.INDEXES,
+                                uuid: entity.prototype.UUID
+                            });
+                        }
                     }
                 }
             }
@@ -170,17 +144,17 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
 
             var bundleConfig;
 
-            for (var i = 0, l = this.bundles.length; i < l; i++) {
-                bundleConfig = App.Bundle[this.bundles[i]].Config;
+            for (var bundleName in this.bundles) {
+                if (this.bundles.hasOwnProperty(bundleName)) {
+                    bundleConfig = this.bundles[bundleName].Config;
 
-                if (!bundleConfig || !bundleConfig.Service) {
-                    continue;
+                    if (!bundleConfig || !bundleConfig.Service) {
+                        continue;
+                    }
+
+                    bundleConfig = new bundleConfig.Service();
+                    bundleConfig.define(container);
                 }
-
-                bundleConfig = new bundleConfig.Service();
-                bundleConfig.define(container);
-
-                this.logger && this.logger.debug('Services loaded from ' + this.bundles[i] + ' bundle');
             }
 
             return this;
@@ -206,17 +180,17 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
 
             var bundleConfig;
 
-            for (var i = 0, l = this.bundles.length; i < l; i++) {
-                bundleConfig = App.Bundle[this.bundles[i]].Config;
+            for (var bundleName in this.bundles) {
+                if (this.bundles.hasOwnProperty(bundleName)) {
+                    bundleConfig = this.bundles[bundleName].Config;
 
-                if (!bundleConfig || !bundleConfig.Configuration) {
-                    continue;
+                    if (!bundleConfig || !bundleConfig.Configuration) {
+                        continue;
+                    }
+
+                    bundleConfig = new bundleConfig.Configuration();
+                    bundleConfig.define(config);
                 }
-
-                bundleConfig = new bundleConfig.Configuration();
-                bundleConfig.define(config);
-
-                this.logger && this.logger.debug('Configuration loaded from ' + this.bundles[i] + ' bundle');
             }
 
             return this;
@@ -246,17 +220,17 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
                 throw new TypeError('Invalid validator');
             }
 
-            for (var i = 0, l = this.bundles.length; i < l; i++) {
-                bundleConfig = App.Bundle[this.bundles[i]].Config;
+            for (var bundleName in this.bundles) {
+                if (this.bundles.hasOwnProperty(bundleName)) {
+                    bundleConfig = this.bundles[bundleName].Config;
 
-                if (!bundleConfig || !bundleConfig.Validation) {
-                    continue;
+                    if (!bundleConfig || !bundleConfig.Validation) {
+                        continue;
+                    }
+
+                    bundleConfig = new bundleConfig.Validation();
+                    bundleConfig.define(validator);
                 }
-
-                bundleConfig = new bundleConfig.Validation();
-                bundleConfig.define(validator);
-
-                this.logger && this.logger.debug('Validation rules loaded from ' + this.bundles[i] + ' bundle');
             }
 
             return this;

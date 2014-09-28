@@ -1,16 +1,16 @@
-namespace('Sy.Kernel.CompilerPass');
+namespace('Sy.FrameworkBundle.CompilerPass');
 
 /**
  * Pass that subscribe to registered event subscribers
  *
  * @package Sy
- * @subpackage Kernel
+ * @subpackage FrameworkBundle
  * @class
  * @implements {Sy.ServiceContainer.CompilerPassInterface}
  */
 
-Sy.Kernel.CompilerPass.EventSubscriberPass = function () {};
-Sy.Kernel.CompilerPass.EventSubscriberPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
+Sy.FrameworkBundle.CompilerPass.EventSubscriberPass = function () {};
+Sy.FrameworkBundle.CompilerPass.EventSubscriberPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
 
     /**
      * @inheritDoc

@@ -8,7 +8,7 @@ This chapter is here to walk you through on how to define your services. To see 
 
 ## In the app bootstrap
 
-The first approach to define your services would be in the bootstrap file of your app, it's easy there as you can easily access to the container via `Sy.kernel.getContainer()`.
+The first approach to define your services would be in the bootstrap file of your app, it's easy there as you can easily access to the container via `app.getContainer()`.
 
 It's a good place as you would define your services alongside of your app configuration, but as your app will grow you'll want to split those definitions and keep them inside your bundles so it woult be easier to reuse them inside other projects.
 

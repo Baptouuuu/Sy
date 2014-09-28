@@ -1,4 +1,4 @@
-/*! sy#0.6.0 - 2014-06-11 */
+/*! sy#0.7.0 - 2014-09-28 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -266,7 +266,7 @@ Sy.ControllerInterface.prototype = Object.create(Object.prototype, {
     /**
      * Set the service container
      *
-     * @param {Sy.ServiceContainerInterface} container
+     * @param {Sy.ServiceContainer.Core} container
      *
      * @return {Sy.ControllerInterface}
      */
@@ -530,52 +530,30 @@ namespace('Sy.Kernel');
  */
 
 Sy.Kernel.AppParser = function () {
-    this.bundles = [];
+    this.bundles = {};
     this.controllers = [];
     this.entities = [];
-    this.viewscreens = [];
-    this.logger = null;
 };
 Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
 
     /**
-     * Set the logger
+     * Set a new bundle
      *
-     * @param {Sy.Lib.Logger.Interface} logger
+     * @param {String} name Bundle name
+     * @param {Object} object Object containing the whole bundle code
      *
-     * @return {Sy.Kernle.AppParser}
+     * @return {Sy.Kernel.AppParser}
      */
 
-    setLogger: {
-        value: function (logger) {
-            this.logger = logger;
+    setBundle: {
+        value: function (name, object) {
+            if (this.bundles.hasOwnProperty(name)) {
+                throw new ReferenceError('Bundle "' + name + '" already defined');
+            }
+
+            this.bundles[name] = object;
 
             return this;
-        }
-    },
-
-    /**
-     * Return the list of defined bundles
-     *
-     * @return {Array}
-     */
-
-    getBundles: {
-        value: function () {
-
-            if (this.bundles.length > 0 || !objectGetter('App.Bundle')) {
-                return this.bundles;
-            }
-
-            for (var bundle in App.Bundle) {
-                if (App.Bundle.hasOwnProperty(bundle)) {
-                    this.bundles.push(bundle);
-                    this.logger && this.logger.debug('Bundle found', bundle);
-                }
-            }
-
-            return this.bundles;
-
         }
     },
 
@@ -594,21 +572,21 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
 
             var bundleCtrl;
 
-            for (var i = 0, l = this.bundles.length; i < l; i++) {
-                bundleCtrl = App.Bundle[this.bundles[i]].Controller;
+            for (var name in this.bundles) {
+                if (this.bundles.hasOwnProperty(name)) {
+                    bundleCtrl = this.bundles[name].Controller;
 
-                if (!bundleCtrl) {
-                    this.logger && this.logger.debug('No controller found in', this.bundles[i]);
-                    continue;
-                }
+                    if (!bundleCtrl) {
+                        continue;
+                    }
 
-                for (var ctrl in bundleCtrl) {
-                    if (bundleCtrl.hasOwnProperty(ctrl)) {
-                        this.controllers.push({
-                            name: this.bundles[i] + '::' + ctrl,
-                            creator: bundleCtrl[ctrl]
-                        });
-                        this.logger && this.logger.debug('Controller found', this.bundles[i] + '::' + ctrl);
+                    for (var ctrl in bundleCtrl) {
+                        if (bundleCtrl.hasOwnProperty(ctrl)) {
+                            this.controllers.push({
+                                name: name + '::' + ctrl,
+                                creator: bundleCtrl[ctrl]
+                            });
+                        }
                     }
                 }
             }
@@ -636,33 +614,30 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
                 alias,
                 entity;
 
-            for (var i = 0, l = this.bundles.length; i < l; i++) {
-                bundleEntities = App.Bundle[this.bundles[i]].Entity;
-                bundleRepositories = App.Bundle[this.bundles[i]].Repository || {};
+            for (var bundleName in this.bundles) {
+                if (this.bundles.hasOwnProperty(bundleName)) {
+                    bundleEntities = this.bundles[bundleName].Entity;
+                    bundleRepositories = this.bundles[bundleName].Repository || {};
 
-                if (!bundleEntities) {
-                    this.logger && this.logger.debug('No entity found in', this.bundles[i]);
-                    continue;
-                }
+                    if (!bundleEntities) {
+                        continue;
+                    }
 
-                for (var name in bundleEntities) {
-                    if (bundleEntities.hasOwnProperty(name)) {
-                        alias = this.bundles[i] + '::' + name;
-                        entity = bundleEntities[name];
+                    for (var name in bundleEntities) {
+                        if (bundleEntities.hasOwnProperty(name)) {
+                            alias = bundleName + '::' + name;
+                            entity = bundleEntities[name];
 
-                        this.entities.push({
-                            name: alias,
-                            repository: bundleRepositories[name] || Sy.Storage.Repository,
-                            entity: entity,
-                            indexes: (new entity()).indexes,
-                            uuid: entity.prototype.UUID
-                        });
-
-                        this.logger && this.logger.debug('Entity found ' + alias + (
-                            bundleRepositories[name] ?
-                                ' with custom repository' :
-                                ''
-                        ));
+                            this.entities.push({
+                                alias: alias,
+                                bundle: bundleName,
+                                name: name,
+                                repository: bundleRepositories[name],
+                                entity: entity,
+                                indexes: entity.prototype.INDEXES,
+                                uuid: entity.prototype.UUID
+                            });
+                        }
                     }
                 }
             }
@@ -673,49 +648,10 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Return the list of viewscreens wrappers
-     *
-     * @return {Array}
-     */
-
-    getViewScreens: {
-        value: function () {
-
-            if (this.viewscreens.length > 0) {
-                return this.viewscreens;
-            }
-
-            var bundleViewScreens;
-
-            for (var i = 0, l = this.bundles.length; i < l; i++) {
-                bundleViewScreens = App.Bundle[this.bundles[i]].ViewScreen;
-
-                if (!bundleViewScreens) {
-                    this.logger && this.logger.debug('No viewscreen wrapper found in', this.bundles[i]);
-                    continue;
-                }
-
-                for (var name in bundleViewScreens) {
-                    if (bundleViewScreens.hasOwnProperty(name)) {
-                        this.viewscreens.push({
-                            name: this.bundles[i] + '::' + name,
-                            creator: bundleViewScreens[name]
-                        });
-                        this.logger && this.logger.debug('ViewScreen wrapper found', this.bundles[i] + '::' + name);
-                    }
-                }
-            }
-
-            return this.viewscreens;
-
-        }
-    },
-
-    /**
      * Walk through the app services definitions object
      * and call them to register them
      *
-     * @param {Sy.ServiceContainerInterface} $container
+     * @param {Sy.ServiceContainer.Core} $container
      *
      * @return {Sy.Kernel.AppParser}
      */
@@ -723,23 +659,23 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
     buildServices: {
         value: function (container) {
 
-            if (!(container instanceof Sy.ServiceContainerInterface)) {
+            if (!(container instanceof Sy.ServiceContainer.Core)) {
                 throw new TypeError('Invalid service container');
             }
 
             var bundleConfig;
 
-            for (var i = 0, l = this.bundles.length; i < l; i++) {
-                bundleConfig = App.Bundle[this.bundles[i]].Config;
+            for (var bundleName in this.bundles) {
+                if (this.bundles.hasOwnProperty(bundleName)) {
+                    bundleConfig = this.bundles[bundleName].Config;
 
-                if (!bundleConfig || !bundleConfig.Service) {
-                    continue;
+                    if (!bundleConfig || !bundleConfig.Service) {
+                        continue;
+                    }
+
+                    bundleConfig = new bundleConfig.Service();
+                    bundleConfig.define(container);
                 }
-
-                bundleConfig = new bundleConfig.Service();
-                bundleConfig.define(container);
-
-                this.logger && this.logger.debug('Services loaded from ' + this.bundles[i] + ' bundle');
             }
 
             return this;
@@ -765,17 +701,17 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
 
             var bundleConfig;
 
-            for (var i = 0, l = this.bundles.length; i < l; i++) {
-                bundleConfig = App.Bundle[this.bundles[i]].Config;
+            for (var bundleName in this.bundles) {
+                if (this.bundles.hasOwnProperty(bundleName)) {
+                    bundleConfig = this.bundles[bundleName].Config;
 
-                if (!bundleConfig || !bundleConfig.Configuration) {
-                    continue;
+                    if (!bundleConfig || !bundleConfig.Configuration) {
+                        continue;
+                    }
+
+                    bundleConfig = new bundleConfig.Configuration();
+                    bundleConfig.define(config);
                 }
-
-                bundleConfig = new bundleConfig.Configuration();
-                bundleConfig.define(config);
-
-                this.logger && this.logger.debug('Configuration loaded from ' + this.bundles[i] + ' bundle');
             }
 
             return this;
@@ -787,14 +723,14 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
      * Walk through the app validation rules definitions object
      * and call them to register them in the validator
      *
-     * @param {Sy.ServiceContainerInterface} container
+     * @param {Sy.ServiceContainer.Core} container
      *
      * @return {Sy.Kernel.AppParser}
      */
 
     registerValidationRules: {
         value: function (container) {
-            if (!(container instanceof Sy.ServiceContainerInterface)) {
+            if (!(container instanceof Sy.ServiceContainer.Core)) {
                 throw new TypeError('Invalid service container');
             }
 
@@ -805,17 +741,17 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
                 throw new TypeError('Invalid validator');
             }
 
-            for (var i = 0, l = this.bundles.length; i < l; i++) {
-                bundleConfig = App.Bundle[this.bundles[i]].Config;
+            for (var bundleName in this.bundles) {
+                if (this.bundles.hasOwnProperty(bundleName)) {
+                    bundleConfig = this.bundles[bundleName].Config;
 
-                if (!bundleConfig || !bundleConfig.Validation) {
-                    continue;
+                    if (!bundleConfig || !bundleConfig.Validation) {
+                        continue;
+                    }
+
+                    bundleConfig = new bundleConfig.Validation();
+                    bundleConfig.define(validator);
                 }
-
-                bundleConfig = new bundleConfig.Validation();
-                bundleConfig.define(validator);
-
-                this.logger && this.logger.debug('Validation rules loaded from ' + this.bundles[i] + ' bundle');
             }
 
             return this;
@@ -938,7 +874,7 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
     /**
      * Set the service container that will be injected in each controller
      *
-     * @param {Sy.ServiceContainerInterface} container
+     * @param {Sy.ServiceContainer.Core} container
      *
      * @return {Sy.Kernel.ControllerManager}
      */
@@ -946,7 +882,7 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
     setServiceContainer: {
         value: function (container) {
 
-            if (!(container instanceof Sy.ServiceContainerInterface)) {
+            if (!(container instanceof Sy.ServiceContainer.Core)) {
                 throw new TypeError('Invalid service container');
             }
 
@@ -1157,11 +1093,17 @@ namespace('Sy.Kernel');
  * @class
  */
 
-Sy.Kernel.Core = function () {
+Sy.Kernel.Core = function (env, debug) {
     this.config = new Sy.Configurator();
-    this.container = new Sy.ServiceContainer('sy::core');
+    this.container = new Sy.ServiceContainer.Core();
     this.controllerManager = new Sy.Kernel.ControllerManager();
     this.actionDispatcher = new Sy.Kernel.ActionDispatcher();
+
+    this.container.setCompiler(new Sy.ServiceContainer.Compiler());
+
+    this.config
+        .set('app.environment', env)
+        .set('app.debug', !!debug);
 };
 Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
@@ -1183,9 +1125,21 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
      * @return {Sy.ServiceContainer}
      */
 
-    getServiceContainer: {
+    getContainer: {
         value: function () {
             return this.container;
+        }
+    },
+
+    /**
+     * Register all bundles needed for the app
+     *
+     * @return {Array}
+     */
+
+    registerBundles: {
+        value: function () {
+            return [];
         }
     },
 
@@ -1203,27 +1157,30 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
             tester.testBrowser();
 
-            if (this.config.get('env') !== 'prod') {
-                parser.setLogger(this.container.get('sy::core::logger'));
-            }
+            this.registerBundles().forEach(function (bundle) {
+                parser.setBundle(bundle[0], bundle[1]);
+            }.bind(this));
 
-            this.config.set('parameters.app.meta', {
-                bundles: parser.getBundles(),
+            this.config.set('app.meta', {
                 controllers: parser.getControllers(),
-                entities: parser.getEntities(),
-                viewscreens: parser.getViewScreens()
+                entities: parser.getEntities()
             });
 
+            this.container.setParameters(this.config);
+
             parser
-                .buildServices(this.container)
                 .buildConfig(this.config)
-                .registerValidationRules(this.container);
+                .buildServices(this.container);
+
+            this.registerShutdownListener();
+
+            this.container.compile();
+
+            parser.registerValidationRules(this.container);
 
             this
                 .registerControllers(parser.getControllers())
-                .configureLogger()
-                .registerShutdownListener();
-
+                .configureLogger();
         }
     },
 
@@ -1292,10 +1249,10 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
     configureLogger: {
         value: function () {
 
-            var env = this.config.get('env'),
+            var debug = this.config.get('app.debug'),
                 logger = this.container.get('sy::core::logger');
 
-            if (env === 'prod') {
+            if (debug === false) {
                 logger
                     .removeHandler(logger.LOG)
                     .removeHandler(logger.DEBUG)
@@ -1689,7 +1646,7 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
     setServiceContainer: {
         value: function (container) {
 
-            if (!(container instanceof Sy.ServiceContainerInterface)) {
+            if (!(container instanceof Sy.ServiceContainer.Core)) {
                 throw new TypeError('Invalid service container');
             }
 
@@ -1804,207 +1761,518 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
                 .get('sy::core::form')
                 .createForm(formType, object, options);
         }
+    },
+
+    /**
+     * Shortcut to retrieve the storage engine
+     *
+     * @return {Sy.Storage.Core}
+     */
+
+    getStorage: {
+        value: function () {
+            return this.container.get('sy::core::storage');
+        }
     }
 
 });
 namespace('Sy');
 
 /**
- * Entity interface
+ * Interface to define required method for event subscribers
  *
  * @package Sy
  * @interface
  */
 
-Sy.EntityInterface = function () {
-
-};
-
-Sy.EntityInterface.prototype = Object.create(Object.prototype, {
+Sy.EventSubscriberInterface = function () {};
+Sy.EventSubscriberInterface.prototype = Object.create(Object.prototype, {
 
     /**
-     * Set an attribute value to the entity
+     * Return an object of events that the object subscribed to
+     * <code>
+     * {
+     *     'channel name': {
+     *         method: 'function name in the object', //required
+     *         priority: 'integer', //optional
+     *         async: 'boolean' //optional
+     *     }
+     * }
+     * </code>
      *
-     * @param {string} attr
-     * @param {mixed} value
-     *
-     * @return {Sy.EntityInterface}
+     * @return {Object}
      */
 
-    set: {
-        value: function (attr, value) {
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Return an attribute value
-     *
-     * @param {string} attr
-     *
-     * @return {mixed}
-     */
-
-    get: {
-        value: function (attr) {}
-    },
-
-    /**
-     * Register an attribute as index or as a connection to another entity
-     *
-     * @param {string} attr
-     * @param {string} entity If set it will link the attribute to another entity, this param must follow this pattern: \w+::\w+
-     *
-     * @return {Sy.EntityInterface}
-     */
-
-    register: {
-        value: function (attr, entity) {}
-    },
-
-    /**
-     * Block the available attributes for this entity. Once set, the list won't be mutable.
-     *
-     * @param {Array} attributes
-     *
-     * @return {Sy.EntityInterface}
-     */
-
-    lock: {
-        value: function (attributes) {}
+    getSubscribedEvents: {
+        value: function () {}
     }
 
 });
-namespace('Sy');
+
+namespace('Sy.FrameworkBundle.Config');
 
 /**
- * Default implementation of an entity
+ * Basic configuration needed by the framework
  *
  * @package Sy
+ * @subpackage FrameworkBundle
  * @class
- * @implements {Sy.EntityInterface}
  */
 
-Sy.Entity = function () {
-
-    this.attributes = {};
-
-    this.register(this.UUID);
-
-};
-
-Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
-
-    indexes: {
-        value: [],
-        enumerable: false
-    },
-
-    connections: {
-        value: {},
-        enumerable: false
-    },
-
-    UUID: {
-        value: 'uuid'
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    set: {
-        value: function (attr, value) {
-
-            if (attr instanceof Object) {
-                for (var p in attr) {
-                    if (attr.hasOwnProperty(p)) {
-                        this.set(p, attr[p]);
+Sy.FrameworkBundle.Config.Configuration = function () {};
+Sy.FrameworkBundle.Config.Configuration.prototype = Object.create(Object.prototype, {
+    define: {
+        value: function (config) {
+            config.set({
+                controllers: {
+                    cache: true
+                },
+                logger: {
+                    level: {
+                        info: Sy.Lib.Logger.CoreLogger.prototype.INFO,
+                        debug: Sy.Lib.Logger.CoreLogger.prototype.DEBUG,
+                        error: Sy.Lib.Logger.CoreLogger.prototype.ERROR,
+                        log: Sy.Lib.Logger.CoreLogger.prototype.LOG,
                     }
                 }
-            } else {
-                this.attributes[attr] = value;
-            }
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    get: {
-        value: function (attr) {
-
-            if (attr === undefined) {
-                return this.attributes;
-            } else {
-                return this.attributes[attr];
-            }
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    register: {
-        value: function (attr, entity) {
-
-            var regexp = new RegExp(/^\w+::\w+$/gi);
-
-            if (this.indexes.indexOf(attr) === -1) {
-                this.indexes.push(attr);
-
-                if (entity !== undefined) {
-
-                    if (!regexp.test(entity)) {
-                        throw new SyntaxError('Invalid entity name format');
-                    }
-
-                    var path = entity.split('::');
-
-                    this.connections[attr] = App.Bundle[path[0]].Entity[path[1]];
-
-                }
-            }
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    lock: {
-        value: function (attributes) {
-
-            if (!(attributes instanceof Array)) {
-                throw new SyntaxError();
-            }
-
-            if (Object.isSealed(this.attributes)) {
-                return;
-            }
-
-            for (var i = 0, l = attributes.length; i < l; i++) {
-                this.attributes[attributes[i]] = null;
-            }
-
-            Object.seal(this.attributes);
-
-            return this;
-
+            });
         }
     }
+});
+namespace('Sy.FrameworkBundle.Config');
 
+/**
+ * Basic service needed throughout the framework
+ *
+ * @package Sy
+ * @subpackage FrameworkBundle
+ * @class
+ */
+
+Sy.FrameworkBundle.Config.Service = function () {};
+Sy.FrameworkBundle.Config.Service.prototype = Object.create(Object.prototype, {
+    define: {
+        value: function (container) {
+            var pass = new Sy.FrameworkBundle.CompilerPass.EventSubscriberPass();
+
+            container.set({
+                'sy::core::generator::uuid': {
+                    constructor: 'Sy.Lib.Generator.UUID'
+                },
+                mediator: '@sy::core::mediator',
+                'sy::core::mediator': {
+                    constructor: 'Sy.Lib.Mediator',
+                    calls: [
+                        ['setGenerator', ['@sy::core::generator::uuid']],
+                        ['setLogger', ['@sy::core::logger']]
+                    ]
+                },
+                'sy::core::registry::factory': {
+                    constructor: 'Sy.RegistryFactory'
+                },
+                registry: '@sy::core::registry',
+                'sy::core::registry': {
+                    constructor: 'Sy.Registry',
+                    factory: ['sy::core::registry::factory', 'make'],
+                    prototype: true
+                },
+                'sy::core::stateregistry::factory': {
+                    constructor: 'Sy.StateRegistryFactory',
+                    calls: [
+                        ['setRegistryFactory', ['@sy::core::registry::factory']]
+                    ]
+                },
+                stateregistry: '@sy::core::stateregistry',
+                'sy::core::stateregistry': {
+                    constructor: 'Sy.StateRegistry',
+                    fatory: ['sy::core::stateregistry::factory', 'make'],
+                    prototype: true
+                },
+                logger: '@sy::core::logger',
+                'sy::core::logger': {
+                    constructor: 'Sy.Lib.Logger.CoreLogger',
+                    calls: [
+                        ['setName', ['core']],
+                        ['setHandler', ['@sy::core::logger::handler::info', '%logger.level.info%']],
+                        ['setHandler', ['@sy::core::logger::handler::debug', '%logger.level.debug%']],
+                        ['setHandler', ['@sy::core::logger::handler::error', '%logger.level.error%']],
+                        ['setHandler', ['@sy::core::logger::handler::log', '%logger.level.log%']],
+                    ]
+                },
+                'sy::core::logger::handler::info': {
+                    constructor: 'Sy.Lib.Logger.Handler.Console',
+                    calls: [
+                        ['setLevel', ['%logger.level.info%']]
+                    ],
+                    private: true
+                },
+                'sy::core::logger::handler::debug': {
+                    constructor: 'Sy.Lib.Logger.Handler.Console',
+                    calls: [
+                        ['setLevel', ['%logger.level.debug%']]
+                    ],
+                    private: true
+                },
+                'sy::core::logger::handler::error': {
+                    constructor: 'Sy.Lib.Logger.Handler.Console',
+                    calls: [
+                        ['setLevel', ['%logger.level.error%']]
+                    ],
+                    private: true
+                },
+                'sy::core::logger::handler::log': {
+                    constructor: 'Sy.Lib.Logger.Handler.Console',
+                    calls: [
+                        ['setLevel', ['%logger.level.log%']]
+                    ],
+                    private: true
+                },
+                'sy::core::propertyaccessor': {
+                    constructor: 'Sy.PropertyAccessor',
+                    prototype: true
+                }
+            });
+
+            container.addPass(
+                pass,
+                pass.AFTER_REMOVING
+            );
+        }
+    }
+});
+namespace('Sy.FormBundle.Config');
+
+/**
+ * Register form service
+ *
+ * @package Sy
+ * @package FormBundle
+ * @class
+ */
+
+Sy.FormBundle.Config.Service = function () {};
+Sy.FormBundle.Config.Service.prototype = Object.create(Object.prototype, {
+    define: {
+        value: function (container) {
+            container.set({
+                'sy::core::form': {
+                    constructor: 'Sy.Form.Builder',
+                    calls: [
+                        ['setValidator', ['@sy::core::validator']]
+                    ]
+                }
+            });
+
+            container.addPass(
+                new Sy.FormBundle.CompilerPass.FormTypePass()
+            );
+        }
+    }
+});
+namespace('Sy.HttpBundle.Config');
+
+/**
+ * Register the http services
+ *
+ * @package Sy
+ * @subpackage HttpBundle
+ * @class
+ */
+
+Sy.HttpBundle.Config.Service = function () {};
+Sy.HttpBundle.Config.Service.prototype = Object.create(Object.prototype, {
+    define: {
+        value: function (container) {
+            container.set({
+                rest: '@sy::core::http::rest',
+                'sy::core::http::rest': {
+                    constructor: 'Sy.HTTP.REST',
+                    calls: [
+                        ['setManager', ['@sy::core::http']]
+                    ]
+                },
+                http: '@sy::core::http',
+                'sy::core::http': {
+                    constructor: 'Sy.HTTP.Manager',
+                    calls: [
+                        ['setParser', ['@sy::core::http::parser']],
+                        ['setGenerator', ['@sy::core::generator::uuid']],
+                        ['setRegistry', ['@sy::core::registry']],
+                        ['setLogger', ['@sy::core::logger']]
+                    ]
+                },
+                'sy::core::http::parser': {
+                    constructor: 'Sy.HTTP.HeaderParser',
+                    private: true
+                }
+            });
+        }
+    }
+});
+namespace('Sy.StorageBundle.Config');
+
+/**
+ * Register storage services
+ *
+ * @package Sy
+ * @subpackage StorageBundle
+ * @class
+ */
+
+Sy.StorageBundle.Config.Service = function () {};
+Sy.StorageBundle.Config.Service.prototype = Object.create(Object.prototype, {
+    define: {
+        value: function (container) {
+            container.set({
+                'sy::core::storage::dbal::factory': {
+                    constructor: 'Sy.Storage.Dbal.Factory',
+                    calls: [
+                        ['setFactoriesRegistry', ['@sy::core::registry']],
+                        ['setDefaultConnectionName', ['%storage.dbal.defaultConnection%']],
+                        ['setConnections', ['%storage.dbal.connections%']]
+                    ]
+                },
+                'sy::core::storage::dbal::driver_factory::indexeddb': {
+                    constructor: 'Sy.Storage.Dbal.IndexedDBFactory',
+                    private: true,
+                    calls: [
+                        ['setEntitiesMeta', ['%app.meta.entities%']],
+                        ['setLogger', ['@sy::core::logger']]
+                    ],
+                    tags: [
+                        {name: 'storage.driver_factory', alias: 'indexeddb'}
+                    ]
+                },
+                'sy::core::storage::dbal::driver_factory::localstorage': {
+                    constructor: 'Sy.Storage.Dbal.LocalstorageFactory',
+                    private: true,
+                    calls: [
+                        ['setEntitiesMeta', ['%app.meta.entities%']]
+                    ],
+                    tags: [
+                        {name: 'storage.driver_factory', alias: 'localstorage'}
+                    ]
+                },
+                'sy::core::storage::dbal::driver_factory::rest': {
+                    constructor: 'Sy.Storage.Dbal.RestFactory',
+                    private: true,
+                    calls: [
+                        ['setEntitiesMeta', ['%app.meta.entities%']],
+                        ['setREST', ['@sy::core::http::rest']]
+                    ],
+                    tags: [
+                        {name: 'storage.driver_factory', alias: 'rest'}
+                    ]
+                },
+                storage: '@sy::core::storage',
+                'sy::core::storage': {
+                    constructor: 'Sy.Storage.Core',
+                    calls: [
+                        ['setManagersRegistry', ['@sy::core::registry']],
+                        ['setDefaultManager', ['%storage.orm.defaultManager%']],
+                        ['setManagerFactory', ['@sy::core::storage::factory::manager']]
+                    ]
+                },
+                'sy::core::storage::factory::manager': {
+                    constructor: 'Sy.Storage.ManagerFactory',
+                    private: true,
+                    calls: [
+                        ['setDefinitions', ['%storage.orm.managers%']],
+                        ['setDbalFactory', ['@sy::core::storage::dbal::factory']],
+                        ['setRepositoryFactory', ['@sy::core::storage::factory::repository']],
+                        ['setUnitOfWorkFactory', ['@sy::core::storage::factory::unitofwork']]
+                    ]
+                },
+                'sy::core::storage::factory::repository': {
+                    constructor: 'Sy.Storage.RepositoryFactory',
+                    private: true,
+                    configurator: ['sy::core::storage::repofactconfigurator', 'configure'],
+                    calls: [
+                        ['setMetadataRegistry', ['@sy::core::registry']],
+                        ['setRepositoriesRegistry', ['@sy::core::registry']]
+                    ]
+                },
+                'sy::core::storage::repofactconfigurator': {
+                    constructor: 'Sy.Storage.RepositoryFactoryConfigurator',
+                    private: true,
+                    calls: [
+                        ['setMetadata', ['%app.meta.entities%']]
+                    ]
+                },
+                'sy::core::storage::factory::unitofwork': {
+                    constructor: 'Sy.Storage.UnitOfWorkFactory',
+                    private: true,
+                    calls: [
+                        ['setStateRegistryFactory', ['@sy::core::stateregistry::factory']],
+                        ['setGenerator', ['@sy::core::generator::uuid']],
+                        ['setLogger', ['@sy::core::logger']],
+                        ['setMediator', ['@sy::core::mediator']],
+                        ['setPropertyAccessor', ['@sy::core::propertyaccessor']],
+                        ['setEntitiesMetadata', ['%app.meta.entities%']]
+                    ]
+                }
+            });
+
+            container.addPass(
+                new Sy.StorageBundle.CompilerPass.RegisterDriverFactoryPass()
+            );
+        }
+    }
+});
+namespace('Sy.TranslatorBundle.Config');
+
+/**
+ * Register translator config
+ *
+ * @package Sy
+ * @subpackage TranslatorBundle
+ * @class
+ */
+
+Sy.TranslatorBundle.Config.Service = function () {};
+Sy.TranslatorBundle.Config.Service.prototype = Object.create(Object.prototype, {
+    define: {
+        value: function (container) {
+            container.set({
+                translator: '@sy::core::translator',
+                'sy::core::translator': {
+                    constructor: 'Sy.Translator',
+                    calls: [
+                        ['setRegistry', ['@sy::core::registry']],
+                        ['setStateRegistryFactory', ['@sy::core::stateregistry::factory']]
+                    ]
+                }
+            });
+        }
+    }
+});
+namespace('Sy.ValidatorBundle.Config');
+
+/**
+ * Register validator services
+ *
+ * @package Sy
+ * @subpackage ValidatorBundle
+ * @class
+ */
+
+Sy.ValidatorBundle.Config.Service = function () {};
+Sy.ValidatorBundle.Config.Service.prototype = Object.create(Object.prototype, {
+    define: {
+        value: function (container) {
+            container.set({
+                validator: '@sy::core::validator',
+                'sy::core::validator': {
+                    constructor: 'Sy.Validator.Core',
+                    calls: [
+                        ['setRulesRegistry', ['@sy::core::registry']],
+                        ['setContextFactory', ['@sy::core::validator::executioncontextfactory']],
+                        ['setConstraintFactory', ['@sy::core::validator::constraintfactory']]
+                    ]
+                },
+                'sy::core::validator::executioncontextfactory': {
+                    constructor: 'Sy.Validator.ExecutionContextFactory',
+                    calls: [
+                        ['setConstraintValidatorFactory', ['@sy::core::validator::constraintvalidatorfactory']]
+                    ],
+                    private: true
+                },
+                'sy::core::validator::constraintvalidatorfactory': {
+                    constructor: 'Sy.Validator.ConstraintValidatorFactory',
+                    private: true
+                },
+                'sy::core::validator::constraintfactory': {
+                    constructor: 'Sy.Validator.ConstraintFactory',
+                    private: true
+                }
+            });
+        }
+    }
+});
+namespace('Sy.ViewBundle.Config');
+
+/**
+ * Register view engine services
+ *
+ * @package Sy
+ * @subpackage ViewBundle
+ * @class
+ */
+
+Sy.ViewBundle.Config.Service = function () {};
+Sy.ViewBundle.Config.Service.prototype = Object.create(Object.prototype, {
+    define: {
+        value: function (container) {
+            var vs = new Sy.ViewBundle.CompilerPass.RegisterViewScreenWrapperPass(),
+                layout = new Sy.ViewBundle.CompilerPass.RegisterLayoutWrapperPass(),
+                list = new Sy.ViewBundle.CompilerPass.RegisterListWrapperPass();
+
+            container.set({
+                'sy::core::view::parser': {
+                    constructor: 'Sy.View.Parser'
+                },
+                'sy::core::view::factory::list': {
+                    constructor: 'Sy.View.ListFactory',
+                    calls: [
+                        ['setTemplateEngine', ['@sy::core::view::template::engine']],
+                        ['setRegistry', ['@sy::core::registry']]
+                    ]
+                },
+                'sy::core::view::factory::layout': {
+                    constructor: 'Sy.View.LayoutFactory',
+                    calls: [
+                        ['setParser', ['@sy::core::view::parser']],
+                        ['setTemplateEngine', ['@sy::core::view::template::engine']],
+                        ['setRegistryFactory', ['@sy::core::registry::factory']],
+                        ['setListFactory', ['@sy::core::view::factory::list']]
+                    ]
+                },
+                'sy::core::view::factory::viewscreen': {
+                    constructor: 'Sy.View.ViewScreenFactory',
+                    calls: [
+                        ['setParser', ['@sy::core::view::parser']],
+                        ['setTemplateEngine', ['@sy::core::view::template::engine']],
+                        ['setRegistryFactory', ['@sy::core::registry::factory']],
+                        ['setLayoutFactory', ['@sy::core::view::factory::layout']],
+                    ]
+                },
+                'sy::core::view::template::engine': {
+                    constructor: 'Sy.View.TemplateEngine',
+                    calls: [
+                        ['setRegistry', ['@sy::core::registry']],
+                        ['setGenerator', ['@sy::core::generator::uuid']]
+                    ]
+                },
+                'sy::core::viewport': {
+                    constructor: 'Sy.View.ViewPort',
+                    calls: [
+                        ['setNode', [document.querySelector('.viewport')]],
+                        ['setViewManager', ['@sy::core::view::manager']],
+                        ['setMediator', ['@sy::core::mediator']]
+                    ]
+                },
+                'sy::core::view::manager': {
+                    constructor: 'Sy.View.Manager',
+                    configurator: ['sy::core::view::managerconfigurator', 'configure'],
+                    calls: [
+                        ['setViewsRegistry', ['@sy::core::registry']],
+                        ['setViewScreenFactory', ['@sy::core::view::factory::viewscreen']]
+                    ],
+                },
+                'sy::core::view::managerconfigurator': {
+                    constructor: 'Sy.View.ManagerConfigurator',
+                    calls: [
+                        ['setParser', ['@sy::core::view::parser']]
+                    ]
+                }
+            });
+
+            container
+                .addPass(vs)
+                .addPass(layout)
+                .addPass(list);
+        }
+    }
 });
 namespace('Sy.Lib.Generator');
 
@@ -2323,7 +2591,9 @@ Sy.Lib.Logger.Handler.Console = function (level) {
 
     this.level = null;
 
-    this.setLevel(level);
+    if (level !== undefined) {
+        this.setLevel(level);
+    }
 
 };
 
@@ -4163,6 +4433,53 @@ Sy.HTTP.HTMLResponse.prototype = Object.create(Sy.HTTP.Response.prototype);
 namespace('Sy.HTTP');
 
 /**
+ * Object for requesting images via ajax
+ *
+ * @package Sy
+ * @subpackage HTTP
+ * @extends {Sy.HTTP.Request}
+ * @class
+ */
+
+Sy.HTTP.ImageRequest = function () {
+    Sy.HTTP.Request.call(this);
+    this.setType('blob');
+    this.setHeader('Accept', 'image/*');
+};
+Sy.HTTP.ImageRequest.prototype = Object.create(Sy.HTTP.Request.prototype);
+
+namespace('Sy.HTTP');
+
+/**
+ * Image request response as blob
+ *
+ * @package Sy
+ * @subpackage HTTP
+ * @extends {Sy.HTTP.Response}
+ * @lass
+ */
+
+Sy.HTTP.ImageResponse = function () {
+    Sy.HTTP.Response.call(this);
+};
+Sy.HTTP.ImageResponse.prototype = Object.create(Sy.HTTP.Response.prototype, {
+
+    /**
+     * Return the image blob
+     *
+     * @return {Blob}
+     */
+
+    getBlob: {
+        value: function () {
+            return this.getBody();
+        }
+    }
+
+})
+namespace('Sy.HTTP');
+
+/**
  * Accept Request objects and handle launching them,
  * it's possible to cancel them as well
  *
@@ -4427,6 +4744,14 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
                     response = new Sy.HTTP.HTMLResponse();
 
+                } else if (
+                    headers['Content-Type'] !== undefined &&
+                    headers['Content-Type'].indexOf('image/') !== -1 &&
+                    request.obj.getType() === 'blob'
+                ) {
+
+                    response = new Sy.HTTP.ImageResponse();
+
                 } else {
 
                     response = new Sy.HTTP.Response();
@@ -4478,6 +4803,18 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
             return this;
 
+        }
+    },
+
+    /**
+     * Return an array of all pending xhrs
+     *
+     * @return {Array}
+     */
+
+    getStack: {
+        value: function () {
+            return this.requests.get();
         }
     }
 
@@ -4912,6 +5249,191 @@ Sy.RegistryFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
 namespace('Sy');
 
 /**
+ * Tool to easily retrieve/set data of a particular path in an object graph
+ *
+ * @package Sy
+ * @class
+ */
+
+Sy.PropertyAccessor = function (disableGetterSetter) {
+    this.disableGetterSetter = !!disableGetterSetter;
+};
+
+Sy.PropertyAccessor.prototype = Object.create(Object.prototype, {
+
+    prefixes: {
+        value: ['get', 'is', 'has'],
+        writable: false,
+        configurable: false
+    },
+
+    /**
+     * Return the value for the given object path
+     *
+     * @param {Object} object Path root
+     * @param {String|Array} path
+     *
+     * @throws {ReferenceError} If the path is not reachable
+     *
+     * @return {mixed}
+     */
+
+    getValue: {
+        value: function (object, path) {
+            var elements = this.transform(path),
+                prop = elements.shift(),
+                refl = new ReflectionObject(object),
+                fromGetter = false,
+                value,
+                method;
+
+            if (!this.disableGetterSetter) {
+                for (var i = 0, l = this.prefixes.length; i < l; i++) {
+                    method = this.prefixes[i] + this.camelize(prop);
+
+                    if (refl.hasMethod(method)) {
+                        value = refl.getMethod(method).call();
+                        fromGetter = true;
+                        break;
+                    }
+                }
+
+                if (!fromGetter && refl.hasMethod('get')) {
+                    value = refl.getMethod('get').call(prop);
+                    fromGetter = true;
+                }
+            }
+
+            if (!fromGetter && refl.hasProperty(prop)) {
+                value = refl.getProperty(prop).getValue();
+            } else if (!fromGetter) {
+                return undefined;
+            }
+
+            if (elements.length === 0) {
+                return value;
+            }
+
+            return this.getValue(value, elements);
+        }
+    },
+
+    /**
+     * Access the specified path in the object and change the value to the one specified
+     *
+     * @param {Object} object
+     * @param {String} path
+     * @param {mixed} value
+     *
+     * @return {Sy.PropertyAccessor} self
+     */
+
+    setValue: {
+        value: function (object, path, value) {
+            var elements = this.transform(path),
+                prop = elements.pop(),
+                refl,
+                method;
+
+            if (elements.length !== 0) {
+                object = this.getValue(object, elements);
+            }
+
+            if (typeof object === 'undefined') {
+                throw new ReferenceError('Path "' + path + '" not writable');
+            }
+
+            if (!this.disableGetterSetter) {
+                method = 'set' + this.camelize(prop);
+                refl = new ReflectionObject(object);
+
+                if (refl.hasMethod(method)) {
+                    refl.getMethod(method).call(value);
+                    return this;
+                }
+            }
+
+            object[prop] = value;
+
+            return this;
+        }
+    },
+
+    /**
+     * Transform a path string into an array of its elements
+     *
+     * @param {String|Array} path
+     *
+     * @return {Array}
+     */
+
+    transform: {
+        value: function (path) {
+            if (path instanceof Array) {
+                return path;
+            }
+
+            if (typeof path !== 'string' || path.trim() === '') {
+                throw new TypeError('Invalid path');
+            }
+
+            return path.split('.');
+        }
+    },
+
+    /**
+     * Camelize a string
+     *
+     * @param {String} string
+     *
+     * @return {String}
+     */
+
+    camelize: {
+        value: function (string) {
+            var pieces = string.split('_');
+
+            pieces.forEach(function (el, id) {
+                this[id] = el.substr(0, 1).toUpperCase() + el.substr(1);
+            }, pieces);
+
+            return pieces.join('');
+        }
+    },
+
+    /**
+     * Activate the use of getters/setters
+     *
+     * @return {Sy.PropertyAccessor} self
+     */
+
+    enableSetterGetter: {
+        value: function () {
+            this.disableGetterSetter = false;
+
+            return this;
+        }
+    },
+
+    /**
+     * Deactivate the use of getters/setters
+     *
+     * @return {Sy.PropertyAccessor} self
+     */
+
+    disableSetterGetter: {
+        value: function () {
+            this.disableGetterSetter = true;
+
+            return this;
+        }
+    }
+
+});
+
+namespace('Sy');
+
+/**
  * Interface to describe how to manipulate key/value pairs
  * in different states
  *
@@ -4994,6 +5516,16 @@ Sy.StateRegistryInterface.prototype = Object.create(Object.prototype, {
 
     remove: {
         value: function (state, key) {}
+    },
+
+    /**
+     * Set the registry as strict, meaning a key can only exist in one state
+     *
+     * @return {Sy.StateRegistryInterface}
+     */
+
+    setStrict: {
+        value: function () {}
     }
 
 });
@@ -5008,11 +5540,10 @@ namespace('Sy');
  */
 
 Sy.StateRegistry = function () {
-
     this.data = null;
     this.states = [];
     this.registryFactory = null;
-
+    this.strict = false;
 };
 
 Sy.StateRegistry.prototype = Object.create(Sy.StateRegistryInterface.prototype, {
@@ -5054,6 +5585,14 @@ Sy.StateRegistry.prototype = Object.create(Sy.StateRegistryInterface.prototype, 
                 this.data.set(state, r);
                 this.states.push(state);
 
+            }
+
+            if (this.strict === true) {
+                var oldState = this.state(key);
+
+                if (oldState !== undefined) {
+                    this.remove(oldState, key);
+                }
             }
 
             this.data
@@ -5165,6 +5704,18 @@ Sy.StateRegistry.prototype = Object.create(Sy.StateRegistryInterface.prototype, 
             return this;
 
         }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    setStrict: {
+        value: function () {
+            this.strict = true;
+
+            return this;
+        }
     }
 
 });
@@ -5224,313 +5775,105 @@ Sy.StateRegistryFactory.prototype = Object.create(Sy.FactoryInterface.prototype,
     }
 
 });
-namespace('Sy.Storage');
+namespace('Sy');
 
 /**
- * Interface showing how a repository must handle entities
- * Each Entity Repository must implement this interface
+ * Entity interface
  *
  * @package Sy
- * @subpackage Storage
  * @interface
  */
 
-Sy.Storage.RepositoryInterface = function () {};
+Sy.EntityInterface = function () {};
+Sy.EntityInterface.prototype = Object.create(Object.prototype, {
 
-Sy.Storage.RepositoryInterface.prototype = Object.create(Object.prototype, {
-
-    /**
-     * Set a unit of work to handle modifications of entities
-     *
-     * @param {Sy.Storage.UnitOfWork} uow
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    setUnitOfWork: {
-        value: function (uow) {}
+    UUID: {
+        value: 'uuid'
     },
 
     /**
-     * Set the entity cache registry
+     * Set an attribute value to the entity
      *
-     * @param {Sy.RegistryInterface} registry
+     * @param {string} attr
+     * @param {mixed} value
      *
-     * @return {Sy.Storage.RepositoryInterface}
+     * @return {Sy.EntityInterface}
      */
 
-    setCacheRegistry: {
-        value: function (registry) {}
+    set: {
+        value: function (attr, value) {
+
+            return this;
+
+        }
     },
 
     /**
-     * Set the alias name of entities handled by the repository
+     * Return an attribute value
      *
-     * @param {string} name
+     * @param {string} attr
      *
-     * @return {Sy.Storage.RepositoryInterface}
+     * @return {mixed}
      */
 
-    setName: {
-        value: function (name) {}
+    get: {
+        value: function (attr) {}
+    }
+
+});
+namespace('Sy');
+
+/**
+ * Default implementation of an entity
+ *
+ * @package Sy
+ * @class
+ * @implements {Sy.EntityInterface}
+ */
+
+Sy.Entity = function () {};
+Sy.Entity.prototype = Object.create(Sy.EntityInterface.prototype, {
+
+    INDEXES: {
+        value: [],
+        enumerable: false
     },
 
     /**
-     * Set the storage engine
-     *
-     * @param {Sy.Storage.EngineInterface} engine
-     *
-     * @return {Sy.Storage.RepositoryInterface}
+     * @inheritDoc
      */
 
-    setEngine: {
-        value: function (engine) {}
+    set: {
+        value: function (attr, value) {
+            if (attr instanceof Object) {
+                for (var p in attr) {
+                    if (attr.hasOwnProperty(p)) {
+                        this.set(p, attr[p]);
+                    }
+                }
+            } else {
+                this[attr] = value;
+            }
+
+            return this;
+        }
     },
 
     /**
-     * Set the entity property acting as identifier
-     *
-     * @param {string} key
-     *
-     * @return {Sy.Storage.RepositoryInterface}
+     * @inheritDoc
      */
 
-    setEntityKey: {
-        value: function (key) {}
-    },
-
-    /**
-     * Set the constructor for the handled entity
-     *
-     * @param {Sy.EntityInterface} constructor Entity constructor
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    setEntityConstructor: {
-        value: function (constructor) {}
-    },
-
-    /**
-     * Set the indexes of the entity
-     *
-     * @param {Array} indexes
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    setIndexes: {
-        value: function (indexes) {}
-    },
-
-    /**
-     * Set the identifier generator
-     *
-     * @param {Sy.Lib.Generator.Interface} generator
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    setGenerator: {
-        value: function (generator) {}
-    },
-
-    /**
-     * Persist a new entity
-     *
-     * If trying to persist an entity not handled by the repo, raise a TypeError
-     *
-     * @param {Sy.EntityInterface} entity
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    persist: {
-        value: function (entity) {}
-    },
-
-    /**
-     * Remove an entity
-     *
-     * @param {Sy.EntityInterface} entity
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    remove: {
-        value: function (entity) {}
-    },
-
-    /**
-     * Apply the changes to the storage (create/update/delete)
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    flush: {
-        value: function () {}
-    },
-
-    /**
-     * Find one entity in the storage
-     * Only indexes can be searchable
-     *
-     * @param {object} args Allowed properties: index, value, callback
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    findOneBy: {
-        value: function (args) {}
-    },
-
-    /**
-     * Find a set of entities in the storage
-     * Only indexes can be searchable
-     *
-     * @param {object} args Allowed properties: index, value, callback
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    findBy: {
-        value: function (args) {}
+    get: {
+        value: function (attr) {
+            return this[attr];
+        }
     }
 
 });
 namespace('Sy.Storage');
 
 /**
- * Interface explaining how the engines must work
- *
- * @package Sy
- * @subpackage Storage
- * @interface
- * @param {mixed} meta Informations about the engine
- */
-
-Sy.Storage.EngineInterface = function (meta) {};
-
-Sy.Storage.EngineInterface.prototype = Object.create(Object.prototype, {
-
-    /**
-     * Add a new store in the engine (where objects will be putted)
-     *
-     * @param {string} alias Callable store
-     * @param {string} name Actual name used to construct the store
-     * @param {string} identifier Property used as identifier
-     * @param {Array} indexes
-     *
-     * @return {Sy.Storage.EngineInterface}
-     */
-
-    setStore: {
-        value: function (alias, name, identifier, indexes) {}
-    },
-
-    /**
-     * Retrieve an item by its identifier
-     *
-     * @param {string} store Alias name of the store
-     * @param {string} identifier
-     * @param {function} callback Called when the item is retrieved with the whole object as argument
-     *
-     * @return {Sy.Storage.EngineInterface}
-     */
-
-    read: {
-        value: function (store, identifier, callback) {}
-    },
-
-    /**
-     * Create a new element
-     *
-     * @param {string} store Alias name of the store
-     * @param {object} object
-     * @param {function} callback Called when the item is created with its id as argument
-     *
-     * @return {Sy.Storage.EngineInterface}
-     */
-
-    create: {
-        value: function (store, object, callback) {}
-    },
-
-    /**
-     * Update an element in the storage
-     *
-     * @param {string} store Alias name of the store
-     * @param {string} identifier Object identifier
-     * @param {object} object
-     * @param {function} callback Called when the item is updated with the whole object as argument
-     *
-     * @return {Sy.Storage.EngineInterface}
-     */
-
-    update: {
-        value: function (store, identifier, object, callback) {}
-    },
-
-    /**
-     * Remove an element from the storage
-     *
-     * @param {string} store Alias name of the store
-     * @param {string} identifier
-     * @param {function} callback Called when the item is deleted with the id as argument
-     *
-     * @return {Sy.Storage.EngineInterface}
-     */
-
-    remove: {
-        value: function (store, identifier, callback) {}
-    },
-
-    /**
-     * Find (an) element(s) in the storage
-     *
-     * @param {string} store Alias name of the store
-     * @param {object} args Available properties: index, value, limit, callback
-     *
-     * @return {Sy.Storage.EngineInterface}
-     */
-
-    find: {
-        value: function (store, args) {}
-    }
-
-});
-namespace('Sy.Storage');
-
-/**
- * Interface to define how to transform entities metadata
- * into store informations readable by a storage engine
- *
- * @package Sy
- * @subpackage Storage
- * @interface
- */
-
-Sy.Storage.StoreMapperInterface = function () {};
-Sy.Storage.StoreMapperInterface.prototype = Object.create(Object.prototype, {
-
-    /**
-     * Transform an entity metadata into store metadata
-     *
-     * @param {Object} meta
-     *
-     * @return {Object}
-     */
-
-    transform: {
-        value: function (meta) {}
-    }
-
-});
-
-namespace('Sy.Storage');
-
-/**
- * Main entrance to access storage functionalities
+ * Entry point to the storage mechanism
  *
  * @package Sy
  * @subpackage Storage
@@ -5538,193 +5881,2178 @@ namespace('Sy.Storage');
  */
 
 Sy.Storage.Core = function () {
-
     this.managers = null;
-
+    this.defaultName = 'default';
+    this.factory = null;
 };
-
 Sy.Storage.Core.prototype = Object.create(Object.prototype, {
 
     /**
-     * Set a registry holding the managers
+     * Set a registry to hold managers
      *
-     * @param {Sy.Registry} registry
+     * @param {Sy.RegistryInterface} registry
      *
-     * @return {Sy.Storage.Core}
+     * @return {Sy.Storage.Core} self
      */
 
-    setRegistry: {
+    setManagersRegistry: {
         value: function (registry) {
-
-            if (!(registry instanceof Sy.Registry)) {
+            if (!(registry instanceof Sy.RegistryInterface)) {
                 throw new TypeError('Invalid registry');
             }
 
-            this.managers = new Sy.Registry();
+            this.managers = registry;
 
             return this;
-
         }
     },
 
     /**
-     * Set a new manager
+     * Set the default manager name
      *
-     * @param {string} name
-     * @param {Sy.Storage.Manager} manager
+     * @param {String} defaultName
      *
-     * @return {Sy.Storage.Core}
+     * @return {Sy.Storage.Core} self
      */
 
-    setManager: {
-        value: function (name, manager) {
-
-            if (!(manager instanceof Sy.Storage.Manager)) {
-                throw new TypeError('Invalid manager type');
-            }
-
-            this.managers.set(name, manager);
+    setDefaultManager: {
+        value: function (defaultName) {
+            this.defaultName = defaultName || 'default';
 
             return this;
-
         }
     },
 
     /**
-     * Get a manager
+     * Set the manager factory
      *
-     * If the name is not specified it is set to main
+     * @param {Sy.Storage.ManagerFactory} factory
      *
-     * @param {string} manager
+     * @return {Sy.Storage.Core} self
+     */
+
+    setManagerFactory: {
+        value: function (factory) {
+            if (!(factory instanceof Sy.Storage.ManagerFactory)) {
+                throw new TypeError('Invalid manager factory');
+            }
+
+            this.factory = factory;
+
+            return this;
+        }
+    },
+
+    /**
+     * Get an entity manager
+     *
+     * @param {String} name Manager name, optional
      *
      * @return {Sy.Storage.Manager}
      */
 
     getManager: {
-        value: function (manager) {
+        value: function (name) {
+            name = name || this.defaultName;
 
-            manager = manager || 'main';
+            if (this.managers.has(name)) {
+                return this.managers.get(name);
+            }
 
-            return this.managers.get(manager);
+            var manager = this.factory.make(name);
 
+            this.managers.set(name, manager);
+
+            return manager;
         }
     }
 
 });
-namespace('Sy.Storage.Event');
+
+namespace('Sy.Storage');
 
 /**
- * Event fired when modification happens at the storage engine level
- * meaning create/update/remove actions are called
+ * Hold the relation between an alias and an entity constructor
  *
  * @package Sy
- * @subpackage Storage.Event
+ * @subpackage Storage
  * @class
  */
 
-Sy.Storage.Event.LifecycleEvent = function (storageName, storeName, identifier, object) {
-    this.storageName = storageName;
-    this.storeName = storeName;
-    this.identifier = identifier;
-    this.object = object;
+Sy.Storage.IdentityMap = function () {
+    this.aliases = [];
+    this.constructors = [];
+    this.prototypes = [];
+    this.keys = [];
 };
-Sy.Storage.Event.LifecycleEvent.prototype = Object.create(Object.prototype, {
+Sy.Storage.IdentityMap.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set a new entity definition
+     *
+     * @param {String} alias
+     * @param {Function} entity
+     * @param {String} key
+     *
+     * @return {Sy.Storage.IdentityMap} self
+     */
+
+    set: {
+        value: function (alias, entity, key) {
+            if (Object.isFrozen(this.aliases)) {
+                return this;
+            }
+
+            this.aliases.push(alias);
+            this.constructors.push(entity);
+            this.prototypes.push(entity.prototype);
+            this.keys.push(key);
+
+            return this;
+        }
+    },
+
+    /**
+     * Lock the definitions so indexes are preserved (no addition nor removal)
+     *
+     * @return {Sy.Storage.IdentityMap} self
+     */
+
+    lock: {
+        value: function () {
+            Object.freeze(this.aliases);
+            Object.freeze(this.constructors);
+            Object.freeze(this.prototypes);
+            Object.freeze(this.keys);
+
+            return this;
+        }
+    },
+
+    /**
+     * Check if the given alias is defined
+     *
+     * @param {String} alias
+     *
+     * @return {Boolean}
+     */
+
+    hasAlias: {
+        value: function (alias) {
+            return this.aliases.indexOf(alias) !== -1;
+        }
+    },
+
+    /**
+     * Check if the given entity is defined
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Boolean}
+     */
+
+    hasEntity: {
+        value: function (entity) {
+            var refl = new ReflectionObject(entity);
+
+            return this.prototypes.indexOf(refl.getPrototype()) !== -1;
+        }
+    },
+
+    /**
+     * Return the alias for the given entity
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {String}
+     */
+
+    getAlias: {
+        value: function (entity) {
+            var refl = new ReflectionObject(entity),
+                idx = this.prototypes.indexOf(refl.getPrototype());
+
+            return this.aliases[idx];
+        }
+    },
+
+    /**
+     * Return the entity constructor for the given alias
+     *
+     * @param {String} alias
+     *
+     * @return {Sy.EntityInterface}
+     */
+
+    getConstructor: {
+        value: function (alias) {
+            var idx = this.aliases.indexOf(alias);
+
+            return this.constructors[idx];
+        }
+    },
+
+    /**
+     * Return the key for the specified alias
+     *
+     * @param {String} alias
+     *
+     * @return {String}
+     */
+
+    getKey: {
+        value: function (alias) {
+            var idx = this.aliases.indexOf(alias);
+
+            return this.keys[idx];
+        }
+    }
+
+});
+
+namespace('Sy.Storage');
+
+/**
+ * Event fired before/after an entity is committed to the database
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ */
+
+Sy.Storage.LifeCycleEvent = function (alias, entity) {
+    this.alias = alias;
+    this.entity = entity;
+    this.aborted = false;
+};
+Sy.Storage.LifeCycleEvent.prototype = Object.create(Object.prototype, {
 
     PRE_CREATE: {
-        value: 'storage::on::pre::create',
+        value: 'storage.pre.create',
         writable: false
     },
 
     POST_CREATE: {
-        value: 'storage::on::post::create',
+        value: 'storage.post.create',
         writable: false
     },
 
     PRE_UPDATE: {
-        value: 'storage::on::pre:update',
+        value: 'storage.pre.update',
         writable: false
     },
 
     POST_UPDATE: {
-        value: 'storage::on::post::update',
+        value: 'storage.post.update',
         writable: false
     },
 
     PRE_REMOVE: {
-        value: 'storage::on::pre::remove',
+        value: 'storage.pre.remove',
         writable: false
     },
 
     POST_REMOVE: {
-        value: 'storage::on::post::remove',
+        value: 'storage.post.remove',
         writable: false
     },
 
     /**
-     * Return the storage name of the storage engine
+     * Return the alias of the entity being committed
      *
      * @return {String}
      */
 
-    getStorageName: {
+    getAlias: {
         value: function () {
-            return this.storageName;
+            return this.alias;
         }
     },
 
     /**
-     * Return the store name of the data being manipulated
+     * Return the entity being committed
      *
-     * @return {String}
+     * @return {Sy.EntityInterface}
      */
 
-    getStoreName: {
+    getEntity: {
         value: function () {
-            return this.storeName;
+            return this.entity;
         }
     },
 
     /**
-     * Return the identifier of the object being manipulated,
-     * available for update and remove events
+     * Abort the commit to the database for this entity
      *
-     * @return {String}
+     * @return {Sy.Storage.LifeCycleEvent} self
      */
 
-    getIdentifier: {
+    abort: {
         value: function () {
-            return this.identifier;
+            this.aborted = true;
+
+            return this;
         }
     },
 
     /**
-     * Return the data being manipulated
+     * Check if the commit needs to be aborted
      *
-     * @return {Object}
+     * @return {Boolean}
      */
 
-    getData: {
+    isAborted: {
         value: function () {
-            return this.object;
+            return this.aborted;
         }
     }
 
 });
 
-namespace('Sy.Storage.Engine');
+namespace('Sy.Storage');
 
 /**
- * Engine persisiting data to the IndexedDB html5 API
+ * Entity manager
  *
  * @package Sy
- * @subpackage Storage.Engine
- * @implements {Sy.Storage.EngineInterface}
+ * @subpackage Storage
  * @class
  */
 
-Sy.Storage.Engine.IndexedDB = function (version) {
+Sy.Storage.Manager = function () {
+    this.driver = null;
+    this.uow = null;
+    this.mappings = null;
+    this.repoFactory = null;
+};
+Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
 
-    this.version = version;
+    /**
+     * Set the database driver
+     *
+     * @param {Sy.Storage.Dbal.DriverInterface} driver
+     *
+     * @return {Sy.Storage.Manager} self
+     */
+
+    setDriver: {
+        value: function (driver) {
+            if (!(driver instanceof Sy.Storage.Dbal.DriverInterface)) {
+                throw new TypeError('Invalid dbal driver');
+            }
+
+            this.driver = driver;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the driver
+     *
+     * @return {Sy.Storage.Dbal.DriverInterface}
+     */
+
+    getDriver: {
+        value: function () {
+            return this.driver;
+        }
+    },
+
+    /**
+     * Set the unit of work
+     *
+     * @param {Sy.Storage.UnitOfWork} uow
+     *
+     * @return {Sy.Storage.Manager} self
+     */
+
+    setUnitOfWork: {
+        value: function (uow) {
+            if (!(uow instanceof Sy.Storage.UnitOfWork)) {
+                throw new TypeError('Invalid unit of work');
+            }
+
+            this.uow = uow;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the UnitOfWork
+     *
+     * @return {Sy.Storage.UnitOfWork}
+     */
+
+    getUnitOfWork: {
+        value: function () {
+            return this.uow;
+        }
+    },
+
+    /**
+     * Set the allowed entities to be managed here
+     *
+     * @param {Array} mappings
+     *
+     * @return {Sy.Storage.Manager} self
+     */
+
+    setMappings: {
+        value: function (mappings) {
+            if (!(mappings instanceof Array)) {
+                throw new TypeError('Invalid mappings array');
+            }
+
+            this.mappings = mappings;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the repository factory
+     *
+     * @param {Sy.Storage.RepositoryFactory} factory
+     *
+     * @return {Sy.Storage.Manager} self
+     */
+
+    setRepositoryFactory: {
+        value: function (factory) {
+            if (!(factory instanceof Sy.Storage.RepositoryFactory)) {
+                throw new TypeError('Invalid repository factory');
+            }
+            this.repoFactory = factory;
+
+            return this;
+        }
+    },
+
+    /**
+     * Get the repository for the given alias
+     *
+     * @param {String} alias
+     *
+     * @return {Sy.Storage.Repository}
+     */
+
+    getRepository: {
+        value: function (alias) {
+            if (!this.isHandled(alias)) {
+                throw new ReferenceError('Entity not handled by this manager');
+            }
+
+            return this.repoFactory.make(this, alias);
+        }
+    },
+
+    /**
+     * Find an entity by its id
+     *
+     * @param {String} alias Entity name alias (ie: 'Bundle::Entity')
+     * @param {String} id
+     *
+     * @return {Promise}
+     */
+
+    find: {
+        value: function (alias, id) {
+            if (!this.isHandled(alias)) {
+                throw new ReferenceError('Entity not handled by this manager');
+            }
+
+            return this.uow.find(alias, id);
+        }
+    },
+
+    /**
+     * Plan an entity to be persisted to the database
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Sy.Storage.Manager} self
+     */
+
+    persist: {
+        value: function (entity) {
+            if (!this.isHandled(this.uow.getIdentityMap().getAlias(entity))) {
+                throw new ReferenceError('Entity not handled by this manager');
+            }
+
+            this.uow.persist(entity);
+
+            return this;
+        }
+    },
+
+    /**
+     * Commit the changes to the database
+     *
+     * @return {Sy.Storage.Manager} self
+     */
+
+    flush: {
+        value: function () {
+            this.uow.commit();
+
+            return this;
+        }
+    },
+
+    /**
+     * Plan an entity to be removed from the database
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Sy.Storage.Manager} self
+     */
+
+    remove: {
+        value: function (entity) {
+            if (!this.isHandled(this.uow.getIdentityMap().getAlias(entity))) {
+                throw new ReferenceError('Entity not handled by this manager');
+            }
+
+            this.uow.remove(entity);
+
+            return this;
+        }
+    },
+
+    /**
+     * Detach all the entities managed
+     *
+     * @param {String} alias Entity alias, optional
+     *
+     * @return {Sy.Storage.Manager} self
+     */
+
+    clear: {
+        value: function (alias) {
+            this.uow.clear(alias);
+
+            return this;
+        }
+    },
+
+    /**
+     * Detach an entity from the manager,
+     * any changes to the entity will not be persisted
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Sy.Storage.Manager} self
+     */
+
+    detach: {
+        value: function (entity) {
+            if (!this.isHandled(this.uow.getIdentityMap().getAlias(entity))) {
+                throw new ReferenceError('Entity not handled by this manager');
+            }
+
+            this.uow.detach(entity);
+
+            return this;
+        }
+    },
+
+    /**
+     * Tell if the entity is managed by this manager
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Boolean}
+     */
+
+    contains: {
+        value: function (entity) {
+            if (!this.isHandled(this.uow.getIdentityMap().getAlias(entity))) {
+                throw new ReferenceError('Entity not handled by this manager');
+            }
+
+            return this.uow.isManaged(entity);
+        }
+    },
+
+    /**
+     * Check if the alias is managed by this manager
+     *
+     * @private
+     * @param {String} alias
+     *
+     * @return {Boolean}
+     */
+
+    isHandled: {
+        value: function (alias) {
+            if (this.mappings.length === 0) {
+                return true;
+            }
+
+            return this.mappings.indexOf(alias) !== -1;
+        }
+    }
+
+});
+
+namespace('Sy.Storage');
+
+/**
+ * Build entity manager instances
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ * @implements {Sy.FactoryInterface}
+ */
+
+Sy.Storage.ManagerFactory = function () {
+    this.definitions = {};
+    this.dbals = null;
+    this.repoFactory = null;
+    this.uowFactory = null;
+};
+Sy.Storage.ManagerFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
+
+    /**
+     * Set the managers definitions
+     *
+     * @param {Object} definitions
+     *
+     * @return {Sy.Storage.ManagerFactory} self
+     */
+
+    setDefinitions: {
+        value: function (definitions) {
+            this.definitions = definitions || {};
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the factory to build dbals
+     *
+     * @param {Sy.Storage.Dbal.Factory} factory
+     *
+     * @return {Sy.Storage.ManagerFactory} self
+     */
+
+    setDbalFactory: {
+        value: function (factory) {
+            if (!(factory instanceof Sy.Storage.Dbal.Factory)) {
+                throw new TypeError('Invalid dbal factory');
+            }
+
+            this.dbals = factory;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the repository factory
+     *
+     * @param {Sy.Storage.RepositoryFactory} factory
+     *
+     * @return {Sy.Storage.ManagerFactory} self
+     */
+
+    setRepositoryFactory: {
+        value: function (factory) {
+            if (!(factory instanceof Sy.Storage.RepositoryFactory)) {
+                throw new TypeError('Invalid repository factory');
+            }
+
+            this.repoFactory = factory;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the unit of work factory
+     *
+     * @param {Sy.Storage.UnitOfWorkFactory} factory
+     *
+     * @return {Sy.Storage.ManagerFactory} self
+     */
+
+    setUnitOfWorkFactory: {
+        value: function (factory) {
+            if (!(factory instanceof Sy.Storage.UnitOfWorkFactory)) {
+                throw new TypeError('Invalid unit of work factory');
+            }
+
+            this.uowFactory = factory;
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    make: {
+        value: function (name) {
+            if (!this.definitions.hasOwnProperty(name)) {
+                throw new ReferenceError('Unknown manager definition');
+            }
+
+            var manager = new Sy.Storage.Manager(),
+                uow = this.uowFactory.make(),
+                driver = this.dbals.make(
+                    this.definitions[name].connection
+                );
+
+            uow.setDriver(driver);
+
+            return manager
+                .setDriver(driver)
+                .setRepositoryFactory(this.repoFactory)
+                .setMappings(
+                    this.definitions[name].mappings || []
+                )
+                .setUnitOfWork(uow);
+        }
+    }
+
+});
+
+namespace('Sy.Storage');
+
+/**
+ * Entity repository
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ * @param {Sy.Storage.Manager} em
+ * @param {String} alias
+ */
+
+Sy.Storage.Repository = function (em, alias) {
+    if (!(em instanceof Sy.Storage.Manager)) {
+        throw new TypeError('Invalid entity manager');
+    }
+
+    this.em = em;
+    this.alias = alias;
+};
+Sy.Storage.Repository.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Detach all the entities for this entity type
+     *
+     * @return {Sy.Storage.Repository} self
+     */
+
+    clear: {
+        value: function () {
+            this.em.clear(this.alias);
+
+            return this;
+        }
+    },
+
+    /**
+     * Find an entity by its id
+     *
+     * @param {String} id
+     *
+     * @return {Promise}
+     */
+
+    find: {
+        value: function (id) {
+            return this.em.find(this.alias, id);
+        }
+    },
+
+    /**
+     * Find all entities
+     *
+     * @return {Promise}
+     */
+
+    findAll: {
+        value: function () {
+            return this.em
+                .getUnitOfWork()
+                .findAll(this.alias);
+        }
+    },
+
+    /**
+     * Find all entities matching the criteria
+     *
+     * @param {String} index
+     * @param {mixed} value Value or array of bounds
+     * @param {Integer} limit optional
+     *
+     * @return {Promise}
+     */
+
+    findBy: {
+        value: function (index, value, limit) {
+            return this.em
+                .getUnitOfWork()
+                .findBy(this.alias, index, value, limit);
+        }
+    },
+
+    /**
+     * Find one entity matching the criteria
+     *
+     * @param {String} index
+     * @param {mixed} value Value or array of bounds
+     *
+     * @return {Promise}
+     */
+
+    findOneBy: {
+        value: function (index, value) {
+            return this.em
+                .getUnitOfWork()
+                .findBy(this.alias, index, value, 1)
+                .then(function (entities) {
+                    if (entities.length === 1) {
+                        return entities[0];
+                    }
+
+                    throw new ReferenceError('Entity not found');
+                });
+        }
+    }
+
+});
+
+namespace('Sy.Storage');
+
+/**
+ * Build a repository for the specified alias
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ * @implements {Sy.FactoryInterface}
+ */
+
+Sy.Storage.RepositoryFactory = function () {
+    this.metadata = null;
+    this.loaded = null;
+};
+Sy.Storage.RepositoryFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
+
+    /**
+     * Set a registry to hold entities metadata
+     *
+     * @param {Sy.RegistryInterface} registry
+     *
+     * @return {Sy.Storage.RepositoryFactory} self
+     */
+
+    setMetadataRegistry: {
+        value: function (registry) {
+            if (!(registry instanceof Sy.RegistryInterface)) {
+                throw new TypeError('Invalid registry');
+            }
+
+            this.metadata = registry;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a registry to hold loaded repositories
+     *
+     * @param {Sy.RegistryInterface} registry
+     *
+     * @return {Sy.Storage.RepositoryFactory} self
+     */
+
+    setRepositoriesRegistry: {
+        value: function (registry) {
+            if (!(registry instanceof Sy.RegistryInterface)) {
+                throw new TypeError('Invalid registry');
+            }
+
+            this.loaded = registry;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a new entity definition
+     *
+     * @param {String} alias
+     * @param {Function} repository Repository constructor
+     *
+     * @return {Sy.Storage.RepositoryFactory} self
+     */
+
+    setRepository: {
+        value: function (alias, repository) {
+            this.metadata.set(alias, repository);
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    make: {
+        value: function (em, alias) {
+            if (this.loaded.has(alias)) {
+                return this.loaded.get(alias);
+            }
+
+            if (!this.metadata.has(alias)) {
+                throw new ReferenceError('Unknown entity alias "' + alias + '"');
+            }
+
+            var repo = new (this.metadata.get(alias))(
+                em,
+                alias
+            );
+
+            if (!(repo instanceof Sy.Storage.Repository)) {
+                throw new TypeError('Invalid repository');
+            }
+
+            this.loaded.set(alias, repo);
+
+            return repo;
+        }
+    }
+
+});
+
+namespace('Sy.Storage');
+
+/**
+ * Extract necessary information from entities metadata
+ * and inject properly the repositories definition in the factory
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ */
+
+Sy.Storage.RepositoryFactoryConfigurator = function () {
+    this.metadata = null;
+};
+Sy.Storage.RepositoryFactoryConfigurator.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set the entities metadata
+     *
+     * @param {Array} metadata
+     */
+
+    setMetadata: {
+        value: function (metadata) {
+            this.metadata = metadata;
+        }
+    },
+
+    /**
+     * Inject the repositories definitions in the factory
+     *
+     * @param {Sy.Storage.RepositoryFactory} factory
+     */
+
+    configure: {
+        value: function (factory) {
+            if (!(factory instanceof Sy.Storage.RepositoryFactory)) {
+                throw new TypeError('Invalid repository factory');
+            }
+
+            for (var i = 0, l = this.metadata.length; i < l; i++) {
+                factory.setRepository(
+                    this.metadata[i].alias,
+                    this.metadata[i].repository || Sy.Storage.Repository
+                );
+            }
+        }
+    }
+
+});
+
+namespace('Sy.Storage');
+
+/**
+ * Bridge between database driver and entity level
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ */
+
+Sy.Storage.UnitOfWork = function () {
+    this.driver = null;
+    this.map = null;
+    this.entities = null;
+    this.states = null;
+    this.propertyAccessor = null;
+    this.scheduledForInsert = [];
+    this.scheduledForUpdate = [];
+    this.scheduledForDelete = [];
+    this.logger = null;
+    this.generator = null;
+    this.mediator = null;
+};
+Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
+
+    STATE_NEW: {
+        value: 'new',
+        writable: false,
+    },
+
+    STATE_MANAGED: {
+        value: 'managed',
+        writable: false
+    },
+
+    STATE_DETACHED: {
+        value: 'detached',
+        writable: false
+    },
+
+    STATE_REMOVED: {
+        value: 'removed',
+        writable: false
+    },
+
+    /**
+     * Set the database driver
+     *
+     * @param {Sy.Storage.Dbal.DriverInterface} driver
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setDriver: {
+        value: function (driver) {
+            if (!(driver instanceof Sy.Storage.Dbal.DriverInterface)) {
+                throw new TypeError('Invalid database driver');
+            }
+
+            this.driver = driver;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the identity map
+     *
+     * @param {Sy.Storage.IdentityMap} map
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setIdentityMap: {
+        value: function (map) {
+            if (!(map instanceof Sy.Storage.IdentityMap)) {
+                throw new TypeError('Invalid identity map');
+            }
+
+            this.map = map;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the identity map
+     *
+     * @return {Sy.Storage.IdentityMap}
+     */
+
+    getIdentityMap: {
+        value: function () {
+            return this.map;
+        }
+    },
+
+    /**
+     * Set a state registry to hold loaded entities
+     *
+     * @param {Sy.StateRegistryInterface} registry
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setEntitiesRegistry: {
+        value: function (registry) {
+            if (!(registry instanceof Sy.StateRegistryInterface)) {
+                throw new TypeError('Invalid state registry');
+            }
+
+            this.entities = registry;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a property accessor
+     *
+     * @param {Sy.PropertyAccessor} accessor
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setPropertyAccessor: {
+        value: function (accessor) {
+            if (!(accessor instanceof Sy.PropertyAccessor)) {
+                throw new TypeError('Invalid property accessor');
+            }
+
+            this.propertyAccessor = accessor;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a state registry to hold entities states
+     *
+     * @param {Sy.StateRegistryInterface} registry
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setStatesRegistry: {
+        value: function (registry) {
+            if (!(registry instanceof Sy.StateRegistryInterface)) {
+                throw new TypeError('Invalid state registry');
+            }
+
+            this.states = registry;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a logger
+     *
+     * @param {Sy.Lib.Logger.Interface} logger
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setLogger: {
+        value: function (logger) {
+            if (!(logger instanceof Sy.Lib.Logger.Interface)) {
+                throw new TypeError('Invalid logger');
+            }
+
+            this.logger = logger;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a generator
+     *
+     * @param {Sy.Lib.Generator.Interface} generator
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setGenerator: {
+        value: function (generator) {
+            if (!(generator instanceof Sy.Lib.Generator.Interface)) {
+                throw new TypeError('Invalid generator');
+            }
+
+            this.generator = generator;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the mediator
+     *
+     * @param {Sy.Lib.Mediator} mediator
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    setMediator: {
+        value: function (mediator) {
+            if (!(mediator instanceof Sy.Lib.Mediator)) {
+                throw new TypeError('Invalid mediator');
+            }
+
+            this.mediator = mediator;
+
+            return this;
+        }
+    },
+
+    /**
+     * Find an entity for the specified id
+     *
+     * @param {String} alias
+     * @param {String} id
+     *
+     * @return {Promise}
+     */
+
+    find: {
+        value: function (alias, id) {
+            if (this.entities.has(alias, id)) {
+                return new Promise(function (resolve) {
+                    resolve(this.entities.get(alias, id));
+                }.bind(this));
+            }
+
+            return this.driver
+                .read(alias, id)
+                .then(function (data) {
+                    return this.buildEntity(alias, data);
+                }.bind(this));
+        }
+    },
+
+    /**
+     * Find all the entities for the given alias
+     *
+     * @param {String} alias
+     *
+     * @return {Promise}
+     */
+
+    findAll: {
+        value: function (alias) {
+            return this.driver
+                .findAll(alias)
+                .then(function (data) {
+                    for (var i = 0, l = data.length; i < l; i++) {
+                        data[i] = this.buildEntity(alias, data[i]);
+                    }
+
+                    return data;
+                }.bind(this));
+        }
+    },
+
+    /**
+     * Find entities matching the given alias and criteria
+     *
+     * @param {String} alias
+     * @param {String} index
+     * @param {mixed} value
+     * @param {Integer} limit
+     *
+     * @return {Promise}
+     */
+
+    findBy: {
+        value: function (alias, index, value, limit) {
+            return this.driver
+                .find(alias, index, value, limit)
+                .then(function (data) {
+                    for (var i = 0, l = data.length; i < l; i++) {
+                        data[i] = this.buildEntity(alias, data[i]);
+                    }
+
+                    return data;
+                }.bind(this));
+        }
+    },
+
+    /**
+     * Build an entity for the specified alias
+     *
+     * @private
+     * @param {String} alias
+     * @param {Object} data
+     *
+     * @return {Sy.EntityInterface}
+     */
+
+    buildEntity: {
+        value: function (alias, data) {
+            var constructor = this.map.getConstructor(alias),
+                key = this.map.getKey(alias),
+                entity;
+
+            if (this.entities.has(alias, data[key])) {
+                entity = this.entities.get(alias, data[key]);
+            } else {
+                entity = new constructor();
+                this.entities.set(alias, data[key], entity);
+
+                (new ObjectObserver(entity))
+                    .open(function () {
+                        this.computeSchedules(entity);
+                    }.bind(this));
+            }
+
+            for (var p in data) {
+                if (data.hasOwnProperty(p)) {
+                    entity.set(p, data[p]);
+                }
+            }
+
+            this.states.set(this.STATE_MANAGED, data[key], data[key]);
+
+            return entity;
+        }
+    },
+
+    /**
+     * Plan the given entity to be persisted
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    persist: {
+        value: function (entity) {
+            if (!(entity instanceof Sy.EntityInterface)) {
+                throw new TypeError('Invalid entity');
+            }
+
+            var alias = this.map.getAlias(entity),
+                key = this.map.getKey(alias),
+                id = this.propertyAccessor.getValue(entity, key),
+                state = this.states.state(id);
+
+            if (state === undefined) {
+                id = this.generator.generate();
+                this.states.set(
+                    this.STATE_NEW,
+                    id,
+                    id
+                );
+                this.scheduledForInsert.push(entity);
+                this.propertyAccessor.setValue(entity, key, id);
+
+                (new ObjectObserver(entity))
+                    .open(function () {
+                        this.computeSchedules(entity);
+                    }.bind(this));
+            } else {
+                this.scheduledForUpdate.push(entity);
+            }
+
+            this.entities.set(alias, id, entity);
+
+            return this;
+        }
+    },
+
+    /**
+     * Commit the changes to the database
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    commit: {
+        value: function () {
+            Platform.performMicrotaskCheckpoint();
+
+            this.scheduledForInsert.forEach(function (entity) {
+                var alias = this.map.getAlias(entity),
+                    key = this.map.getKey(alias),
+                    id = this.propertyAccessor.getValue(entity, key),
+                    event = new Sy.Storage.LifeCycleEvent(alias, entity);
+
+                this.mediator && this.mediator.publish(
+                    event.PRE_CREATE,
+                    event
+                );
+
+                if (event.isAborted()) {
+                    return;
+                }
+
+                this.driver
+                    .create(alias, this.getEntityData(entity))
+                    .then(function () {
+                        this.states.set(
+                            this.STATE_MANAGED,
+                            id,
+                            id
+                        );
+
+                        this.mediator && this.mediator.publish(
+                            event.POST_CREATE,
+                            event
+                        );
+
+                        this.logger && this.logger.info(
+                            'Entity created',
+                            entity
+                        );
+                    }.bind(this));
+            }, this);
+            this.scheduledForUpdate.forEach(function (entity) {
+                var alias = this.map.getAlias(entity),
+                    key = this.map.getKey(alias),
+                    id = this.propertyAccessor.getValue(entity, key),
+                    event = new Sy.Storage.LifeCycleEvent(alias, entity);
+
+                this.mediator && this.mediator.publish(
+                    event.PRE_UPDATE,
+                    event
+                );
+
+                if (event.isAborted()) {
+                    return;
+                }
+
+                this.driver
+                    .update(
+                        alias,
+                        id,
+                        this.getEntityData(entity)
+                    )
+                    .then(function () {
+                        this.mediator && this.mediator.publish(
+                            event.POST_UPDATE,
+                            event
+                        );
+
+                        this.logger && this.logger.info(
+                            'Entity updated',
+                            entity
+                        );
+                    });
+            }, this);
+            this.scheduledForDelete.forEach(function (entity) {
+                var alias = this.map.getAlias(entity),
+                    key = this.map.getKey(alias),
+                    id = this.propertyAccessor.getValue(entity, key),
+                    event = new Sy.Storage.LifeCycleEvent(alias, entity);
+
+                this.mediator && this.mediator.publish(
+                    event.PRE_REMOVE,
+                    event
+                );
+
+                if (event.isAborted()) {
+                    return;
+                }
+
+                this.driver
+                    .remove(alias, id)
+                    .then(function () {
+                        this.states.set(
+                            this.STATE_REMOVED,
+                            id,
+                            id
+                        );
+
+                        this.mediator && this.mediator.publish(
+                            event.POST_REMOVE,
+                            event
+                        );
+
+                        this.logger && this.logger.info(
+                            'Entity removed',
+                            entity
+                        )
+                    }.bind(this));
+            }, this);
+
+            //reinitialize schedules so 2 close commits can't trigger
+            //an entity to be sent to the driver twice
+            this.scheduledForInsert.splice(0);
+            this.scheduledForUpdate.splice(0);
+            this.scheduledForDelete.splice(0);
+
+            return this;
+        }
+    },
+
+    /**
+     * Plan the entity to be removed from the database
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    remove: {
+        value: function (entity) {
+            if (!(entity instanceof Sy.EntityInterface)) {
+                throw new TypeError('Invalid entity');
+            }
+
+            var alias = this.map.getAlias(entity),
+                key = this.map.getKey(alias),
+                state = this.states.state(
+                    this.propertyAccessor.getValue(entity, key)
+                );
+
+            if (state === this.STATE_MANAGED) {
+                if (this.isScheduledForUpdate(entity)) {
+                    this.scheduledForUpdate.splice(
+                        this.scheduledForUpdate.indexOf(entity),
+                        1
+                    );
+                }
+
+                this.scheduledForDelete.push(entity);
+            } else if (state === this.STATE_NEW) {
+                this.scheduledForInsert.splice(
+                    this.scheduledForInsert.indexOf(entity),
+                    1
+                );
+            }
+
+            return this;
+        }
+    },
+
+    /**
+     * Detach all entities or the ones of the given alias
+     *
+     * @param {String} alias optional
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    clear: {
+        value: function (alias) {
+            var entities = this.entities.get(),
+                constructor;
+
+            for (var a in entities) {
+                if (entities.hasOwnProperty(a)) {
+
+                    if (alias !== undefined && alias !== a) {
+                        continue;
+                    }
+
+                    for (var i = 0, l = entities[a].length; i < l; i++) {
+                        this.detach(entities[a][i]);
+                    }
+
+                    if (alias !== undefined && alias === a) {
+                        break;
+                    }
+                }
+            }
+
+            return this;
+        }
+    },
+
+    /**
+     * Detach the given entity
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Sy.Storage.UnitOfWork} self
+     */
+
+    detach: {
+        value: function (entity) {
+            var alias = this.map.getAlias(entity),
+                key = this.map.getKey(alias),
+                id = this.propertyAccessor.getValue(entity, key);
+
+            this.states.set(this.STATE_DETACHED, id, id);
+
+            if (this.isScheduledForInsert(entity)) {
+                this.scheduledForInsert.splice(
+                    this.scheduledForInsert.indexOf(entity),
+                    1
+                );
+            }
+
+            if (this.isScheduledForUpdate(entity)) {
+                this.scheduledForUpdate.splice(
+                    this.scheduledForUpdate.indexOf(entity),
+                    1
+                );
+            }
+
+            if (this.isScheduledForDelete(entity)) {
+                this.scheduledForDelete.splice(
+                    this.scheduledForDelete.indexOf(entity),
+                    1
+                );
+            }
+
+            return this;
+        }
+    },
+
+    /**
+     * Check if the entity is managed
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Boolean}
+     */
+
+    isManaged: {
+        value: function (entity) {
+            var alias = this.map.getAlias(entity),
+                key = this.map.getKey(alias),
+                id = this.propertyAccessor.getValue(entity, key);
+                state = this.states.state(id);
+
+            return [this.STATE_NEW, this.STATE_MANAGED].indexOf(state) !== -1;
+        }
+    },
+
+    /**
+     * Check if the entity is scheduled for insertion
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Boolean}
+     */
+
+    isScheduledForInsert: {
+        value: function (entity) {
+            return this.scheduledForInsert.indexOf(entity) !== -1;
+        }
+    },
+
+    /**
+     * Check if the entity is scheduled for update
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Boolean}
+     */
+
+    isScheduledForUpdate: {
+        value: function (entity) {
+            return this.scheduledForUpdate.indexOf(entity) !== -1;
+        }
+    },
+
+    /**
+     * Check if the entity is scheduled for removal
+     *
+     * @param {Sy.EntityInterface} entity
+     *
+     * @return {Boolean}
+     */
+
+    isScheduledForDelete: {
+        value: function (entity) {
+            return this.scheduledForDelete.indexOf(entity) !== -1;
+        }
+    },
+
+    /**
+     * Update the schedules for the given entity
+     * If entity scheduled for insert leave as is
+     * otherwise plan for update except if planned for delete
+     *
+     * @private
+     * @param {Sy.EntityInterface} entity
+     */
+
+    computeSchedules: {
+        value: function (entity) {
+            var alias = this.map.getAlias(entity),
+                key = this.map.getKey(alias),
+                state = this.states.state(
+                    this.propertyAccessor.getValue(entity, key)
+                );
+
+            if (state === this.STATE_MANAGED && !this.isScheduledForUpdate(entity)) {
+                this.scheduledForUpdate.push(entity);
+            }
+        }
+    },
+
+    /**
+     * Extract the data as a POJO from an entity
+     *
+     * @private
+     * @param {Sy.EtityInterface} entity
+     *
+     * @return {Object}
+     */
+
+    getEntityData: {
+        value: function (entity) {
+            var data = {},
+                refl = new ReflectionObject(entity);
+
+            refl.getProperties().forEach(function (refl) {
+                data[refl.getName()] = refl.getValue();
+            });
+
+            return data;
+        }
+    }
+
+});
+
+namespace('Sy.Storage');
+
+/**
+ * Create a generic unit of work
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ * @implements {Sy.FactoryInterface}
+ */
+
+Sy.Storage.UnitOfWorkFactory = function () {
+    this.identityMap = new Sy.Storage.IdentityMap();
+    this.stateRegistryFactory = null;
+    this.propertyAccessor = null;
+    this.logger = null;
+    this.generator = null;
+    this.mediator = null;
+};
+Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
+
+    /**
+     * Set all entities metadata
+     *
+     * @param {Array} metadata
+     *
+     * @return {Sy.Storage.UnitOfWorkFactory} self
+     */
+
+    setEntitiesMetadata: {
+        value: function (metadata) {
+            if (!(metadata instanceof Array)) {
+                throw new TypeError('Invalid metadata array');
+            }
+
+            for (var i = 0, l = metadata.length; i < l; i++) {
+                this.identityMap.set(
+                    metadata[i].alias,
+                    metadata[i].entity,
+                    metadata[i].uuid
+                );
+            }
+
+            this.identityMap.lock();
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the state registry factory
+     *
+     * @param {Sy.StateRegistryFactory} factory
+     *
+     * @return {Sy.Storage.UnitOfWorkFactory} self
+     */
+
+    setStateRegistryFactory: {
+        value: function (factory) {
+            if (!(factory instanceof Sy.StateRegistryFactory)) {
+                throw new TypeError('Invalid state registry factory');
+            }
+
+            this.stateRegistryFactory = factory;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a property accessor
+     *
+     * @param {Sy.PropertyAccessor} accessor
+     *
+     * @return {Sy.Storage.UnitOfWorkFactory} self
+     */
+
+    setPropertyAccessor: {
+        value: function (accessor) {
+            if (!(accessor instanceof Sy.PropertyAccessor)) {
+                throw new TypeError('Invalid property accessor');
+            }
+
+            this.propertyAccessor = accessor;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a logger
+     *
+     * @param {Sy.Lib.Logger.Interface} logger
+     *
+     * @return {Sy.Storage.UnitOfWorkFactory} self
+     */
+
+    setLogger: {
+        value: function (logger) {
+            if (!(logger instanceof Sy.Lib.Logger.Interface)) {
+                throw new TypeError('Invalid logger');
+            }
+
+            this.logger = logger;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a generator
+     *
+     * @param {Sy.Lib.Generator.Interface} generator
+     *
+     * @return {Sy.Storage.UnitOfWorkFactory} self
+     */
+
+    setGenerator: {
+        value: function (generator) {
+            if (!(generator instanceof Sy.Lib.Generator.Interface)) {
+                throw new TypeError('Invalid generator');
+            }
+
+            this.generator = generator;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the mediator
+     *
+     * @param {Sy.Lib.Mediator} mediator
+     *
+     * @return {Sy.Storage.UnitOfWorkFactory} self
+     */
+
+    setMediator: {
+        value: function (mediator) {
+            if (!(mediator instanceof Sy.Lib.Mediator)) {
+                throw new TypeError('Invalid mediator');
+            }
+
+            this.mediator = mediator;
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    make: {
+        value: function () {
+            var uow = new Sy.Storage.UnitOfWork();
+
+            return uow
+                .setIdentityMap(this.identityMap)
+                .setEntitiesRegistry(this.stateRegistryFactory.make())
+                .setStatesRegistry(
+                    this.stateRegistryFactory
+                        .make()
+                        .setStrict()
+                )
+                .setPropertyAccessor(this.propertyAccessor)
+                .setLogger(this.logger)
+                .setGenerator(this.generator)
+                .setMediator(this.mediator);
+        }
+    }
+
+});
+
+namespace('Sy.Storage.Dbal');
+
+/**
+ * Factory to build a storage driver instance
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @interface
+ */
+
+Sy.Storage.Dbal.DriverFactoryInterface = function () {};
+Sy.Storage.Dbal.DriverFactoryInterface.prototype = Object.create(Sy.FactoryInterface.prototype, {
+
+    /**
+     * Build a driver instance
+     *
+     * @param {String} dbname
+     * @param {Integer} version
+     * @param {Array} stores
+     * @param {Object} options
+     *
+     * @return {Sy.Storage.Dbal.DriverFactoryInterface} self
+     */
+
+    make: {
+        value: function (dbname, version, stores, options) {}
+    }
+
+});
+
+namespace('Sy.Storage.Dbal');
+
+/**
+ * Minimum signature a driver must implement
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @interface
+ */
+
+Sy.Storage.Dbal.DriverInterface = function () {};
+Sy.Storage.Dbal.DriverInterface.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Retrieve an object by its id
+     *
+     * @param {String} store
+     * @param {String} id
+     *
+     * @return {Promise}
+     */
+
+    read: {
+        value: function (store, id) {}
+    },
+
+    /**
+     * Create a new element in the store
+     *
+     * @param {String} store
+     * @param {Object} object
+     *
+     * @return {Promise}
+     */
+
+    create: {
+        value: function (store, object) {}
+    },
+
+    /**
+     * Update an object in the store
+     *
+     * @param {String} store
+     * @param {String} id
+     * @param {Object} object
+     *
+     * @return {Promise}
+     */
+
+    update: {
+        value: function (store, id, object) {}
+    },
+
+    /**
+     * Delete an object from the store
+     *
+     * @param {String} store
+     * @param {String} id
+     *
+     * @return {Promise}
+     */
+
+    remove: {
+        value: function (store, id) {}
+    },
+
+    /**
+     * Find (an) element(s) in the storage
+     *
+     * @param {String} store
+     * @param {String} index
+     * @param {Mixed} value
+     * @param {Integer} limit Optional
+     *
+     * @return {Promise}
+     */
+
+    find: {
+        value: function (store, index, value, limit) {}
+    },
+
+    /**
+     * Retrieve all the objects from a store
+     *
+     * @param {String} store
+     *
+     * @return {Promise}
+     */
+
+    findAll: {
+        value: function (store) {}
+    }
+
+});
+
+namespace('Sy.Storage.Dbal');
+
+/**
+ * Factory that leverage storage drivers factories to build a specific driver
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ * @implements {Sy.FactoryInterface}
+ */
+
+Sy.Storage.Dbal.Factory = function () {
+    this.factories = null;
+    this.defaultConnection = 'default';
+    this.connections = {};
+};
+Sy.Storage.Dbal.Factory.prototype = Object.create(Sy.FactoryInterface.prototype, {
+
+    /**
+     * Set a registry to hold drivers factories
+     *
+     * @param {Sy.RegistryInterface} registry
+     *
+     * @return {Sy.Storage.Dbal.Factory} self
+     */
+
+    setFactoriesRegistry: {
+        value: function (registry) {
+            if (!(registry instanceof Sy.RegistryInterface)) {
+                throw new TypeError('Invalid registry');
+            }
+
+            this.factories = registry;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a new driver factory
+     *
+     * @param {String} name Driver name
+     * @param {Sy.Storage.Dbal.DriverFactoryInterface} factory
+     *
+     * @return {Sy.Storage.Dbal.Factory} self
+     */
+
+    setDriverFactory: {
+        value: function (name, factory) {
+            if (!(factory instanceof Sy.Storage.Dbal.DriverFactoryInterface)) {
+                throw new TypeError('Invalid driver factory');
+            }
+
+            if (this.factories.has(name)) {
+                throw new ReferenceError('Can\'t redefine the driver factory "' + name + '"');
+            }
+
+            this.factories.set(
+                name,
+                factory
+            );
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the default connection name
+     *
+     * @param {String} name
+     *
+     * @return {Sy.Storage.Dbal.Factory} self
+     */
+
+    setDefaultConnectionName: {
+        value: function (name) {
+            this.defaultConnection = name || 'default';
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the list of available connections
+     *
+     * @param {Object} connections
+     *
+     * @return {Sy.Storage.Dbal.Factory} self
+     */
+
+    setConnections: {
+        value: function (connections) {
+            this.connections = connections || {};
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    make: {
+        value: function (name) {
+            name = name || this.defaultConnection;
+
+            if (!this.connections.hasOwnProperty(name)) {
+                throw new ReferenceError('No connection defined with the name "' + name + '"');
+            }
+
+            var conn = this.connections[name],
+                factory,
+                driver;
+
+            if (!this.factories.has(conn.driver)) {
+                throw new ReferenceError('Unknown driver "' + conn.driver + '"');
+            }
+
+            factory = this.factories.get(conn.driver);
+            driver = factory.make(
+                conn.dbname,
+                conn.version || 1,
+                conn.stores || [],
+                conn.options || {}
+            );
+
+            if (!(driver instanceof Sy.Storage.Dbal.DriverInterface)) {
+                throw new TypeError('Invalid driver instance');
+            }
+
+            return driver;
+        }
+    }
+
+});
+
+namespace('Sy.Storage.Dbal');
+
+/**
+ * Storage driver leveraging IndexedDB to persist objects
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ * @implements {Sy.Storage.Dbal.DriverInterface}
+ */
+
+Sy.Storage.Dbal.IndexedDB = function () {
+    this.version = 1;
     this.connection = null;
     this.transaction = null;
     this.keyRange = null;
@@ -5732,35 +8060,64 @@ Sy.Storage.Engine.IndexedDB = function (version) {
         READ_ONLY: null,
         READ_WRITE: null
     };
-    this.name = 'app::storage';
+    this.name = null;
     this.stores = {};
     this.storage = null;
     this.logger = null;
-    this.mediator = null;
-
+    this.opened = false;
+    this.openingCheckInterval = null;
 };
+Sy.Storage.Dbal.IndexedDB.prototype = Object.create(Sy.Storage.Dbal.DriverInterface.prototype, {
 
-Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface.prototype, {
+    /**
+     * Set the storage name
+     *
+     * @param {String} name
+     *
+     * @return {Sy.Storage.Dbal.IndexedDB} self
+     */
+
+    setName: {
+        value: function (name) {
+            this.name = name;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the storage version
+     *
+     * @param {Integer} version
+     *
+     * @return {Sy.Storage.Dbal.IndexedDB} self
+     */
+
+    setVersion: {
+        value: function (version) {
+            this.version = version || 1;
+
+            return this;
+        }
+    },
 
     /**
      * Set the connection object to IndexedDB
      *
-     * @param {IDBFactory} connection
+     * @param {IDBFactory} conn
      *
-     * @return {Sy.Storage.Engine.IndexedDB}
+     * @return {Sy.Storage.Dbal.IndexedDB} self
      */
 
     setConnection: {
-        value: function (connection) {
-
-            if (!(connection instanceof IDBFactory)) {
+        value: function (conn) {
+            if (!(conn instanceof IDBFactory)) {
                 throw new TypeError('Invalid connection');
             }
 
-            this.connection = connection;
+            this.connection = conn;
 
             return this;
-
         }
     },
 
@@ -5769,71 +8126,45 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
      *
      * @param {IDBTransaction} transaction
      *
-     * @return {Sy.Storage.Engine.IndexedDB}
+     * @return {Sy.Storage.Dbal.IndexedDB} self
      */
 
     setTransaction: {
         value: function (transaction) {
-
             this.transaction = transaction;
-            this.transactionModes = {
-                READ_ONLY: this.transaction.READ_ONLY || 'readonly',
-                READ_WRITE: this.transaction.READ_WRITE || 'readwrite'
-            };
+            this.transactionModes.READ_ONLY = transaction.READ_ONLY || 'readonly';
+            this.transactionModes.READ_WRITE = transaction.READ_WRITE || 'readwrite';
 
             return this;
-
         }
     },
 
     /**
      * Set key range object
      *
-     * @param {IDBKeyRange} keyrange
+     * @param {IDBKeyRange} keyRange
      *
-     * @return {Sy.Storage.Engine.IndexedDB}
+     * @return {Sy.Storage.Dbal.IndexedDB} self
      */
 
     setKeyRange: {
-        value: function (keyrange) {
-
-            this.keyRange = keyrange;
+        value: function (keyRange) {
+            this.keyRange = keyRange;
 
             return this;
-
         }
     },
 
     /**
-     * Set the database name
-     * Default is "app::storage"
-     *
-     * @param {string} name
-     *
-     * @return {Sy.Storage.Engine.IndexedDB}
-     */
-
-    setName: {
-        value: function (name) {
-
-            this.name = name;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set a logger object
+     * Set the logger
      *
      * @param {Sy.Lib.Logger.Interface} logger
      *
-     * @return {Sy.Storage.Engine.IndexedDB}
+     * @return {Sy.Storage.Dbal.IndexedDB} self
      */
 
     setLogger: {
         value: function (logger) {
-
             if (!(logger instanceof Sy.Lib.Logger.Interface)) {
                 throw new TypeError('Invalid logger');
             }
@@ -5841,59 +8172,84 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
             this.logger = logger;
 
             return this;
-
         }
     },
 
     /**
-     * Set the mediator object
+     * Set a new store
      *
-     * @param {Sy.Lib.Mediator} mediator
+     * @param {String} alias
+     * @param {String} name
+     * @param {String} identifier
+     * @param {Array} indexes
      *
-     * @return {Sy.Storage.EngineIndexedDB}
+     * @return {Sy.Storage.Dbal.IndexedDB} self
      */
 
-    setMediator: {
-        value: function (mediator) {
-
-            this.mediator = mediator;
+    setStore: {
+        value: function (alias, name, identifier, indexes) {
+            this.stores[alias] = {
+                path: name,
+                key: identifier,
+                indexes: indexes
+            };
 
             return this;
-
         }
     },
 
     /**
-     * Open a connection to the database
+     * Open the connection to the database
      *
-     * @return {Sy.Storage.Engine.IndexedDB}
+     * @return {Sy.Storage.Dbal.IndexedDB} self
      */
 
     open: {
         value: function () {
-
             var request = this.connection.open(this.name, this.version);
 
             request.onupgradeneeded = this.upgradeDatabase.bind(this);
             request.onsuccess = function (event) {
-
                 this.storage = event.target.result;
+                this.opened = true;
                 this.storage.onerror = function (event) {
-                    this.logger.error('Database operation failed', event);
-                }.bind(this);
+                    this.logger && this.logger.error('Database operation failed', [this.name, event]);
+                };
 
-                this.logger.info('Database opened');
-
+                this.logger && this.logger.info('Database opened', this.name);
             }.bind(this);
             request.onerror = function (event) {
-                this.logger.error('Database opening failed', event);
+                this.logger && this.logger.error('Database opening failed', [this.name, event]);
             }.bind(this);
             request.onblocked = function (event) {
-                this.logger.error('Database opening failed! (blocked by browser setting)', event);
+                this.logger && this.logger.error('Database opening failed! (blocked by browser setting)', [this.name, event]);
             }.bind(this);
 
             return this;
+        }
+    },
 
+    /**
+     * Return a promise to know when the database is opened
+     *
+     * @return {Promise}
+     */
+
+    whenOpened: {
+        value: function () {
+            return new Promise(function (resolve) {
+                if (this.opened === true) {
+                    resolve();
+                    return;
+                }
+
+                this.openingCheckInterval = setInterval(function () {
+                    if (this.opened === true) {
+                        resolve();
+                        clearInterval(this.openingCheckInterval);
+                    }
+                }.bind(this), 50);
+            }.bind(this))
         }
     },
 
@@ -5901,23 +8257,19 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
      * Upgrade the definition of the database
      *
      * @private
-     * @param {object} event
-     *
-     * @return {Sy.Storage.Engine.IndexedDB}
+     * @param {Object} event
      */
 
     upgradeDatabase: {
         value: function (event) {
+            var objectStore;
 
-            this.logger.info('Upgrading database...');
+            this.logger && this.logger.info('Upgrading database...', [this.name, this.version]);
 
             this.storage = event.target.result;
 
             for (var store in this.stores) {
                 if (this.stores.hasOwnProperty(store)) {
-
-                    var objectStore;
-
                     store = this.stores[store];
 
                     if (!this.storage.objectStoreNames.contains(store.path)) {
@@ -5947,28 +8299,8 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
                             );
                         }
                     }
-
                 }
             }
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    setStore: {
-        value: function (alias, name, identifier, indexes) {
-
-            this.stores[alias] = {
-                path: name,
-                key: identifier,
-                indexes: indexes
-            };
-
-            return this;
-
         }
     },
 
@@ -5977,39 +8309,38 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
      */
 
     read: {
-        value: function (storeName, identifier, callback) {
+        value: function (storeName, id) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
 
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Invalid store');
-            }
+                var store = this.stores[storeName];
 
-            var store = this.stores[storeName];
+                try {
+                    var transaction = this.storage.transaction(
+                            [store.path],
+                            this.transactionModes.READ_ONLY
+                        ),
+                        objectStore = transaction.objectStore(store.path),
+                        request = objectStore.get(id);
 
-            try {
-
-                var transaction = this.storage.transaction(
-                        [store.path],
-                        this.transactionModes.READ_ONLY
-                    ),
-                    objectStore = transaction.objectStore(store.path),
-                    request = objectStore.get(identifier);
-
-                request.addEventListener('success', function (event) {
-                    callback(event.target.result);
-                }.bind(this));
-
-                request.addEventListener('error', function (event) {
-                    this.logger.error('Read operation failed!', event);
-                }.bind(this));
-
-            } catch (e) {
-
-                this.logger.error('Read operation failed!', e);
-
-            }
-
-            return this;
-
+                    request.addEventListener('success', function (event) {
+                        resolve(event.target.result);
+                    }.bind(this));
+                    request.addEventListener('error', function (event) {
+                        this.logger && this.logger.error('Read operation failed!', [this.name, event]);
+                        reject(event);
+                    }.bind(this));
+                } catch (e) {
+                    this.logger && this.logger.error('Read operation failed!', [
+                        this.name,
+                        e
+                    ]);
+                    reject(e);
+                }
+            }.bind(this));
         }
     },
 
@@ -6018,54 +8349,38 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
      */
 
     create: {
-        value: function (storeName, object, callback) {
+        value: function (storeName, object) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
 
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Invalid store');
-            }
+                var store = this.stores[storeName];
 
-            var store = this.stores[storeName],
-                evt = new Sy.Storage.Event.LifecycleEvent(
-                    this.name,
-                    storeName,
-                    null,
-                    object
-                );
+                try {
+                    var transaction = this.storage.transaction(
+                            [store.path],
+                            this.transactionModes.READ_WRITE
+                        ),
+                        objectStore = transaction.objectStore(store.path),
+                        request = objectStore.put(object);
 
-            try {
-
-                this.mediator.publish(
-                    evt.PRE_CREATE,
-                    evt
-                );
-
-                var transaction = this.storage.transaction(
-                        [store.path],
-                        this.transactionModes.READ_WRITE
-                    ),
-                    objectStore = transaction.objectStore(store.path),
-                    request = objectStore.put(object);
-
-                request.addEventListener('success', function (event) {
-                    callback(event.target.result);
-                    this.mediator.publish(
-                        evt.POST_CREATE,
-                        evt
-                    );
-                }.bind(this));
-
-                request.addEventListener('error', function (event) {
-                    this.logger.error('Create operation failed!', event);
-                }.bind(this));
-
-            } catch (e) {
-
-                this.logger.error('Create operation failed!', e);
-
-            }
-
-            return this;
-
+                    request.addEventListener('success', function (event) {
+                        resolve(event.target.result);
+                    }.bind(this));
+                    request.addEventListener('error', function (event) {
+                        this.logger && this.logger.error('Create operation failed!', [this.name, event]);
+                        reject(event);
+                    }.bind(this));
+                } catch (e) {
+                    this.logger && this.logger.error('Create operation failed!', [
+                        this.name,
+                        e
+                    ]);
+                    reject(e);
+                }
+            }.bind(this));
         }
     },
 
@@ -6074,54 +8389,38 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
      */
 
     update: {
-        value: function (storeName, identifier, object, callback) {
+        value: function (storeName, id, object) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
 
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Invalid store');
-            }
+                var store = this.stores[storeName];
 
-            var store = this.stores[storeName],
-                evt = new Sy.Storage.Event.LifecycleEvent(
-                    this.name,
-                    storeName,
-                    identifier,
-                    object
-                );
+                try {
+                    var transaction = this.storage.transaction(
+                            [store.path],
+                            this.transactionModes.READ_WRITE
+                        ),
+                        objectStore = transaction.objectStore(store.path),
+                        request = objectStore.put(object);
 
-            try {
-
-                this.mediator.publish(
-                    evt.PRE_UPDATE,
-                    evt
-                );
-
-                var transaction = this.storage.transaction(
-                        [store.path],
-                        this.transactionModes.READ_WRITE
-                    ),
-                    objectStore = transaction.objectStore(store.path),
-                    request = objectStore.put(object);
-
-                request.addEventListener('success', function (event) {
-                    callback(event.target.result);
-                    this.mediator.publish(
-                        evt.POST_UPDATE,
-                        evt
-                    );
-                }.bind(this));
-
-                request.addEventListener('error', function (event) {
-                    this.logger.error('Update operation failed!', event);
-                }.bind(this));
-
-            } catch (e) {
-
-                this.logger.error('Update operation failed!', e);
-
-            }
-
-            return this;
-
+                    request.addEventListener('success', function (event) {
+                        resolve(event.target.result);
+                    }.bind(this));
+                    request.addEventListener('error', function (event) {
+                        this.logger && this.logger.error('Update operation failed!', [this.name, event]);
+                        reject(event);
+                    }.bind(this));
+                } catch (e) {
+                    this.logger && this.logger.error('Update operation failed!', [
+                        this.name,
+                        e
+                    ]);
+                    reject(e);
+                }
+            }.bind(this));
         }
     },
 
@@ -6130,898 +8429,211 @@ Sy.Storage.Engine.IndexedDB.prototype = Object.create(Sy.Storage.EngineInterface
      */
 
     remove: {
-        value: function (storeName, identifier, callback) {
+        value: function (storeName, id) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
 
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Invalid store');
-            }
+                var store = this.stores[storeName];
 
-            var store = this.stores[storeName],
-                evt = new Sy.Storage.Event.LifecycleEvent(
-                    this.name,
-                    storeName,
-                    identifier,
-                    null
-                );
+                try {
+                    var transaction = this.storage.transaction(
+                            [store.path],
+                            this.transactionModes.READ_WRITE
+                        ),
+                        objectStore = transaction.objectStore(store.path),
+                        request = objectStore.delete(id);
 
-            try {
+                    request.addEventListener('success', function (event) {
+                        resolve(event.target.result);
+                    }.bind(this));
 
-                this.mediator.publish(
-                    evt.PRE_REMOVE,
-                    evt
-                );
-
-                var transaction = this.storage.transaction(
-                        [store.path],
-                        this.transactionModes.READ_WRITE
-                    ),
-                    objectStore = transaction.objectStore(store.path),
-                    request = objectStore.delete(identifier);
-
-                request.addEventListener('success', function (event) {
-                    callback(event.target.result);
-                    this.mediator.publish(
-                        evt.POST_REMOVE,
-                        evt
-                    );
-                }.bind(this));
-
-                request.addEventListener('error', function (event) {
-                    this.logger.error('Delete operation failed!', event);
-                }.bind(this));
-
-            } catch (e) {
-
-                this.logger.error('Delete operation failed!', e);
-
-            }
-
-            return this;
-
+                    request.addEventListener('error', function (event) {
+                        this.logger && this.logger.error('Delete operation failed!', [this.name, event]);
+                        reject(event);
+                    }.bind(this));
+                } catch (e) {
+                    this.logger && this.logger.error('Delete operation failed!', [
+                        this.name,
+                        e
+                    ]);
+                    reject(e);
+                }
+            }.bind(this));
         }
     },
 
     /**
-     * Find (an) element(s) in the storage
-     *
-     * @param {string} store Alias name of the store
-     * @param {object} args Available properties: index, value, limit, callback
-     *
-     * @return {Sy.Storage.EngineInterface}
+     * @inheritDoc
      */
 
     find: {
-        value: function (store, args) {
-
-            if (!this.stores[store]) {
-                throw new ReferenceError('Invalid store');
-            }
-
-            store = this.stores[store];
-
-            try {
-
-                var transaction = this.storage.transaction(
-                        [store.path],
-                        this.transactionModes.READ_ONLY
-                    ),
-                    objectStore = transaction.objectStore(store.path),
-                    index = objectStore.index(args.index),
-                    results = [],
-                    keyRange,
-                    request;
-
-                if (args.value instanceof Array && args.value.length === 2) {
-
-                    if (args.value[0] === undefined) {
-                        keyRange = this.keyRange.upperBound(args.value[1]);
-                    } else if (args.value[1] === undefined) {
-                        keyRange = this.keyRange.lowerBound(args.value[0]);
-                    } else {
-                        keyRange = this.keyRange.bound(args.value[0], args.value[1]);
-                    }
-
-                } else {
-                    keyRange = this.keyRange.only(args.value);
+        value: function (storeName, indexName, value, limit) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
                 }
 
-                request = index.openCursor(keyRange);
+                var store = this.stores[storeName];
 
-                request.addEventListener('success', function (event) {
+                try {
+                    var transaction = this.storage.transaction(
+                            [store.path],
+                            this.transactionModes.READ_ONLY
+                        ),
+                        objectStore = transaction.objectStore(store.path),
+                        index = objectStore.index(indexName),
+                        results = [],
+                        keyRange,
+                        request;
 
-                    var result = event.target.result;
+                    if (value instanceof Array && value.length === 2) {
 
-                    if (!!result === false) {
-                        if (args.limit) {
-                            args.callback(results.slice(0, args.limit));
+                        if (value[0] === undefined) {
+                            keyRange = this.keyRange.upperBound(value[1]);
+                        } else if (value[1] === undefined) {
+                            keyRange = this.keyRange.lowerBound(value[0]);
                         } else {
-                            args.callback(results);
-                        }
-                        return;
-                    }
-
-                    results.push(result.value);
-                    result.continue();
-
-                });
-
-                request.addEventListener('error', function (event) {
-                    this.logger.error('Search operation failed!', event);
-                }.bind(this));
-
-            } catch (e) {
-
-                this.logger.error('Search operation failed!', e);
-
-            }
-
-            return this;
-
-        }
-    }
-
-});
-namespace('Sy.Storage.Engine');
-
-/**
- * Storage engine persisting data into browser LocalStorage API
- *
- * @package Sy
- * @subpackage Storage.Engine
- * @implements {Sy.Storage.EngineInterface}
- * @class
- */
-
-Sy.Storage.Engine.Localstorage = function (version) {
-
-    if (!JSON) {
-        throw new Error('JSON object missing! Please load a polyfill in order to use this engine!');
-    }
-
-    this.storage = null;
-    this.stores = {};
-    this.data = null;
-    this.storageKey = 'app::storage';
-    this.mediator = null;
-
-};
-
-Sy.Storage.Engine.Localstorage.prototype = Object.create(Sy.Storage.EngineInterface.prototype, {
-
-    /**
-     * Set the storage key in LocalStorage
-     * If not set, it will use "app::storage"
-     *
-     * @param {string} storageKey
-     *
-     * @return {Sy.Storage.Engine.Localstorage}
-     */
-
-    setStorageKey: {
-        value: function (storageKey) {
-
-            this.storageKey = storageKey;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the LocalStorage API object
-     *
-     * @param {object} storage
-     *
-     * @return {Sy.Storage.Engine.Localstorage}
-     */
-
-    setStorage: {
-        value: function (storage) {
-
-            this.storage = storage;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set mediator object
-     *
-     * @param {Sy.Lib.Mediator} mediator
-     *
-     * @return {Sy.Storage.Engine.Localstorage}
-     */
-
-    setMediator: {
-        value: function (mediator) {
-
-            this.mediator = mediator;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Load data stored in the browser
-     * If first time loaded, it creates the storage
-     *
-     * @return {Sy.Storage.Engine.Localstorage}
-     */
-
-    open: {
-        value: function () {
-
-            if (!this.storage) {
-                throw new Error('Storage API object missing');
-            }
-
-            var data = this.storage.getItem(this.storageKey);
-
-            if (!data) {
-                this.createStorage();
-            } else {
-                this.data = JSON.parse(data);
-            }
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Create the storage
-     *
-     * @private
-     * @return {Sy.Storage.Engine.Localstorage}
-     */
-
-    createStorage: {
-        value: function () {
-
-            this.data = {};
-
-            for (var store in this.stores) {
-                if (this.stores.hasOwnProperty(store)) {
-                    this.data[this.stores[store].path] = {};
-                }
-            }
-
-            this.flush();
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Write all the data to the LocalStorage
-     *
-     * @private
-     * @return {Sy.Storage.Engine.Localstorage}
-     */
-
-    flush: {
-        value: function () {
-
-            this.storage.setItem(this.storageKey, JSON.stringify(this.data));
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    setStore: {
-        value: function (alias, name, identifier, indexes) {
-
-            this.stores[alias] = {
-                path: name,
-                key: identifier,
-                indexes: indexes
-            };
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    read: {
-        value: function (storeName, identifier, callback) {
-
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Unknown store');
-            }
-
-            var store = this.stores[storeName];
-
-            if (this.data[store.path][identifier]) {
-                setTimeout(
-                    callback,
-                    0,
-                    this.data[store.path][identifier]
-                );
-            }
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    create: {
-        value: function (storeName, object, callback) {
-
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Unknown store');
-            }
-
-            var store = this.stores[storeName],
-                key = store.key,
-                evt = new Sy.Storage.Event.LifecycleEvent(
-                    this.storageKey,
-                    storeName,
-                    null,
-                    object
-                );
-
-            this.mediator.publish(
-                evt.PRE_CREATE,
-                evt
-            );
-
-            this.data[store.path][object[key]] = object;
-
-            this.flush();
-
-            this.mediator.publish(
-                evt.POST_CREATE,
-                evt
-            );
-
-            setTimeout(
-                callback,
-                0,
-                object[key]
-            );
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    update: {
-        value: function (storeName, identifier, object, callback) {
-
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Unknown store');
-            }
-
-            var store = this.stores[storeName],
-                evt = new Sy.Storage.Event.LifecycleEvent(
-                    this.storageKey,
-                    storeName,
-                    identifier,
-                    object
-                );
-
-            this.mediator.publish(
-                evt.PRE_UPDATE,
-                evt
-            );
-
-            this.data[store.path][identifier] = object;
-
-            this.flush();
-
-            this.mediator.publish(
-                evt.POST_UPDATE,
-                evt
-            );
-
-            setTimeout(
-                callback,
-                0,
-                object
-            );
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    remove: {
-        value: function (storeName, identifier, callback) {
-
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Unknown store');
-            }
-
-            var store = this.stores[storeName],
-                key = store.key,
-                evt = new Sy.Storage.Event.LifecycleEvent(
-                    this.storageKey,
-                    storeName,
-                    identifier,
-                    null
-                );
-
-            this.mediator.publish(
-                evt.PRE_REMOVE,
-                evt
-            );
-
-            delete this.data[store.path][identifier];
-
-            this.flush();
-
-            this.mediator.publish(
-                evt.POST_REMOVE,
-                evt
-            );
-
-            setTimeout(
-                callback,
-                0,
-                identifier
-            );
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Find (an) element(s) in the storage
-     *
-     * @param {string} store Alias name of the store
-     * @param {object} args Available properties: index, value, limit, callback
-     *
-     * @return {Sy.Storage.EngineInterface}
-     */
-
-    find: {
-        value: function (store, args) {
-
-            if (!this.stores[store]) {
-                throw new ReferenceError('Unknown store');
-            }
-
-            store = this.stores[store];
-
-            var data = [];
-
-            for (var key in this.data[store.path]) {
-                if (this.data[store.path].hasOwnProperty(key)) {
-
-                    var d = this.data[store.path][key];
-
-                    if (args.value instanceof Array) {
-
-                        if (
-                            (
-                                args.value[0] === undefined &&
-                                d[args.index] <= args.value[1]
-                            ) ||
-                            (
-                                args.value[1] === undefined &&
-                                d[args.index] >= args.value[0]
-                            ) ||
-                            (
-                                d[args.index] >= args.value[0] &&
-                                d[args.index] <= args.value[1]
-                            )
-                        ) {
-                            data.push(d);
+                            keyRange = this.keyRange.bound(value[0], value[1]);
                         }
 
-                    } else if (d[args.index] === args.value) {
-                        data.push(d);
+                    } else {
+                        keyRange = this.keyRange.only(value);
                     }
 
+                    request = index.openCursor(keyRange);
+
+                    request.addEventListener('success', function (event) {
+
+                        var result = event.target.result;
+
+                        if (!!result === false) {
+                            if (limit !== undefined) {
+                                resolve(results.slice(0, limit));
+                            } else {
+                                resolve(results);
+                            }
+                            return;
+                        }
+
+                        results.push(result.value);
+                        result.continue();
+
+                    });
+                    request.addEventListener('error', function (event) {
+                        this.logger && this.logger.error('Search operation failed!', [this.name, event]);
+                        reject(event);
+                    }.bind(this));
+                } catch (e) {
+                    this.logger && this.logger.error('Search operation failed!', [
+                        this.name,
+                        e
+                    ]);
+                    reject(e);
                 }
-            }
+            }.bind(this));
+        }
+    },
 
-            if (args.limit) {
-                data = data.slice(0, args.limit);
-            }
+    /**
+     * @inheritDoc
+     */
 
-            setTimeout(
-                args.callback,
-                0,
-                data
-            );
+    findAll: {
+        value: function (storeName) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
 
-            return this;
+                var store = this.stores[storeName];
 
+                try {
+                    var transaction = this.storage.transaction(
+                            [store.path],
+                            this.transactionModes.READ_ONLY
+                        ),
+                        objectStore = transaction.objectStore(store.path),
+                        request = objectStore.openCursor(),
+                        results = [];
+
+                    request.addEventListener('success', function (event) {
+
+                        var result = event.target.result;
+
+                        if (!!result === false) {
+                            resolve(results);
+                            return;
+                        }
+
+                        results.push(result.value);
+                        result.continue();
+
+                    });
+                    request.addEventListener('error', function (event) {
+                        this.logger && this.logger.error('Search operation failed!', [this.name, event]);
+                        reject(event);
+                    }.bind(this));
+                } catch (e) {
+                    this.logger && this.logger.error('Search operation failed!', [
+                        this.name,
+                        e
+                    ]);
+                    reject(e);
+                }
+            }.bind(this));
         }
     }
 
 });
-namespace('Sy.Storage.Engine');
+
+namespace('Sy.Storage.Dbal');
 
 /**
- * Storage engine sending data to a HTTP API via REST calls
+ * IndexedDB driver factory
  *
  * @package Sy
- * @subpackage Storage.Engine
- * @implements {Sy.Storage.EngineInterface}
+ * @subpackage Storage
  * @class
+ * @implements {Sy.Storage.Dbal.DriverFactoryInterface}
  */
 
-Sy.Storage.Engine.Rest = function (version) {
-
-    this.version = version || 1;
-    this.stores = {};
-    this.manager = null;
-    this.basePath = '';
-    this.mediator = null;
-    this.headers = {};
-    this.name = 'app::storage';
-
-};
-
-Sy.Storage.Engine.Rest.prototype = Object.create(Sy.Storage.EngineInterface.prototype, {
-
-    /**
-     * Set the pattern of the api url
-     * The pattern must at least contain "{{path}}" and "{{key}}" placeholders
-     * An extra "{{version}}" placeholder can be set
-     *
-     * @param {string} pattern
-     *
-     * @return {Sy.Storage.Engine.Rest}
-     */
-
-    setPattern: {
-        value: function (pattern) {
-
-            if (pattern.indexOf('{{path}}') === -1 || pattern.indexOf('{{key}}') === -1) {
-                throw new SyntaxError('Invalid pattern');
-            }
-
-            this.basePath = pattern.replace(/{{version}}/, this.version);
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the rest manager
-     *
-     * @param {Sy.HTTP.REST} manager
-     *
-     * @return {Sy.Storage.Engine.Rest}
-     */
-
-    setManager: {
-        value: function (manager) {
-
-            if (!(manager instanceof Sy.HTTP.REST)) {
-                throw new TypeError('Invalid manager');
-            }
-
-            this.manager = manager;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set mediator object
-     *
-     * @param {Sy.Lib.Mediator} mediator
-     *
-     * @return {Sy.Storage.Engine.Rest}
-     */
-
-    setMediator: {
-        value: function (mediator) {
-
-            this.mediator = mediator;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the headers that will be associated to every request made by the engine
-     * Useful to set authentication tokens
-     *
-     * @param {Object} headers
-     *
-     * @return {Sy.Storage.Engine.Rest}
-     */
-
-    setHeaders: {
-        value: function (headers) {
-            this.headers = headers;
-
-            return this;
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    setStore: {
-        value: function (alias, name, identifier, indexes) {
-
-            this.stores[alias] = {
-                path: name,
-                key: identifier,
-                indexes: indexes
-            };
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    read: {
-        value: function (storeName, identifier, callback) {
-
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Unknown store');
-            }
-
-            var meta = this.stores[storeName];
-
-            this.manager.get({
-                uri: this.basePath
-                    .replace(/{{path}}/, meta.path)
-                    .replace(/{{key}}/, identifier),
-                headers: this.headers,
-                listener: function (resp) {
-
-                    callback(resp.getBody());
-
-                }
-            });
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    create: {
-        value: function (storeName, object, callback) {
-
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Unknown store');
-            }
-
-            var meta = this.stores[storeName],
-                evt = new Sy.Storage.Event.LifecycleEvent(
-                    this.name,
-                    storeName,
-                    null,
-                    object
-                );
-
-            this.mediator.publish(
-                evt.PRE_CREATE,
-                evt
-            );
-
-            this.manager.post({
-                uri: this.basePath
-                    .replace(/{{path}}/, meta.path)
-                    .replace(/{{key}}/, ''),
-                headers: this.headers,
-                data: object,
-                listener: function (resp) {
-
-                    callback(resp.getBody());
-
-                    this.mediator.publish(
-                        evt.POST_CREATE,
-                        evt
-                    );
-
-                }.bind(this)
-            });
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    update: {
-        value: function (storeName, identifier, object, callback) {
-
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Unknown store');
-            }
-
-            var meta = this.stores[storeName],
-                evt = new Sy.Storage.Event.LifecycleEvent(
-                    this.name,
-                    storeName,
-                    identifier,
-                    object
-                );
-
-            this.mediator.publish(
-                evt.PRE_UPDATE,
-                evt
-            );
-
-            this.manager.put({
-                uri: this.basePath
-                    .replace(/{{path}}/, meta.path)
-                    .replace(/{{key}}/, identifier),
-                headers: this.headers,
-                data: object,
-                listener: function (resp) {
-
-                    callback(resp.getBody());
-
-                    this.mediator.publish(
-                        evt.POST_UPDATE,
-                        evt
-                    );
-
-                }.bind(this)
-            });
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    remove: {
-        value: function (storeName, identifier, callback) {
-
-            if (!this.stores[storeName]) {
-                throw new ReferenceError('Unknown store');
-            }
-
-            var meta = this.stores[storeName],
-                evt = new Sy.Storage.Event.LifecycleEvent(
-                    this.name,
-                    storeName,
-                    identifier,
-                    null
-                );
-
-            this.mediator.publish(
-                evt.PRE_REMOVE,
-                evt
-            );
-
-            this.manager.remove({
-                uri: this.basePath
-                    .replace(/{{path}}/, meta.path)
-                    .replace(/{{key}}/, identifier),
-                headers: this.headers,
-                listener: function (resp) {
-
-                    callback(identifier);
-
-                    this.mediator.publish(
-                        evt.POST_REMOVE,
-                        evt
-                    );
-
-                }.bind(this)
-            });
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    find: {
-        value: function (args) {
-
-            if (!this.stores[store]) {
-                throw new ReferenceError('Unknown store');
-            }
-
-            var meta = this.stores[store],
-                queries = [];
-
-            if (args.value instanceof Array) {
-                queries.push(args.index + '[]=' + args.value[0] + '&' + args.index + '[]=' + args.value[1]);
-            } else {
-                queries.push(args.index + '=' + args.value);
-            }
-
-            if (args.limit) {
-                queries.push('limit=' + args.limit);
-            }
-
-            this.manager.get({
-                uri: this.basePath
-                    .replace(/{{path}}/, meta.path)
-                    .replace(/{{key}}/, '?' + queries.join('&')),
-                headers: this.headers,
-                listener: function (resp) {
-
-                    callback(resp.getBody());
-
-                }
-            });
-
-            return this;
-
-        }
-    }
-
-});
-namespace('Sy.Storage.EngineFactory');
-
-/**
- * Abstract factory doing nothing, it juste centralize logger + mediator setters
- *
- * @package Sy
- * @subpackage Storage.EngineFactory
- * @class
- * @implements {Sy.FactoryInterface}
- * @abstract
- */
-
-Sy.Storage.EngineFactory.AbstractFactory = function () {
+Sy.Storage.Dbal.IndexedDBFactory = function () {
+    this.meta = [];
     this.logger = null;
-    this.mediator = null;
 };
-Sy.Storage.EngineFactory.AbstractFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
+Sy.Storage.Dbal.IndexedDBFactory.prototype = Object.create(Sy.Storage.Dbal.DriverFactoryInterface.prototype, {
+
+    /**
+     * Set all the defined entities
+     *
+     * @param {Array} meta
+     *
+     * @return {Sy.Storage.Dbal.IndexedDBFactory} self
+     */
+
+    setEntitiesMeta: {
+        value: function (meta) {
+            this.meta = meta;
+
+            return this;
+        }
+    },
 
     /**
      * Set the logger
      *
      * @param {Sy.Lib.Logger.Interface} logger
      *
-     * @return {Sy.Storage.EngineFactory.IndexedDBFactory}
+     * @return {Sy.Storage.Dbal.IndexedDBFactory} self
      */
 
     setLogger: {
         value: function (logger) {
-
             if (!(logger instanceof Sy.Lib.Logger.Interface)) {
                 throw new TypeError('Invalid logger');
             }
@@ -7029,104 +8641,6 @@ Sy.Storage.EngineFactory.AbstractFactory.prototype = Object.create(Sy.FactoryInt
             this.logger = logger;
 
             return this;
-
-        }
-    },
-
-    /**
-     * Set the mediator
-     *
-     * @param {Sy.Lib.Mediator} mediator
-     *
-     * @return {Sy.Storage.EngineFactory.IndexedDBFactory}
-     */
-
-    setMediator: {
-        value: function (mediator) {
-
-            if (!(mediator instanceof Sy.Lib.Mediator)) {
-                throw new TypeError('Invalid mediator');
-            }
-
-            this.mediator = mediator;
-
-            return this;
-
-        }
-    }
-
-});
-
-namespace('Sy.Storage.EngineFactory');
-
-/**
- * Master factory to generate any king of engine based on other engine factories
- *
- * @package Sy
- * @subpackage Storage.EngineFactory
- * @class
- * @implements {Sy.FactoryInterface}
- */
-
-Sy.Storage.EngineFactory.Core = function () {
-    this.engines = null;
-};
-Sy.Storage.EngineFactory.Core.prototype = Object.create(Sy.FactoryInterface.prototype, {
-
-    /**
-     * Set a registry to hold engine facctories
-     *
-     * @param {Sy.RegistryInterface} registry
-     *
-     * @return {Sy.Storage.EngineFactory.Core}
-     */
-
-    setRegistry: {
-        value: function (registry) {
-
-            if (!(registry instanceof Sy.RegistryInterface)) {
-                throw new TypeError('Invalid registry');
-            }
-
-            this.engines = registry;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set a new engine factory
-     *
-     * @param {String} name Engine name it generates
-     * @param {Sy.FactoryInterface} factory Engine factory
-     * @param {Sy.Storage.StoreMapperInterface} mapper
-     *
-     * @return {Sy.Storage.EngineFactory.Core}
-     */
-
-    setEngineFactory: {
-        value: function (name, factory, mapper) {
-
-            if (this.engines.has(name)) {
-                throw new ReferenceError('Factory "' + name + '" already defined');
-            }
-
-            if (!(factory instanceof Sy.FactoryInterface)) {
-                throw new TypeError('Invalid factory');
-            }
-
-            if (!(mapper instanceof Sy.Storage.StoreMapperInterface)) {
-                throw new TypeError('Invalid mapper');
-            }
-
-            this.engines.set(name, {
-                factory: factory,
-                mapper: mapper
-            });
-
-            return this;
-
         }
     },
 
@@ -7135,84 +8649,12 @@ Sy.Storage.EngineFactory.Core.prototype = Object.create(Sy.FactoryInterface.prot
      */
 
     make: {
-        value: function (managerConf, entitiesMetadata) {
+        value: function (dbname, version, stores, options) {
+            var driver = new Sy.Storage.Dbal.IndexedDB();
 
-            var name = managerConf.type;
-
-            if (!this.engines.has(name)) {
-                throw new ReferenceError('Unknown factory named "' + name + '"');
-            }
-
-            var factory = this.engines.get(name).factory,
-                mapper = this.engines.get(name).mapper,
-                stores = [],
-                engine;
-
-            for (var i = 0, l = entitiesMetadata.length; i < l; i++) {
-                stores.push(mapper.transform(entitiesMetadata[i]));
-            }
-
-            engine = factory.make(
-                managerConf.storageName,
-                managerConf.version,
-                stores
-            );
-
-            return engine;
-
-        }
-    }
-
-});
-
-namespace('Sy.Storage.EngineFactory');
-
-/**
- * Generates an instance of an indexedDB storage engine
- *
- * @package Sy
- * @subpackage Storage.EngineFactory
- * @class
- * @extends {Sy.Storage.EngineFactory.AbstractFactory}
- * @implements {Sy.FactoryInterface}
- */
-
-Sy.Storage.EngineFactory.IndexedDBFactory = function () {
-    Sy.Storage.EngineFactory.AbstractFactory.call(this);
-};
-Sy.Storage.EngineFactory.IndexedDBFactory.prototype = Object.create(Sy.Storage.EngineFactory.AbstractFactory.prototype, {
-
-    /**
-     * @inheritDoc
-     */
-
-    make: {
-        value: function (name, version, stores) {
-
-            name = name || 'app::storage';
-            version = version || 1;
-            stores = stores || [];
-
-            var engine = new Sy.Storage.Engine.IndexedDB(version);
-
-            for (var i = 0, l = stores.length; i < l; i++) {
-                engine.setStore(
-                    stores[i].alias,
-                    stores[i].name,
-                    stores[i].identifier,
-                    stores[i].indexes
-                );
-            }
-
-            if (this.logger) {
-                engine.setLogger(this.logger);
-            }
-
-            if (this.mediator) {
-                engine.setMediator(this.mediator);
-            }
-
-            engine
+            driver
+                .setName(dbname)
+                .setVersion(version)
                 .setConnection(
                     window.indexedDB ||
                     window.webkitIndexedDB ||
@@ -7227,1412 +8669,351 @@ Sy.Storage.EngineFactory.IndexedDBFactory.prototype = Object.create(Sy.Storage.E
                     window.IDBKeyRange ||
                     window.webkitIDBKeyRange
                 )
-                .open();
-
-            return engine;
-
-        }
-    }
-
-});
-
-namespace('Sy.Storage.EngineFactory');
-
-/**
- * Generates an instance of a Localstorage engine
- *
- * @package Sy
- * @subpackage Storage.EngineFactory
- * @class
- * @extends {Sy.Storage.EngineFactory.AbstractFactory}
- * @implements {Sy.FactoryInterface}
- */
-
-Sy.Storage.EngineFactory.LocalstorageFactory = function () {
-    Sy.Storage.EngineFactory.AbstractFactory.call(this);
-};
-Sy.Storage.EngineFactory.LocalstorageFactory.prototype = Object.create(Sy.Storage.EngineFactory.AbstractFactory.prototype, {
-
-    /**
-     * @inheritDoc
-     */
-
-    make: {
-        value: function (name, version, stores) {
-
-            name = name || 'app::storage';
-            version = version || 1;
-            stores = stores || [];
-
-            var engine = new Sy.Storage.Engine.Localstorage(version);
-
-            for (var i = 0, l = stores.length; i < l; i++) {
-                engine.setStore(
-                    stores[i].alias,
-                    stores[i].name,
-                    stores[i].identifier,
-                    stores[i].indexes
-                );
-            }
-
-            if (this.mediator) {
-                engine.setMediator(this.mediator);
-            }
-
-            engine
-                .setStorage(window.localStorage)
-                .open();
-
-            return engine;
-
-        }
-    }
-
-});
-
-namespace('Sy.Storage.EngineFactory');
-
-/**
- * Generates an instance of a rest storage engine
- *
- * @package Sy
- * @subpackage Storage.EngineFactory
- * @class
- * @extends {Sy.Storage.EngineFactory.AbstractFactory}
- * @implements {Sy.FactoryInterface}
- */
-
-Sy.Storage.EngineFactory.RestFactory = function () {
-    Sy.Storage.EngineFactory.AbstractFactory.call(this);
-    this.manager = null;
-    this.pattern = '/api/{{version}}/{{path}}/{{key}}';     //right now the pattern is not customisable
-};
-Sy.Storage.EngineFactory.RestFactory.prototype = Object.create(Sy.Storage.EngineFactory.AbstractFactory.prototype, {
-
-    /**
-     * Set the rest manager
-     *
-     * @param {Sy.HTTP.REST} manager
-     *
-     * @return {Sy.Storage.EngineFactory.RestFactory}
-     */
-
-    setManager: {
-        value: function (manager) {
-
-            if (!(manager instanceof Sy.HTTP.REST)) {
-                throw new TypeError('Invalid rest manager');
-            }
-
-            this.manager = manager;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    make: {
-        value: function (name, version, stores) {
-
-            version = version || 1;
-            stores = stores || [];
-
-            var engine = new Sy.Storage.Engine.Rest(version);
-
-            for (var i = 0, l = stores.length; i < l; i++) {
-                engine.setStore(
-                    stores[i].alias,
-                    stores[i].name,
-                    stores[i].identifier,
-                    stores[i].indexes
-                );
-            }
-
-            if (this.mediator) {
-                engine.setMediator(this.mediator);
-            }
-
-            engine
-                .setManager(this.manager)
-                .setPattern(this.pattern);
-
-            return engine;
-
-        }
-    }
-
-});
-
-namespace('Sy.Storage');
-
-/**
- * Handles a set of Entities Repository and control when to apply
- * changes to the engine
- *
- * @package Sy
- * @subpackage Storage
- * @class
- */
-
-Sy.Storage.Manager = function () {
-
-    this.repositoryFact = null;
-    this.mapping = [];
-    this.engine = null;
-
-};
-
-Sy.Storage.Manager.prototype = Object.create(Object.prototype, {
-
-    /**
-     * Set the repository factory
-     *
-     * @param {Sy.Storage.RepositoryFactory} factory
-     *
-     * @return {Sy.Storage.Manager}
-     */
-
-    setRepositoryFactory: {
-        value: function (factory) {
-
-            if (!(factory instanceof Sy.Storage.RepositoryFactory)) {
-                throw new TypeError('Invalid repository factory type');
-            }
-
-            this.repositoryFact = factory;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the list of repository that the manager can handle
-     *
-     * If set to an empty array, there will be no restrictions
-     *
-     * @param {Array} list
-     *
-     * @return {Sy.Storage.Manager}
-     */
-
-    setMapping: {
-        value: function (list) {
-
-            if (!(list instanceof Array)) {
-                throw new TypeError('Invalid argument');
-            }
-
-            this.mapping = list;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the engine associated to the manager
-     *
-     * @param {Sy.Storage.EngineInterface} engine
-     *
-     * @return {Sy.Storage.Manager}
-     */
-
-    setEngine: {
-        value: function (engine) {
-
-            if (!(engine instanceof Sy.Storage.EngineInterface)) {
-                throw new TypeError('Invalid engine');
-            }
-
-            this.engine = engine;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Return the engine
-     * Can be useful when the dev want to add the headers for the http engine
-     *
-     * @return {Sy.Storage.EngineInterface}
-     */
-
-    getEngine: {
-        value: function () {
-            return this.engine;
-        }
-    },
-
-    /**
-     * Return an entity repository
-     *
-     * @param {string} alias
-     *
-     * @return {Sy.Storage.Repository}
-     */
-
-    getRepository: {
-        value: function (alias) {
-
-            if (this.mapping.length > 0 && this.mapping.indexOf(alias) === -1) {
-                throw new ReferenceError('The manager does not handle "' + alias + '"');
-            }
-
-            var repo = this.repositoryFact.make(alias);
-
-            repo.setEngine(this.engine);
-
-            return repo;
-
-        }
-    }
-
-});
-namespace('Sy.Storage');
-
-/**
- * Build new storage managers
- *
- * @package Sy
- * @subpackage Storage
- * @implements {Sy.FactoryInterface}
- * @class
- */
-
-Sy.Storage.ManagerFactory = function () {
-
-    this.engineFact = null;
-    this.repositoryFact = null;
-
-};
-
-Sy.Storage.ManagerFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
-
-    /**
-     * Set the engine factory
-     *
-     * @param {Sy.Storage.EngineFactory.Core} factory
-     *
-     * @return {Sy.Storage.ManagerFactory}
-     */
-
-    setEngineFactory: {
-        value: function (factory) {
-
-            if (!(factory instanceof Sy.Storage.EngineFactory.Core)) {
-                throw new TypeError('Invalid engine factory');
-            }
-
-            this.engineFact = factory;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the Repository factory
-     *
-     * @param {Sy.Storage.RepositoryFactory} factory
-     *
-     * @return {Sy.Storage.ManagerFactory}
-     */
-
-    setRepositoryFactory: {
-        value: function (factory) {
-
-            if (!(factory instanceof Sy.Storage.RepositoryFactory)) {
-                throw new TypeError('Invalid repository factory');
-            }
-
-            this.repositoryFact = factory;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    make: {
-        value: function (name, args, entitiesMeta) {
-
-            var manager = new Sy.Storage.Manager(),
-                meta = [],
-                engine;
-
-                args.mapping = args.mapping || [];
-
-            for (var i = 0, l = entitiesMeta.length; i < l; i++) {
-                if (args.mapping.length === 0 || args.mapping.indexOf(entitiesMeta[i].name) !== -1) {
-                    meta.push(entitiesMeta[i]);
+                .setLogger(this.logger);
+
+            for (var i = 0, l = this.meta.length; i < l; i++) {
+                if (stores.length === 0 || stores.indexOf(this.meta[i].alias) !== -1) {
+                    driver.setStore(
+                        this.meta[i].alias,
+                        this.meta[i].alias.toLowerCase(),
+                        this.meta[i].uuid,
+                        this.meta[i].indexes
+                    );
                 }
             }
 
-            engine = this.engineFact.make(args, meta);
-
-            manager
-                .setRepositoryFactory(this.repositoryFact)
-                .setMapping(args.mapping)
-                .setEngine(engine);
-
-            return manager;
-
+            return driver.open();
         }
     }
 
 });
-namespace('Sy.Storage');
+
+namespace('Sy.Storage.Dbal');
 
 /**
- * Default implementation of the entity repository
+ * Storage driver leveraging Storage to persist objects
  *
  * @package Sy
  * @subpackage Storage
- * @implements {Sy.Storage.RepositoryInterface}
  * @class
+ * @implements {Sy.Storage.Dbal.DriverInterface}
  */
 
-Sy.Storage.Repository = function () {
-
-    this.engine = null;
-    this.entityKey = null;
-    this.entityConstructor = null;
-    this.uow = null;
+Sy.Storage.Dbal.Localstorage = function () {
+    this.storage = null;
+    this.stores = {};
+    this.data = null;
     this.name = null;
-    this.cache = null;
-
 };
-
-Sy.Storage.Repository.prototype = Object.create(Sy.Storage.RepositoryInterface.prototype, {
-
-    /**
-     * @inheritDoc
-     */
-
-    setUnitOfWork: {
-        value: function (uow) {
-
-            if (!(uow instanceof Sy.Storage.UnitOfWork)) {
-                throw new TypeError('Invalid unit of work');
-            }
-
-            this.uow = uow;
-
-            return this;
-
-        }
-    },
+Sy.Storage.Dbal.Localstorage.prototype = Object.create(Sy.Storage.Dbal.DriverInterface.prototype, {
 
     /**
-     * @inheritDoc
-     */
-
-    setCacheRegistry: {
-        value: function (registry) {
-
-            if (!(registry instanceof Sy.RegistryInterface)) {
-                throw new TypeError('Invalid registry');
-            }
-
-            this.cache = registry;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Return the unit of work
+     * Set the database name
      *
-     * @return {Sy.Storage.UnitOfWork}
-     */
-
-    getUnitOfWork: {
-        value: function () {
-            return this.uow;
-        }
-    },
-
-    /**
-     * @inheritDoc
+     * @param {String} name
+     *
+     * @return {Sy.Storage.Dbal.Localstorage} self
      */
 
     setName: {
         value: function (name) {
-
             this.name = name;
 
             return this;
-
         }
     },
 
     /**
-     * @inheritDoc
+     * Set the storage connection
+     *
+     * @param {Storage} storage
+     *
+     * @return {Sy.Storage.Dbal.Localstorage} self
      */
 
-    setEngine: {
-        value: function (engine) {
-
-            if (!(engine instanceof Sy.Storage.EngineInterface)) {
-                throw new TypeError('Invalid engine');
+    setConnection: {
+        value: function (storage) {
+            if (!(storage instanceof Storage)) {
+                throw new TypeError('Invalid storage');
             }
 
-            this.engine = engine;
-            this.uow.setEngine(engine);
+            this.storage = storage;
 
             return this;
-
         }
     },
 
     /**
-     * @inheritDoc
+     * Set a new store
+     *
+     * @param {String} alias
+     * @param {String} name
+     * @param {String} identifier
+     *
+     * @return {Sy.Storage.Dbal.Localstorage} self
      */
 
-    setEntityKey: {
-        value: function (key) {
-
-            this.entityKey = key;
+    setStore: {
+        value: function (alias, name, identifier) {
+            this.stores[alias] = {
+                path: name,
+                key: identifier
+            };
 
             return this;
-
         }
     },
 
     /**
-     * @inheritDoc
+     * Open the storage and load the data
+     *
+     * @return {Sy.Storage.Dbal.Localstorage} self
      */
 
-    setEntityConstructor: {
-        value: function (constructor) {
-
-            if (!(constructor.prototype instanceof Sy.EntityInterface)) {
-                throw new TypeError('Invalid entity constructor');
-            }
-
-            this.entityConstructor = constructor;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    setIndexes: {
-        value: function (indexes) {
-
-            if (!(indexes instanceof Array)) {
-                throw new TypeError('Invalid indexes definition');
-            }
-
-            this.indexes = indexes;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    persist: {
-        value: function (entity) {
-
-            if (!(entity instanceof this.entityConstructor)) {
-                throw new TypeError('Entity not handled by the repository');
-            }
-
-            this.uow.handle(entity);
-            this.cache.set(
-                entity.get(this.entityKey),
-                entity
-            );
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    remove: {
-        value: function (entity) {
-
-            this.uow.remove(entity);
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    flush: {
+    open: {
         value: function () {
+            var data = this.storage.getItem(this.name);
 
-            this.uow.commit();
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    findOneBy: {
-        value: function (args) {
-
-            if (args.index === this.entityKey) {
-                if (this.cache.has(args.value)) {
-                    setTimeout(
-                        args.callback,
-                        0,
-                        this.cache.get(args.value)
-                    );
-                } else {
-                    this.engine.read(
-                        this.name,
-                        args.value,
-                        function (object) {
-                            args.callback(
-                                this.buildEntity(object)
-                            );
-                        }.bind(this)
-                    );
-                }
+            if (!data) {
+                this.createStorage();
             } else {
-                args.limit = 1;
-                this.findBy(args);
+                this.data = JSON.parse(data);
             }
 
             return this;
-
         }
     },
 
     /**
-     * @inheritDoc
-     */
-
-    findBy: {
-        value: function (args) {
-
-            this.engine.find(
-                this.name,
-                {
-                    index: args.index,
-                    value: args.value,
-                    callback: function (results) {
-                        this.findListener(args.callback, results);
-                    }.bind(this),
-                    limit: args.limit
-                }
-            );
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Intercept raw results and transform objects array into enitites one
+     * Initialize the database structure
      *
      * @private
-     * @param {function} callback
-     * @param {Array} results
-     *
-     * @return {void}
      */
 
-    findListener: {
-        value: function (callback, results) {
+    createStorage: {
+        value: function () {
+            this.data = {};
 
-            var data = [];
-
-            for (var i = 0, l = results.length; i < l; i++) {
-                data.push(
-                    this.buildEntity(results[i])
-                );
+            for (var store in this.stores) {
+                if (this.stores.hasOwnProperty(store)) {
+                    this.data[this.stores[store].path] = {};
+                }
             }
 
-            callback(data);
+            this.commit();
 
+            return this;
         }
     },
 
     /**
-     * Transform a raw object into an entity
+     * Write the data to the database
      *
      * @private
-     * @param {object} object
-     *
-     * @return {Sy.EntityInterface}
-     */
-
-    buildEntity: {
-        value: function (object) {
-
-            if (this.cache.has(object[this.entityKey])) {
-
-                return this.cache.get(object[this.entityKey]);
-
-            } else {
-
-                var entity = new this.entityConstructor();
-
-                entity.set(object);
-
-                return entity;
-
-            }
-
-        }
-    }
-
-});
-namespace('Sy.Storage');
-
-/**
- * Factory that generates entities repository
- *
- * @package Sy
- * @subpackage Storage
- * @implements {Sy.FactoryInterface}
- * @class
- */
-
-Sy.Storage.RepositoryFactory = function () {
-    this.meta = null;
-    this.loaded = null;
-    this.uowFactory = null;
-    this.registryFactory = null;
-};
-
-Sy.Storage.RepositoryFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
-
-    /**
-     * Set the registry factory
-     *
-     * @param {Sy.RegistryFactory} factory
-     *
-     * @return {Sy.Storage.RepositoryFactory}
-     */
-
-    setRegistryFactory: {
-        value: function (factory) {
-
-            if (!(factory instanceof Sy.RegistryFactory)) {
-                throw new TypeError('Invalid registry factory');
-            }
-
-            this.meta = factory.make();
-            this.loaded = factory.make();
-            this.registryFactory = factory;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the informations about repositories
-     *
-     * @param {Array} list
-     *
-     * @return {Sy.Storage.RepositoryFactory}
-     */
-
-    setMeta: {
-        value: function (list) {
-
-            for (var i = 0, l = list.length; i < l; i++) {
-                this.meta.set(
-                    list[i].name,
-                    {
-                        repository: list[i].repository,
-                        entity: list[i].entity,
-                        indexes: list[i].indexes,
-                        uuid: list[i].uuid
-                    }
-                );
-            }
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the UnitOfWork factory
-     *
-     * @param {Sy.Storage.UnitOfWorkFactory} factory
-     *
-     * @return {Sy.Storage.RepositoryInterface}
-     */
-
-    setUOWFactory: {
-        value: function (factory) {
-
-            if (!(factory instanceof Sy.Storage.UnitOfWorkFactory)) {
-                throw new TypeError('Invalid factory');
-            }
-
-            this.uowFactory = factory;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    make: {
-        value: function (alias) {
-
-            if (this.loaded.has(alias)) {
-                return this.loaded.get(alias);
-            }
-
-            if (!this.meta.has(alias)) {
-                throw new ReferenceError('Unknown repository "' + alias + '"');
-            }
-
-            var meta = this.meta.get(alias),
-                repo = new meta.repository(),
-                uow = this.uowFactory.make(alias, meta.uuid);
-
-            if (!(repo instanceof Sy.Storage.RepositoryInterface)) {
-                throw new TypeError('Invalid repository "' + alias + '"');
-            }
-
-            repo
-                .setName(alias)
-                .setEntityKey(meta.uuid)
-                .setEntityConstructor(meta.entity)
-                .setIndexes(meta.indexes)
-                .setUnitOfWork(uow)
-                .setCacheRegistry(this.registryFactory.make());
-
-            this.loaded.set(alias, repo);
-
-            return repo;
-
-        }
-    }
-
-});
-namespace('Sy.Storage.StoreMapper');
-
-/**
- * IndexedDB store mapper
- *
- * @package Sy
- * @subpackage Storage.StoreMapper
- * @class
- * @implements {Sy.Storage.StoreMapperInterface}
- */
-
-Sy.Storage.StoreMapper.IndexedDBMapper = function () {};
-Sy.Storage.StoreMapper.IndexedDBMapper.prototype = Object.create(Sy.Storage.StoreMapperInterface.prototype, {
-
-    /**
-     * @inheritDoc
-     */
-
-    transform: {
-        value: function (meta) {
-
-            var store = {};
-
-            store.alias = meta.name;
-            store.name = meta.name.toLowerCase();
-            store.identifier = meta.uuid;
-            store.indexes = meta.indexes;
-
-            return store;
-
-        }
-    }
-
-});
-
-namespace('Sy.Storage.StoreMapper');
-
-/**
- * Localstorage store mapper
- *
- * @package Sy
- * @subpackage Storage.StoreMapper
- * @class
- * @implements {Sy.Storage.StoreMapperInterface}
- */
-
-Sy.Storage.StoreMapper.LocalstorageMapper = function () {};
-Sy.Storage.StoreMapper.LocalstorageMapper.prototype = Object.create(Sy.Storage.StoreMapperInterface.prototype, {
-
-    /**
-     * @inheritDoc
-     */
-
-    transform: {
-        value: function (meta) {
-
-            var store = {};
-
-            store.alias = meta.name;
-            store.name = meta.name.toLowerCase();
-            store.identifier = meta.uuid;
-            store.indexes = meta.indexes;
-
-            return store;
-
-        }
-    }
-
-});
-
-namespace('Sy.Storage.StoreMapper');
-
-/**
- * Rest store mapper
- *
- * @package Sy
- * @subpackage Storage.StoreMapper
- * @class
- * @implements {Sy.Storage.StoreMapperInterface}
- */
-
-Sy.Storage.StoreMapper.RestMapper = function () {};
-Sy.Storage.StoreMapper.RestMapper.prototype = Object.create(Sy.Storage.StoreMapperInterface.prototype, {
-
-    /**
-     * @inheritDoc
-     */
-
-    transform: {
-        value: function (meta) {
-
-            var store = {};
-
-            store.alias = meta.name;
-            store.name = meta.name.toLowerCase().replace('::', '/');
-            store.identifier = meta.uuid;
-            store.indexes = meta.indexes;
-
-            return store;
-
-        }
-    }
-
-});
-
-namespace('Sy.Storage');
-
-/**
- * Handles entity modifications done through repositories
- *
- * @package Sy
- * @subpackage Storage
- * @class
- */
-
-Sy.Storage.UnitOfWork = function () {
-    this.states = null;
-    this.engine = null;
-    this.generator = null;
-    this.name = null;
-    this.entityKey = null;
-};
-Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
-
-    SCHEDULED_FOR_CREATION: {
-        value: 'create',
-        writable: false
-    },
-
-    SCHEDULED_FOR_UPDATE: {
-        value: 'update',
-        writable: false
-    },
-
-    SCHEDULED_FOR_REMOVAL: {
-        value: 'remove',
-        writable: false
-    },
-
-    /**
-     * Set a state registry to hold scheduled entities
-     *
-     * @param {Sy.StateRegistryInterface} states
-     *
-     * @return {Sy.Storage.UnitOfWork}
-     */
-
-    setStateRegistry: {
-        value: function (states) {
-
-            if (!(states instanceof Sy.StateRegistryInterface)) {
-                throw new TypeError('Invalid state registry');
-            }
-
-            this.states = states;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the engine it will use to apply modifications to
-     *
-     * @param {Sy.Storage.EngineInterface} engine
-     *
-     * @return {Sy.Storage.UnitOfWork}
-     */
-
-    setEngine: {
-        value: function (engine) {
-
-            if (!(engine instanceof Sy.Storage.EngineInterface)) {
-                throw new TypeError('Invalid engine');
-            }
-
-            this.engine = engine;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set generator to build entities UUIDs
-     *
-     * @param {Sy.Lib.Generator.Interface} generator
-     *
-     * @return {Sy.Storage.UnitOfWork}
-     */
-
-    setGenerator: {
-        value: function (generator) {
-
-            if (!(generator instanceof Sy.Lib.Generator.Interface)) {
-                throw new TypeError('Invalid generator');
-            }
-
-            this.generator = generator;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the store name this uow depends on
-     *
-     * @param {String} name Store name
-     *
-     * @return {Sy.Storage.UnitOfWork}
-     */
-
-    setName: {
-        value: function (name) {
-
-            this.name = name;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the entity identifier key name
-     *
-     * @param {String} key
-     *
-     * @return {Sy.Storage.UnitOfWork}
-     */
-
-    setEntityKey: {
-        value: function (key) {
-
-            this.entityKey = key;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Create or update entities
-     *
-     * @param {Sy.EntityInterface} entity
-     *
-     * @return {Sy.Storage.UnitOfWork}
-     */
-
-    handle: {
-        value: function (entity) {
-
-            if (!(entity instanceof Sy.EntityInterface)) {
-                throw new TypeError('Invalid entity');
-            }
-
-            if (!entity.get(this.entityKey)) {
-                entity.set(
-                    this.entityKey,
-                    this.generator.generate()
-                );
-                this.states.set(
-                    this.SCHEDULED_FOR_CREATION,
-                    entity.get(this.entityKey),
-                    entity
-                );
-            } else if (this.isScheduledForCreation(entity)) {
-                this.states.set(
-                    this.SCHEDULED_FOR_CREATION,
-                    entity.get(this.entityKey),
-                    entity
-                );
-            } else {
-                this.states.set(
-                    this.SCHEDULED_FOR_UPDATE,
-                    entity.get(this.entityKey),
-                    entity
-                );
-            }
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Schedule an entity to be removed from storage
-     * If the entity is scheduled to be created it prevents it
-     *
-     * @param {Sy.EntityInterface} entity
-     *
-     * @return {Sy.Storage.UnitOfWork}
-     */
-
-    remove: {
-        value: function (entity) {
-
-            if (this.isScheduledForCreation(entity)) {
-                this.states.remove(
-                    this.SCHEDULED_FOR_CREATION,
-                    entity.get(this.entityKey)
-                );
-            } else if (this.isScheduledForUpdate(entity)) {
-                this.states.remove(
-                    this.SCHEDULED_FOR_UPDATE,
-                    entity.get(this.entityKey)
-                );
-
-                this.states.set(
-                    this.SCHEDULED_FOR_REMOVAL,
-                    entity.get(this.entityKey),
-                    entity
-                );
-            } else {
-                this.states.set(
-                    this.SCHEDULED_FOR_REMOVAL,
-                    entity.get(this.entityKey),
-                    entity
-                );
-            }
-
-        }
-    },
-
-    /**
-     * Check if an entity is scheduled for the specific event
-     *
-     * @param {String} event
-     * @param {Sy.EntityInterface} entity
-     *
-     * @return {Boolean}
-     */
-
-    isScheduledFor: {
-        value: function (event, entity) {
-
-            return this.states.has(
-                event,
-                entity.get(this.entityKey)
-            );
-
-        }
-    },
-
-    /**
-     * Check if the entity is scheduled to be created
-     *
-     * @param {Sy.EntityInterface} entity
-     *
-     * @return {Boolean}
-     */
-
-    isScheduledForCreation: {
-        value: function (entity) {
-
-            return this.isScheduledFor(
-                this.SCHEDULED_FOR_CREATION,
-                entity
-            );
-
-        }
-    },
-
-    /**
-     * Check if the entity is scheduled to be updated
-     *
-     * @param {Sy.EntityInterface} entity
-     *
-     * @return {Boolean}
-     */
-
-    isScheduledForUpdate: {
-        value: function (entity) {
-
-            return this.isScheduledFor(
-                this.SCHEDULED_FOR_UPDATE,
-                entity
-            );
-
-        }
-    },
-
-    /**
-     * Check if the entity is sheduled to be removed
-     *
-     * @param {Sy.EntityInterface} entity
-     *
-     * @return {Boolean}
-     */
-
-    isScheduledForRemoval: {
-        value: function (entity) {
-
-            return this.isScheduledFor(
-                this.SCHEDULED_FOR_REMOVAL,
-                entity
-            );
-
-        }
-    },
-
-    /**
-     * Flush modifications to the engine
-     *
-     * @return {Sy.Storage.UnitOfWork}
      */
 
     commit: {
         value: function () {
-
-            var toRemove = this.states.has(this.SCHEDULED_FOR_REMOVAL) ? this.states.get(this.SCHEDULED_FOR_REMOVAL) : [],
-                toUpdate = this.states.has(this.SCHEDULED_FOR_UPDATE) ? this.states.get(this.SCHEDULED_FOR_UPDATE) : [],
-                toCreate = this.states.has(this.SCHEDULED_FOR_CREATION) ? this.states.get(this.SCHEDULED_FOR_CREATION) : [];
-
-            for (var i = 0, l = toRemove.length; i < l; i++) {
-                this.engine.remove(
-                    this.name,
-                    toRemove[i].get(this.entityKey),
-                    this.removalListener.bind(this)
-                );
-            }
-
-            for (i = 0, l = toUpdate.length; i < l; i++) {
-                this.engine.update(
-                    this.name,
-                    toUpdate[i].get(this.entityKey),
-                    this.getEntityData(toUpdate[i]),
-                    this.updateListener.bind(this)
-                );
-            }
-
-            for (i = 0, l = toCreate.length; i < l; i++) {
-                this.engine.create(
-                    this.name,
-                    this.getEntityData(toCreate[i]),
-                    this.createListener.bind(this)
-                );
-            }
-
-            return this;
-
+            this.storage.setItem(this.name, JSON.stringify(this.data));
         }
     },
 
     /**
-     * Return the raw representation of the entity
-     *
-     * @private
-     * @param {Sy.EntityInterface} entity
-     *
-     * @return {Object}
+     * @inheritDoc
      */
 
-    getEntityData: {
-        value: function (entity) {
-
-            var raw = {},
-                keys = Object.keys(entity.attributes),
-                refl = new ReflectionObject(entity),
-                getter;
-
-            for (var i = 0, l = keys.length; i < l; i++) {
-                getter = 'get' + keys[i].substr(0, 1).toUpperCase() + keys[i].substr(1);
-                if (refl.hasMethod(getter)) {
-                    raw[keys[i]] = refl.getMethod(getter).call();
-                } else {
-                    raw[keys[i]] = entity.get(keys[i]);
+    read: {
+        value: function (storeName, id) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
                 }
 
-                if (raw[keys[i]] instanceof Sy.EntityInterface) {
-                    raw[keys[i]] = raw[keys[i]].get(raw[keys[i]].UUID);
+                var store = this.stores[storeName];
+
+                if (this.data[store.path].hasOwnProperty(id)) {
+                    resolve(this.data[store.path][id]);
                 }
-            }
-
-            return raw;
-
+            }.bind(this));
         }
     },
 
     /**
-     * Engine removal listener callback
-     *
-     * @private
-     * @param {String} identifier
-     *
-     * @return {void}
+     * @inheritDoc
      */
 
-    removalListener: {
-        value: function (identifier) {
+    create: {
+        value: function (storeName, object) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
 
-            this.states.remove('remove', identifier);
+                var store = this.stores[storeName];
 
+                this.data[store.path][object[store.key]] = object;
+                this.commit();
+
+                resolve(object[store.key]);
+            }.bind(this));
         }
     },
 
     /**
-     * Engine update listener callback
-     *
-     * @private
-     * @param {object} object
-     *
-     * @return {void}
+     * @inheritDoc
      */
 
-    updateListener: {
-        value: function (object) {
+    update: {
+        value: function (storeName, id, object) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
 
-            this.states.remove('update', object[this.entityKey]);
+                var store = this.stores[storeName];
 
+                this.data[store.path][id] = object;
+                this.commit();
+
+                resolve(object);
+            }.bind(this));
         }
     },
 
     /**
-     * Engine create listener callback
-     *
-     * @private
-     * @param {String} identifier
-     *
-     * @return {void}
+     * @inheritDoc
      */
 
-    createListener: {
-        value: function (identifier) {
+    remove: {
+        value: function (storeName, id) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
 
-            this.states.remove('create', identifier);
+                var store = this.stores[storeName];
 
+                delete this.data[store.path][id];
+                this.commit();
+
+                resolve();
+            }.bind(this));
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    find: {
+        value: function (storeName, index, value, limit) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                }
+
+                var store = this.stores[storeName],
+                    data = [],
+                    d;
+
+                for (var key in this.data[store.path]) {
+                    if (this.data[store.path].hasOwnProperty(key)) {
+                        d = this.data[store.path][key];
+
+                        if (value instanceof Array) {
+                            if (
+                                (
+                                    value[0] === undefined &&
+                                    d[index] <= value[1]
+                                ) ||
+                                (
+                                    value[1] === undefined &&
+                                    d[index] >= value[0]
+                                ) ||
+                                (
+                                    d[index] >= value[0] &&
+                                    d[index] <= value[1]
+                                )
+                            ) {
+                                data.push(d);
+                            }
+
+                        } else if (d[index] === value) {
+                            data.push(d);
+                        }
+                    }
+                }
+
+                if (limit !== undefined) {
+                    data = data.slice(0, limit);
+                }
+
+                resolve(data);
+            }.bind(this));
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    findAll: {
+        value: function (storeName) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
+
+                var store = this.stores[storeName],
+                    data = [];
+
+                for (var key in this.data[store.path]) {
+                    if (this.data[store.path].hasOwnProperty(key)) {
+                        data.push(this.data[store.path][key]);
+                    }
+                }
+
+                resolve(data);
+            }.bind(this));
         }
     }
 
 });
 
-namespace('Sy.Storage');
+namespace('Sy.Storage.Dbal');
 
 /**
- * Generates UnitOfWork objects
+ * LocalStorage driver factory
  *
  * @package Sy
  * @subpackage Storage
  * @class
- * @implements {Sy.FactoryInterface}
+ * @implements {Sy.Storage.Dbal.DriverFactoryInterface}
  */
 
-Sy.Storage.UnitOfWorkFactory = function () {
-    this.generator = null;
-    this.stateRegistryFactory = null;
+Sy.Storage.Dbal.LocalstorageFactory = function () {
+    this.meta = [];
 };
-Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
+Sy.Storage.Dbal.LocalstorageFactory.prototype = Object.create(Sy.Storage.Dbal.DriverFactoryInterface.prototype, {
 
     /**
-     * Set the common generator for all unit of works
+     * Set all the defined entities
      *
-     * @param {Sy.Lib.Generator.Interface} generator
+     * @param {Array} meta
      *
-     * @return {Sy.Storage.UnitOfWorkFactory}
+     * @return {Sy.Storage.Dbal.LocalstorageFactory} self
      */
 
-    setGenerator: {
-        value: function (generator) {
-
-            if (!(generator instanceof Sy.Lib.Generator.Interface)) {
-                throw new TypeError('Invalid generator');
-            }
-
-            this.generator = generator;
+    setEntitiesMeta: {
+        value: function (meta) {
+            this.meta = meta;
 
             return this;
-
-        }
-    },
-
-    /**
-     * Set the state registry factory
-     *
-     * @param {Sy.StateRegistry} factory
-     *
-     * @return {Sy.Storage.UnitOfWorkFactory}
-     */
-
-    setStateRegistryFactory: {
-        value: function (factory) {
-
-            if (!(factory instanceof Sy.StateRegistryFactory)) {
-                throw new TypeError('Invalid state registry factory');
-            }
-
-            this.stateRegistryFactory = factory;
-
-            return this;
-
         }
     },
 
@@ -8641,18 +9022,460 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
      */
 
     make: {
-        value: function (name, entityKey) {
+        value: function (dbname, version, stores, options) {
+            var driver = new Sy.Storage.Dbal.Localstorage();
 
-            var uow = new Sy.Storage.UnitOfWork();
+            driver
+                .setName(dbname)
+                .setConnection(
+                    options.temporary === true ?
+                        localStorage :
+                        sessionStorage
+                );
 
-            uow
-                .setStateRegistry(this.stateRegistryFactory.make())
-                .setGenerator(this.generator)
-                .setName(name)
-                .setEntityKey(entityKey);
+            for (var i = 0, l = this.meta.length; i < l; i++) {
+                if (stores.length === 0 || stores.indexOf(this.meta[i].alias) !== -1) {
+                    driver.setStore(
+                        this.meta[i].alias,
+                        this.meta[i].alias.toLowerCase(),
+                        this.meta[i].uuid
+                    );
+                }
+            }
 
-            return uow;
+            return driver.open();
+        }
+    }
 
+});
+
+namespace('Sy.Storage.Dbal');
+
+/**
+ * Storage driver leveraging HTTP to persist objects
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ * @implements {Sy.Storage.Dbal.DriverInterface}
+ */
+
+Sy.Storage.Dbal.Rest = function () {
+    this.pattern = null;
+    this.version = 1;
+    this.connection = null;
+    this.logger = null;
+    this.headers = {};
+    this.stores = {};
+};
+Sy.Storage.Dbal.Rest.prototype = Object.create(Sy.Storage.Dbal.DriverInterface.prototype, {
+
+    /**
+     * Set the url pattern
+     *
+     * @param {String} pattern
+     *
+     * @return {Sy.Storage.Dbal.Rest} self
+     */
+
+    setURLPattern: {
+        value: function (pattern) {
+            if (!(/.*\/$/).test(pattern)) {
+                pattern += '/';
+            }
+
+            this.pattern = pattern;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the version
+     *
+     * @param {Integer} version
+     *
+     * @return {Sy.Storage.Dbal.Rest} self
+     */
+
+    setVersion: {
+        value: function (version) {
+            if (this.pattern) {
+                this.pattern = this.pattern.replace('{version}', version);
+            }
+
+            this.version = version;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the REST engine
+     *
+     * @param {Sy.HTTP.REST} rest
+     *
+     * @return {Sy.Storage.Dbal.Rest} self
+     */
+
+    setConnection: {
+        value: function (rest) {
+            if (!(rest instanceof Sy.HTTP.REST)) {
+                throw new TypeError('Invalid rest engine');
+            }
+
+            this.connection = rest;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a header to be passed on each http request
+     *
+     * @param {String} name
+     * @param {String} value
+     *
+     * @return {Sy.Storage.Dbal.Rest} self
+     */
+
+    setHeader: {
+        value: function (name, value) {
+            this.headers[name] = value;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a new store
+     *
+     * @param {String} alias
+     * @param {String} bundle
+     * @param {String} name
+     * @param {String} identifier
+     *
+     * @return {Sy.Storage.Dbal.Rest} self
+     */
+
+    setStore: {
+        value: function (alias, bundle, name, identifier) {
+            this.stores[alias] = {
+                bundle: bundle,
+                name: name,
+                key: identifier,
+                path: this.urlPattern
+                    .replace('{bundle}', bundle)
+                    .replace('{name}', name)
+                    .replace('{bundle|lower}', bundle.toLowerCase())
+                    .replace('{name|lower}', name.toLowerCase())
+            };
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    read: {
+        value: function (storeName, id) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
+
+                var store = this.stores[storeName];
+
+                this.connection.get({
+                    uri: store.path + id,
+                    headers: this.headers,
+                    listener: function (resp) {
+                        if (resp.getStatusCode() === resp.HTTP_OK) {
+                            resolve(resp.getBody());
+                        } else {
+                            reject(
+                                resp.getStatusCode().toString() + ' ' +
+                                resp.getStatusText()
+                            );
+                        }
+                    }.bind(this)
+                });
+            }.bind(this));
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    create: {
+        value: function (storeName, object) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
+
+                var store = this.stores[storeName];
+
+                this.connection.post({
+                    uri: store.path,
+                    headers: this.headers,
+                    data: object,
+                    listener: function (resp) {
+                        if (resp.getStatusCode() === resp.HTTP_CREATED) {
+                            resolve(resp.getBody()[store.key]);
+                        } else {
+                            reject(
+                                resp.getStatusCode() + ' ' +
+                                resp.getStatusText()
+                            );
+                        }
+                    }.bind(this)
+                });
+            }.bind(this));
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    update: {
+        value: function (storeName, id, object) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
+
+                var store = this.stores[storeName];
+
+                this.connection.put({
+                    uri: store.path + id,
+                    headers: this.headers,
+                    data: object,
+                    listener: function (resp) {
+                        if (
+                            resp.getStatusCode() === resp.HTTP_OK ||
+                            resp.getStatusCode() === resp.HTTP_CREATED
+                        ) {
+                            resolve(resp.getBody());
+                        } else if (resp.getStatusCode() === resp.HTTP_NO_CONTENT) {
+                            resolve(object);
+                        } else {
+                            reject(
+                                resp.getStatusCode() + ' ' +
+                                resp.getStatusText()
+                            );
+                        }
+                    }.bind(this)
+                });
+            }.bind(this));
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    remove: {
+        value: function (storeName, id) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
+
+                var store = this.stores[storeName];
+
+                this.connection.remove({
+                    uri: store.path + id,
+                    headers: this.headers,
+                    listener: function (resp) {
+                        if (
+                            resp.getStatusCode() === resp.HTTP_OK ||
+                            resp.getStatusCode() === resp.HTTP_ACCEPTED ||
+                            resp.getStatusCode() === resp.HTTP_NO_CONTENT
+                        ) {
+                            resolve()
+                        } else {
+                            reject(
+                                resp.getStatusCode() + ' ' +
+                                resp.getStatusText()
+                            );
+                        }
+                    }
+                });
+            }.bind(this));
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    find: {
+        value: function (storeName, index, value, limit) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
+
+                var store = this.stores[storeName],
+                    path = store.path;
+
+                path += '?' + index + '=' + (value instanceof Array ?
+                    JSON.stringify(value) :
+                    value);
+
+                if (limit !== undefined) {
+                    path += '&limit=' + limit;
+                }
+
+                this.connection.get({
+                    uri: encodeURI(path),
+                    headers: this.headers,
+                    listener: function (resp) {
+                        if (resp.getStatusCode() === resp.HTTP_OK) {
+                            resolve(resp.getBody());
+                        } else {
+                            reject(
+                                resp.getStatusCode() + ' ' +
+                                resp.getStatusText()
+                            );
+                        }
+                    }.bind(this)
+                });
+            }.bind(this));
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    findAll: {
+        value: function (storeName) {
+            return new Promise(function (resolve, reject) {
+                if (!this.stores.hasOwnProperty(storeName)) {
+                    reject(new ReferenceError('Unknown store "' + storeName + '"'));
+                    return;
+                }
+
+                var store = this.stores[storeName];
+
+                this.connection.get({
+                    uri: store.path,
+                    headers: this.headers,
+                    listener: function (resp) {
+                        if (resp.getStatusCode() === resp.HTTP_OK) {
+                            resolve(resp.getBody());
+                        } else {
+                            reject(
+                                resp.getStatusCode() + ' ' +
+                                resp.getStatusText()
+                            );
+                        }
+                    }.bind(this)
+                });
+            }.bind(this));
+        }
+    }
+
+});
+
+namespace('Sy.Storage.Dbal');
+
+/**
+ * Rest driver factory
+ *
+ * @package Sy
+ * @subpackage Storage
+ * @class
+ * @implements {Sy.Storage.Dbal.DriverFactoryInterface}
+ */
+
+Sy.Storage.Dbal.RestFactory = function () {
+    this.meta = [];
+    this.rest = null;
+};
+Sy.Storage.Dbal.RestFactory.prototype = Object.create(Sy.Storage.Dbal.DriverFactoryInterface.prototype, {
+
+    /**
+     * Set all the defined entities
+     *
+     * @param {Array} meta
+     *
+     * @return {Sy.Storage.Dbal.RestFactory} self
+     */
+
+    setEntitiesMeta: {
+        value: function (meta) {
+            this.meta = meta;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the REST engine
+     *
+     * @param {Sy.HTTP.REST} rest
+     *
+     * @return {Sy.Storage.Dbal.RestFactory} self
+     */
+
+    setREST: {
+        value: function (rest) {
+            if (!(rest instanceof Sy.HTTP.REST)) {
+                throw new TypeError('Invalid rest engine');
+            }
+
+            this.rest = rest;
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    make: {
+        value: function (dbname, version, stores, options) {
+            var driver = new Sy.Storage.Dbal.Rest();
+
+            driver
+                .setURLPattern(options.pattern)
+                .setVersion(version)
+                .setConnection(this.rest);
+
+            if (options.headers instanceof Array) {
+                for (var id = 0, l = options.headers.length; i < l; i++) {
+                    driver.setHeader(
+                        options.headers[0],
+                        options.headers[1]
+                    );
+                }
+            }
+
+            for (var i = 0, l = this.meta.length; i < l; i++) {
+                if (stores.length === 0 || stores.indexOf(this.meta[i].alias) !== -1) {
+                    driver.setStore(
+                        this.meta[i].alias,
+                        this.meta[i].bundle,
+                        this.meta[i].name,
+                        this.meta[i].uuid
+                    );
+                }
+            }
+
+            return driver;
         }
     }
 
@@ -12406,7 +13229,15 @@ Sy.Form.Form.prototype = Object.create(Sy.Form.FormInterface.prototype, {
                     this.config.get('validationGroups')
                 );
             } else if (this.form) {
-                return this.form.checkValidity();
+                for (var i = 0, l = this.elements.length; i < l; i++) {
+                    if (!this.form.hasOwnProperty(this.elements[i])) {
+                        return false;
+                    } else if (this.form[this.elements[i]].checkValidity() === false) {
+                        return false;
+                    }
+                }
+
+                return true;
             }
 
             return true;
@@ -13066,6 +13897,20 @@ Sy.View.LayoutFactoryInterface.prototype = Object.create(Sy.FactoryInterface.pro
 
     setListFactory: {
         value: function (factory) {}
+    },
+
+    /**
+     * Inject a layout wrapper instance
+     *
+     * @param {String} viewscreen ViewScreen name it belongs to
+     * @param {String} name Layout name it's attached to
+     * @param {Sy.View.Layout} layout
+     *
+     * @return {Sy.View.LayoutFactoryInterface} self
+     */
+
+    setLayoutWrapper: {
+        value: function (viewscreen, name, layout) {}
     }
 
 });
@@ -13094,6 +13939,33 @@ Sy.View.ListFactoryInterface.prototype = Object.create(Sy.FactoryInterface.proto
 
     setTemplateEngine: {
         value: function (engine) {}
+    },
+
+    /**
+     * Set a registry to hold custom list wrappers
+     *
+     * @param {Sy.RegistryInterface} registry
+     *
+     * @return {Sy.View.ListFactoryInterface} self
+     */
+
+    setRegistry: {
+        value: function (registry) {}
+    },
+
+    /**
+     * Inject a custom list wrapper
+     *
+     * @param {String} viewscreen ViewScreen name it belongs to
+     * @param {String} layout Layout name it belongs to
+     * @param {String} name List it's attached to
+     * @param {Sy.View.List} list
+     *
+     * @return {Sy.View.ListFactoryInterface} self
+     */
+
+    setListWrapper: {
+        value: function (viewscreen, layout, name, list) {}
     }
 
 });
@@ -13202,13 +14074,13 @@ Sy.View.ViewScreenFactoryInterface.prototype = Object.create(Sy.FactoryInterface
      * Set viewscreen wrapper constructor
      *
      * @param {String} name Viewscreen name it's attached to
-     * @param {Function} viewscreenConstructor
+     * @param {Sy.View.ViewScreen} viewscreen
      *
-     * @return {Sy.View.ViewScreenFactoryInterface}
+     * @return {Sy.View.ViewScreenFactoryInterface} self
      */
 
     setViewScreenWrapper: {
-        value: function (name, viewscreenConstructor) {}
+        value: function (name, viewscreen) {}
     }
 
 });
@@ -13393,6 +14265,7 @@ Sy.View.Layout = function () {
     this.lists = null;
     this.parser = null;
     this.listFactory = null;
+    this.screen = null;
 };
 Sy.View.Layout.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
@@ -13412,7 +14285,11 @@ Sy.View.Layout.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
             lists = this.parser.getLists(node);
 
             for (var i = 0, l = lists.length; i < l; i++) {
-                wrapper = this.listFactory.make(lists[i]);
+                wrapper = this.listFactory.make(
+                    this.screen,
+                    this.name,
+                    lists[i]
+                );
 
                 this.lists.set(
                     wrapper.getName(),
@@ -13422,6 +14299,22 @@ Sy.View.Layout.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
             return this;
 
+        }
+    },
+
+    /**
+     * Set the view screen name the layout belongs to
+     *
+     * @param {String} name
+     *
+     * @return {Sy.View.Layout} self
+     */
+
+    setViewScreenName: {
+        value: function (name) {
+            this.screen = name;
+
+            return this;
         }
     },
 
@@ -13546,6 +14439,7 @@ Sy.View.LayoutFactory = function () {
     this.engine = null;
     this.registryFactory = null;
     this.listFactory = null;
+    this.layouts = null;
 };
 Sy.View.LayoutFactory.prototype = Object.create(Sy.View.LayoutFactoryInterface.prototype, {
 
@@ -13597,6 +14491,7 @@ Sy.View.LayoutFactory.prototype = Object.create(Sy.View.LayoutFactoryInterface.p
             }
 
             this.registryFactory = factory;
+            this.layouts = factory.make();
 
             return this;
 
@@ -13625,12 +14520,45 @@ Sy.View.LayoutFactory.prototype = Object.create(Sy.View.LayoutFactoryInterface.p
      * @inheritDoc
      */
 
-    make: {
-        value: function (node) {
+    setLayoutWrapper: {
+        value: function (viewscreen, name, layout) {
+            var fullname = viewscreen + '::' + name;
 
-            var wrapper = new Sy.View.Layout();
+            if (this.layouts.has(fullname)) {
+                throw new ReferenceError('A layout wrapper is already defined with the name "' + fullname + '"')
+            }
+
+            if (!(layout instanceof Sy.View.Layout)) {
+                throw new TypeError('Invalid layout wrapper');
+            }
+
+            this.layouts.set(
+                fullname,
+                layout
+            );
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    make: {
+        value: function (viewscreen, node) {
+
+            var fullname = viewscreen + '::' + node.dataset.syLayout,
+                wrapper;
+
+            if (this.layouts.has(fullname)) {
+                wrapper = this.layouts.get(fullname);
+            } else {
+                wrapper = new Sy.View.Layout();
+            }
 
             return wrapper
+                .setViewScreenName(viewscreen)
                 .setParser(this.parser)
                 .setListFactory(this.listFactory)
                 .setListsRegistry(this.registryFactory.make())
@@ -13658,6 +14586,8 @@ Sy.View.List = function () {
     this.name = null;
     this.elements = [];
     this.types = [];
+    this.screen = null;
+    this.layout = null;
 };
 Sy.View.List.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
@@ -13694,6 +14624,38 @@ Sy.View.List.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
             return this;
 
+        }
+    },
+
+    /**
+     * Set the view screen name the list belongs to
+     *
+     * @param {String} name
+     *
+     * @return {Sy.View.List} self
+     */
+
+    setViewScreenName: {
+        value: function (name) {
+            this.screen = name;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the layout name the list belongs to
+     *
+     * @param {String} name
+     *
+     * @return {Sy.View.List} self
+     */
+
+    setLayoutName: {
+        value: function (name) {
+            this.layout = name;
+
+            return this;
         }
     },
 
@@ -13824,6 +14786,7 @@ namespace('Sy.View');
 
 Sy.View.ListFactory = function () {
     this.engine = null;
+    this.lists = null;
 };
 Sy.View.ListFactory.prototype = Object.create(Sy.View.ListFactoryInterface.prototype, {
 
@@ -13849,12 +14812,62 @@ Sy.View.ListFactory.prototype = Object.create(Sy.View.ListFactoryInterface.proto
      * @inheritDoc
      */
 
-    make: {
-        value: function (node) {
+    setRegistry: {
+        value: function (registry) {
+            if (!(registry instanceof Sy.RegistryInterface)) {
+                throw new TypeError('Invalid registry');
+            }
 
-            var wrapper = new Sy.View.List();
+            this.lists = registry;
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    setListWrapper: {
+        value: function (viewscreen, layout, name, list) {
+            var fullname = viewscreen + '::' + layout + '::' + name;
+
+            if (this.lists.has(fullname)) {
+                throw new ReferenceError('A list wrapper is already defined with the name "' + fullname + '"')
+            }
+
+            if (!(list instanceof Sy.View.List)) {
+                throw new TypeError('Invalid list wrapper');
+            }
+
+            this.lists.set(
+                fullname,
+                list
+            );
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    make: {
+        value: function (viewscreen, layout, node) {
+
+            var fullname = viewscreen + '::' + layout + '::' + node.dataset.syList,
+                wrapper;
+
+            if (this.lists.has(fullname)) {
+                wrapper = this.lists.get(fullname);
+            } else {
+                wrapper = new Sy.View.List();
+            }
 
             return wrapper
+                .setViewScreenName(viewscreen)
+                .setLayoutName(layout)
                 .setTemplateEngine(this.engine)
                 .setNode(node);
 
@@ -13944,7 +14957,7 @@ Sy.View.Manager.prototype = Object.create(Object.prototype, {
             }
 
             if (this.views.has(name.trim())) {
-                throw new ReferenceError('A view with the name "' + name.trim() + '"');
+                throw new ReferenceError('A view with the name "' + name.trim() + '" already exist');
             }
 
             this.views.set(
@@ -13962,7 +14975,7 @@ Sy.View.Manager.prototype = Object.create(Object.prototype, {
      *
      * @param {string} name
      *
-     * @return {Sy.View.ViewScreenInterface}
+     * @return {Sy.View.ViewScreen}
      */
 
     getViewScreen: {
@@ -13986,6 +14999,64 @@ Sy.View.Manager.prototype = Object.create(Object.prototype, {
     getViewScreens: {
         value: function () {
             return this.views.get();
+        }
+    }
+
+});
+
+namespace('Sy.View');
+
+/**
+ * Help to build the manager by injecting viewscreens
+ *
+ * @package Sy
+ * @subpackage View
+ * @class
+ */
+
+Sy.View.ManagerConfigurator = function () {
+    this.parser = null;
+};
+
+Sy.View.ManagerConfigurator.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set the dom parser
+     *
+     * @param {Sy.View.Parser} parser
+     */
+
+    setParser: {
+        value: function (parser) {
+            if (!(parser instanceof Sy.View.Parser)) {
+                throw new TypeError('Invalid parser');
+            }
+
+            this.parser = parser;
+        }
+    },
+
+    /**
+     * Configure the manager
+     *
+     * @param {Sy.View.Manager} manager
+     */
+
+    configure: {
+        value: function (manager) {
+            if (!(manager instanceof Sy.View.Manager)) {
+                throw new TypeError('Invalid manager');
+            }
+
+            var viewscreens = this.parser.getViewScreens();
+
+            for (var i = 0, l = viewscreens.length; i < l; i++) {
+                manager.setViewScreen(viewscreens[i]);
+
+                if (!DOM(viewscreens[i]).isChildOf('.viewport')){
+                    viewscreens[i].parentNode.removeChild(viewscreens[i]);
+                }
+            }
         }
     }
 
@@ -14499,7 +15570,7 @@ Sy.View.ViewScreen.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
             layouts = this.parser.getLayouts(node);
 
             for (var i = 0, l = layouts.length; i < l; i++) {
-                wrapper = this.layoutFactory.make(layouts[i]);
+                wrapper = this.layoutFactory.make(this.name, layouts[i]);
 
                 this.layouts.set(
                     wrapper.getName(),
@@ -14716,36 +15787,17 @@ Sy.View.ViewScreenFactory.prototype = Object.create(Sy.View.ViewScreenFactoryInt
      */
 
     setViewScreenWrapper: {
-        value: function (name, viewscreenConstructor) {
+        value: function (name, viewscreen) {
 
             if (this.viewscreens.has(name)) {
                 throw new ReferenceError('A viewscreen wrapper is already defined with the name "' + name + '"');
             }
 
-            this.viewscreens.set(name, viewscreenConstructor);
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Pass the array of wrappers found in the project
-     *
-     * @param {Array} wrappers
-     *
-     * @return {Sy.View.ViewScreenFactory}
-     */
-
-    setDefinedWrappers: {
-        value: function (wrappers) {
-
-            for (var i = 0, l = wrappers.length; i < l; i++) {
-                this.setViewScreenWrapper(
-                    wrappers[i].name,
-                    wrappers[i].creator
-                );
+            if (!(viewscreen instanceof Sy.View.ViewScreen)) {
+                throw new TypeError('Invalid viewscreen wrapper');
             }
+
+            this.viewscreens.set(name, viewscreen);
 
             return this;
 
@@ -14763,13 +15815,9 @@ Sy.View.ViewScreenFactory.prototype = Object.create(Sy.View.ViewScreenFactoryInt
                 wrapper;
 
             if (this.viewscreens.has(name)) {
-                wrapper = new (this.viewscreens.get(name))();
+                wrapper = this.viewscreens.get(name);
             } else {
                 wrapper = new Sy.View.ViewScreen();
-            }
-
-            if (!(wrapper instanceof Sy.View.ViewScreen)) {
-                throw new TypeError('Invalid viewscreen wrapper');
             }
 
             return wrapper
@@ -14784,569 +15832,1588 @@ Sy.View.ViewScreenFactory.prototype = Object.create(Sy.View.ViewScreenFactoryInt
 
 });
 
-namespace('Sy');
+namespace('Sy.ServiceContainer');
 
 /**
- * Interface for all service container objects
+ * Service container
  *
  * @package Sy
- * @interface
+ * @subpackage ServiceContainer
+ * @class
  */
 
-Sy.ServiceContainerInterface = function () {
-
+Sy.ServiceContainer.Core = function () {
+    this.initialized = {};
+    this.services = {};
+    this.loading = [];
+    this.config = null;
+    this.compiler = null;
+    this.compiled = false;
+    this.propertyAccessor = new Sy.PropertyAccessor(true);
 };
 
-Sy.ServiceContainerInterface.prototype = Object.create(Object.prototype, {
+Sy.ServiceContainer.Core.prototype = Object.create(Object.prototype, {
 
     /**
-     * Inject the parameters object from the global config
+     * Add a set of services definitions to the container
      *
-     * @param {Object} params
+     * @param {Object} services
      *
-     * @return {Sy.ServiceContainerInterface}
-     */
-
-    setParameters: {
-        value: function (params) {
-            return this;
-        }
-    },
-
-    /**
-     * Return the parameter value based on its path string
-     *
-     * @param {string} path
-     *
-     * @return {mixed}
-     */
-
-    getParameter: {
-        value: function (path) {}
-    },
-
-    /**
-     * Container name setter
-     *
-     * @param {string} name
-     *
-     * @return {Sy.ServiceContainerInterface}
-     */
-
-    setName: {
-        value: function (name) {
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Container name getter
-     *
-     * @return {string}
-     */
-
-    getName: {
-        value: function () {}
-    },
-
-    /**
-     * Set a new service inside the container
-     *
-     * @param {string} name Name of the service (must follow the pattern: "/(\w+::)|(\w+)/i")
-     * @param {function} constructor Function that must return the object that will act as a service
-     *
-     * @return {Sy.ServiceContainerInterface}
+     * @return {Sy.ServiceContainer.Core} self
      */
 
     set: {
-        value: function (name, constructor) {
+        value: function (services) {
+            var service,
+                alias,
+                def;
+
+            for (var name in services) {
+                alias = /^@.+$/;
+
+                if (services.hasOwnProperty(name)) {
+                    if (this.services[name] instanceof Sy.ServiceContainer.Definition) {
+                        throw new TypeError('Service name already used');
+                    }
+
+                    def = services[name];
+
+                    if (typeof def === 'string' && alias.test(def)) {
+                        service = new Sy.ServiceContainer.Alias(def.substr(1));
+                    } else {
+                        service = new Sy.ServiceContainer.Definition();
+
+                        service.setConstructor(def.constructor);
+
+                        if (def.factory instanceof Array) {
+                            service
+                                .setFactoryService(new Sy.ServiceContainer.Reference(def.factory[0]))
+                                .setFactoryMethod(def.factory[1]);
+                        }
+
+                        if (def.configurator instanceof Array) {
+                            service
+                                .setConfigurator(new Sy.ServiceContainer.Reference(def.configurator[0]))
+                                .setConfiguratorMethod(def.configurator[1]);
+                        }
+
+                        if (def.calls instanceof Array) {
+                            def.calls.forEach(function (el) {
+                                service.addCall(el[0], el[1]);
+                            }, this);
+                        }
+
+                        if (def.hasOwnProperty('private')) {
+                            service.setPrivate();
+                        }
+
+                        if (def.tags instanceof Array) {
+                            def.tags.forEach(function (el) {
+                                service.addTag(el.name, el);
+                            }, this);
+                        }
+
+                        if (def.hasOwnProperty('abstract')) {
+                            service.setAbstract();
+                        }
+
+                        if (def.hasOwnProperty('prototype')) {
+                            service.setPrototype();
+                        }
+
+                        if (def.hasOwnProperty('parent')) {
+                            service.setParent(new Sy.ServiceContainer.Reference(def.parent));
+                        }
+                    }
+
+                    this.services[name] = service;
+                }
+            }
 
             return this;
-
         }
     },
 
     /**
-     * Retrieve a service via its key
-     *
-     * @param {string} name
-     *
-     * @return {object}
-     */
-
-    get: {
-        value: function (name) {}
-    },
-
-    /**
-     * Check if a service exist in the container
-     *
-     * @param {string} name
-     *
-     * @return {boolean}
-     */
-
-    has: {
-        value: function (name) {}
-    }
-
-});
-namespace('Sy');
-
-/**
- * Class used to reverse dependencies in the service container
- *
- * @package Sy
- * @class
- */
-
-Sy.ParamProxy = function () {
-    this.parameters = null;
-    this.serviceContainer = null;
-};
-Sy.ParamProxy.prototype = Object.create(Object.prototype, {
-
-    /**
-     * Set the parameter object
-     *
-     * @param {Object} parameters
-     *
-     * @return {Sy.ParamProxy}
-     */
-
-    setParameters: {
-        value: function (parameters) {
-
-            this.parameters = parameters;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Set the service container it depends on
-     *
-     * @param {Sy.ServiceContainerInterface} serviceContainer
-     *
-     * @return {Sy.ParamProxy}
-     */
-
-    setServiceContainer: {
-        value: function (serviceContainer) {
-
-            if (!(serviceContainer instanceof Sy.ServiceContainerInterface)) {
-                throw new TypeError('Invalid service container');
-            }
-
-            this.serviceContainer = serviceContainer;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Check if the value is a parameter dependency
-     *
-     * @param {String} value
-     *
-     * @return {Boolean}
-     */
-
-    isParameter: {
-        value: function (value) {
-
-            if (typeof value === 'string' && new RegExp(/^%.*%$/i).test(value)) {
-                return true;
-            }
-
-            return false;
-
-        }
-    },
-
-    /**
-     * Get the parameter dependency
-     *
-     * @param {String} path Object path string (ie: '%object.path%')
-     *
-     * @return {Boolean}
-     */
-
-    getParameter: {
-        value: function (path) {
-
-            path = path.substring(1, path.length - 1);
-
-            return objectGetter.call(this.parameters, path);
-
-        }
-    },
-
-    /**
-     * Check if the value is a service dependency
-     *
-     * @param {String} value
-     *
-     * @return {Boolean}
-     */
-
-    isService: {
-        value: function (value) {
-
-            if (typeof value === 'string' && value.substring(0, 1) === '@') {
-                return true;
-            }
-
-            return false;
-
-        }
-    },
-
-    /**
-     * Get the service dependency
-     *
-     * @param {String} name ie: '@service::name'
-     *
-     * @return {Object}
-     */
-
-    getService: {
-        value: function (name) {
-
-            name = name.substring(1);
-
-            return this.serviceContainer.get(name);
-
-        }
-    },
-
-    /**
-     * Check wether the value is a dependency or not
-     *
-     * @param {mixed} value
-     *
-     * @return {Boolean}
-     */
-
-    isDependency: {
-        value: function (value) {
-
-            if (this.isParameter(value) || this.isService(value)) {
-                return true;
-            }
-
-            return false;
-
-        }
-    },
-
-    /**
-     * Get the dependecy
+     * Set an already initialized object
      *
      * @param {String} name
+     * @param {Object} service
      *
-     * @return {mixed}
+     * @return {Sy.ServiceContainer.Core}
      */
 
-    getDependency: {
-        value: function (name) {
-
-            if (this.isParameter(name)) {
-                return this.getParameter(name);
-            } else if (this.isService(name)) {
-                return this.getService(name);
-            }
-
-            return name;
-
-        }
-    }
-
-});
-
-namespace('Sy');
-
-/**
- * Default implementation of the service container interface
- *
- * @package Sy
- * @class
- * @implements {Sy.ServiceContainerInterface}
- *
- * @param {string} name
- */
-
-Sy.ServiceContainer = function (name) {
-
-    this.name = '';
-    this.services = {};
-    this.definitions = {};
-    this.proxy = new Sy.ParamProxy();
-    this.proxy.setServiceContainer(this);
-
-    this.setName(name);
-
-};
-
-Sy.ServiceContainer.prototype = Object.create(Sy.ServiceContainerInterface.prototype, {
-
-    PATTERN: {
-        value: '^([a-z]+::|[a-z]+)+$',
-        writable: false,
-        configurable: false
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    setParameters: {
-        value: function (params) {
-            this.proxy.setParameters(params);
+    setInstance: {
+        value: function (name, service) {
+            this.initialized[name] = service;
 
             return this;
         }
     },
 
     /**
-     * @inheritDoc
-     */
-
-    getParameter: {
-        value: function (path) {
-
-            return this.proxy.getParameter('%' + path + '%');
-
-        }
-    },
-
-    /**
-     * @inheritDoc
+     * Return the instance of a defined service
+     *
+     * @param {String} id
+     *
+     * @throws {ReferenceError} If the service has not been defined or is private
+     *
+     * @return {Object}
      */
 
     get: {
-
-        value: function (serviceName) {
-
-            if (this.services[serviceName] === undefined && this.definitions[serviceName]) {
-
-                var opts = this.definitions[serviceName],
-                    service;
-
-                if (opts.type === 'creator') {
-                    service = this.buildServiceByCreator(serviceName);
-                } else if (opts.type === 'prototype') {
-                    service = this.buildServiceByDefinition(serviceName);
-                }
-
-                this.services[serviceName] = service;
-                delete this.definitions[serviceName];
-
-            } else if (this.services[serviceName] === undefined) {
-
+        value: function (id) {
+            if (!this.services.hasOwnProperty(id) && !this.initialized.hasOwnProperty(id)) {
                 throw new ReferenceError('Unknown service');
-
             }
 
-            return this.services[serviceName];
-
-        }
-
-    },
-
-    /**
-     * Build a service via its creator function
-     *
-     * @private
-     * @param {string} name
-     *
-     * @return {Object}
-     */
-
-    buildServiceByCreator: {
-        value: function (name) {
-            return this.definitions[name].fn.apply(this);
-        }
-    },
-
-    /**
-     * Build a service based on its definition
-     *
-     * @private
-     * @param {string} name
-     *
-     * @return {Object}
-     */
-
-    buildServiceByDefinition: {
-        value: function (name) {
-
-            var opts = this.definitions[name],
-                constructor = objectGetter(opts.constructor),
-                service;
-
-            if (typeof constructor !== 'function') {
-                throw new TypeError('Invalid constructor');
+            if (this.initialized.hasOwnProperty(id)) {
+                return this.initialized[id];
             }
 
-            if (opts.arguments) {
-                service = new constructor(opts.arguments);
+            if (this.services[id] instanceof Sy.ServiceContainer.Alias) {
+                return this.get(this.services[id].toString());
+            }
+
+            if (this.loading.length === 0 && !this.services[id].isPublic()) {
+                throw new Error('Can\'t access private service');
+            }
+
+            if (this.loading.length === 0 && this.services[id].isAbstract()) {
+                throw new Error('Can\'t access abstract service');
+            }
+
+            if (this.loading.indexOf(id) !== -1) {
+                this.loading = [];
+                throw new Error('Circular referencing');
+            }
+
+            var def = this.services[id],
+                constructor = this.propertyAccessor.getValue(window, def.getConstructor()),
+                service,
+                factory;
+
+            this.loading.push(id);
+
+            if (def.hasFactory()) {
+                factory = this.get(
+                    def
+                        .getFactoryService()
+                        .toString()
+                );
+                service = factory[def.getFactoryMethod()].call(factory, def.getConstructor());
+
+                if (!(service instanceof constructor)) {
+                    throw new TypeError('Factory built an object different from the specified type');
+                }
             } else {
                 service = new constructor();
             }
 
-            if (opts.calls instanceof Array) {
-                for (var i = 0, l = opts.calls.length; i < l; i++) {
-                    var args = opts.calls[i][1];
+            def.getCalls().forEach(function (call) {
+                var method = call[0],
+                    args = call[1];
 
-                    for (var a = 0, al = args.length; a < al; a++) {
-                        if (this.proxy.isDependency(args[a])) {
-                            args[a] = this.proxy.getDependency(args[a]);
-                        }
+                args.forEach(function (arg, idx, args) {
+                    if (arg instanceof Sy.ServiceContainer.Reference) {
+                        args[idx] = this.get(arg.toString());
+                    } else if (arg instanceof Sy.ServiceContainer.Parameter) {
+                        args[idx] = this.getParameter(arg.toString());
                     }
+                }, this);
 
-                    service[opts.calls[i][0]].apply(service, args);
-                }
+                service[method].apply(service, args);
+            }, this);
+
+            if (def.hasConfigurator()) {
+                this
+                    .get(
+                        def
+                            .getConfigurator()
+                            .toString()
+                    )
+                    [def.getConfiguratorMethod()](service);
             }
 
-            return service;
+            if (!def.isPrototype()) {
+                this.initialized[id] = service;
+            }
 
+            this.loading.splice(this.loading.indexOf(id), 1);
+            return service;
         }
     },
 
     /**
-     * @inheritDoc
+     * Remove a service definition
+     *
+     * @param {String} id
+     *
+     * @return {Sy.ServiceContainer.Core} self
      */
 
-    set: {
-
-        value: function (serviceName, creator) {
-
-            if (serviceName instanceof Object) {
-                this.setPrototypes(serviceName);
-            } else {
-                this.setCreator(serviceName, creator);
-            }
+    remove: {
+        value: function (id) {
+            delete this.services[id];
 
             return this;
-
         }
-
     },
 
     /**
-     * Register a new service creator definition
+     * Return all the services ids
      *
-     * @private
-     * @param {string} serviceName
-     * @param {funtcion} creator
+     * @return {Array}
      */
 
-    setCreator: {
-        value: function (serviceName, creator) {
-
-            var regex = new RegExp(this.PATTERN, 'gi');
-
-            if (!regex.test(serviceName)) {
-                throw new SyntaxError('Service name "' + serviceName + '" does not follow pattern convention');
-            }
-
-            if (typeof creator !== 'function'){
-                throw new TypeError('Invalid creator type');
-            }
-
-            if (this.has(serviceName)) {
-                throw new TypeError('Service name "' + serviceName + '" already used');
-            }
-
-            this.definitions[serviceName] = {
-                fn: creator,
-                type: 'creator'
-            };
-
+    getServiceIds: {
+        value: function () {
+            return Object.keys(this.services);
         }
     },
 
     /**
-     * Register new services prototype definitions
+     * Check if a service is defined
      *
-     * @private
-     * @param {Object} definitions
-     */
-
-    setPrototypes: {
-        value: function (definitions) {
-
-            for (var name in definitions) {
-                    if (definitions.hasOwnProperty(name)) {
-
-                        var regex = new RegExp(this.PATTERN, 'gi');
-
-                        if (!regex.test(name)) {
-                            throw new SyntaxError('Service name "' + name + '" does not follow pattern convention');
-                        }
-
-                        if (this.has(name)) {
-                            throw new TypeError('Service name "' + name + '" already used');
-                        }
-
-                        this.definitions[name] = definitions[name];
-                        this.definitions[name].type = 'prototype';
-                    }
-                }
-
-        }
-    },
-
-    /**
-     * @inheritDoc
+     * @param {String} id
+     *
+     * @return {Boolean}
      */
 
     has: {
-        value: function (name) {
+        value: function (id) {
+            return this.services.hasOwnProperty(id) || this.initialized.hasOwnProperty(id);
+        }
+    },
 
-            if (this.services[name] || this.definitions[name]) {
-                return true;
+    /**
+     * Check if a service has been initialized
+     *
+     * @param {String} id
+     *
+     * @return {Boolean}
+     */
+
+    isInitialized: {
+        value: function (id) {
+            return this.initialized.hasOwnProperty(id);
+        }
+    },
+
+    /**
+     * Set an config object
+     *
+     * @param {Sy.ConfiguratorInterface} config
+     *
+     * @return {Sy.ServiceContainer.Core} self
+     */
+
+    setParameters: {
+        value: function (config) {
+            if (!(config instanceof Sy.ConfiguratorInterface)) {
+                throw new TypeError('Invalid parameters object');
             }
 
-            return false;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    getName: {
-
-        value: function () {
-
-            return this.name;
-
-        }
-
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    setName: {
-        value: function (name) {
-
-            this.name = name;
+            this.config = config;
 
             return this;
+        }
+    },
 
+    /**
+     * Return a parameter
+     *
+     * @param {String} path
+     *
+     * @throws {ReferenceError} If the path is not accessible
+     *
+     * @return {mixed}
+     */
+
+    getParameter: {
+        value: function (path) {
+            return this.config.get(path);
+        }
+    },
+
+    /**
+     * Check if a parameter is defined
+     *
+     * @param {String} path
+     *
+     * @return {Boolean}
+     */
+
+    hasParameter: {
+        value: function (path) {
+            return this.config.has(path);
+        }
+    },
+
+    /**
+     * Set a new parameter in the config object
+     *
+     * @param {String} key
+     * @param {mixed} value
+     *
+     * @return {Sy.ServiceContainer.Core} self
+     */
+
+    setParameter: {
+        value: function (key, value) {
+            this.config.set(key, value);
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the definition of a service
+     *
+     * @param {String} id
+     *
+     * @throws {ReferenceError} If the service does not exist or the container has been compiled
+     *
+     * @return {Sy.ServiceContainer.Definition}
+     */
+
+    getDefinition: {
+        value: function (id) {
+            if (this.compiled === true) {
+                throw new ReferenceError('Can\'t access a definition once container compiled');
+            }
+
+            return this.services[id];
+        }
+    },
+
+    /**
+     * Set a service definition
+     *
+     * @param {String} id
+     * @param {Sy.ServiceContainer.Definition} definition
+     *
+     * @return {Sy.ServiceContainer.Core} self
+     */
+
+    setDefinition: {
+        value: function (id, definition) {
+            if (!(definition instanceof Sy.ServiceContainer.Definition)) {
+                throw new TypeError('Invalid definition');
+            }
+
+            this.services[id] = definition;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the compiler
+     *
+     * @param {Sy.ServiceContainer.Compiler} compiler
+     *
+     * @return {Sy.ServiceContainer.Core} self
+     */
+
+    setCompiler: {
+        value: function (compiler) {
+            if (!(compiler instanceof Sy.ServiceContainer.Compiler)) {
+                throw new TypeError('Invalid compiler');
+            }
+
+            this.compiler = compiler;
+
+            return this;
+        }
+    },
+
+    /**
+     * Add a compiler pass
+     *
+     * @param {Sy.ServiceContainer.CompilerPassInterface} pass
+     * @param {String} type
+     *
+     * @return {Sy.ServiceContainer.Core} self
+     */
+
+    addPass: {
+        value: function (pass, type) {
+            this.compiler.addPass(pass, type);
+
+            return this;
+        }
+    },
+
+    /**
+     * Compile the container
+     */
+
+    compile: {
+        value: function () {
+            this.compiler.compile(this);
+
+            Object.freeze(this.services);
+            this.compiled = true;
+        }
+    },
+
+    /**
+     * Return the service ids flagged with the specified tag
+     *
+     * @param {String} tag
+     *
+     * @return {Array}
+     */
+
+    findTaggedServiceIds: {
+        value: function (tag) {
+            var ids = this.getServiceIds(),
+                matched = [];
+
+            ids.forEach(function (id) {
+                if (!(this.services[id] instanceof Sy.ServiceContainer.Definition)) {
+                    return;
+                }
+
+                var filtered = this.services[id].getTag(tag);
+
+                if (filtered.length > 0) {
+                    matched.push({id: id, tags: filtered});
+                }
+            }, this);
+
+            return matched;
         }
     }
 
 });
+
+namespace('Sy.ServiceContainer');
+
+/**
+ * Alias to another service
+ *
+ * @package Sy
+ * @subpackage ServiceContainer
+ * @class
+ */
+
+Sy.ServiceContainer.Alias = function (id) {
+    this.id = id;
+};
+
+Sy.ServiceContainer.Alias.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Return the original service id
+     *
+     * @return {String}
+     */
+
+    toString: {
+        value: function () {
+            return this.id
+        }
+    }
+
+});
+
+namespace('Sy.ServiceContainer');
+
+/**
+ * Optimize a container by compiling it with successive passes
+ *
+ * @package Sy
+ * @subpackage ServiceContainer
+ * @class
+ */
+
+Sy.ServiceContainer.Compiler = function () {
+    this.beforeOpti = [];
+    this.opti = [
+        new Sy.ServiceContainer.CompilerPass.ResolveParameterPlaceholder(),
+        new Sy.ServiceContainer.CompilerPass.ResolveReferencePlaceholder(),
+        new Sy.ServiceContainer.CompilerPass.ApplyParentDefinition(),
+    ];
+    this.beforeRm = [];
+    this.rm = [
+        new Sy.ServiceContainer.CompilerPass.RemoveAbstractDefinitions(),
+    ];
+    this.afterRm = [];
+};
+
+Sy.ServiceContainer.Compiler.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Add a new pass to the compiler
+     *
+     * @param {Sy.ServiceContainer.CompilerPassInterface} pass
+     * @param {String} type Default to before optimization
+     */
+
+    addPass: {
+        value: function (pass, type) {
+            if (!(pass instanceof Sy.ServiceContainer.CompilerPassInterface)) {
+                throw new TypeError('Invalid compiler pass');
+            }
+
+            switch (type) {
+                case pass.BEFORE_OPTIMIZATION:
+                    this.beforeOpti.push(pass);
+                    break;
+                case pass.OPTIMIZE:
+                    this.opti.push(pass);
+                    break;
+                case pass.BEFORE_REMOVING:
+                    this.beforeRm.push(pass);
+                    break;
+                case pass.REMOVE:
+                    this.rm.push(pass);
+                    break;
+                case pass.AFTER_REMOVING:
+                    this.afterRm.push(pass);
+                    break;
+                default:
+                    this.beforeOpti.push(pass);
+            }
+        }
+    },
+
+    /**
+     * Compile the service container
+     *
+     * @param {Sy.ServiceContainer.Core} container
+     */
+
+    compile: {
+        value: function (container) {
+            if (!(container instanceof Sy.ServiceContainer.Core)) {
+                throw new TypeError('Invalid service container');
+            }
+
+            this.beforeOpti.forEach(function (pass) {
+                pass.process(container);
+            }, this);
+            this.opti.forEach(function (pass) {
+                pass.process(container);
+            }, this);
+            this.beforeRm.forEach(function (pass) {
+                pass.process(container);
+            }, this);
+            this.rm.forEach(function (pass) {
+                pass.process(container);
+            }, this);
+            this.afterRm.forEach(function (pass) {
+                pass.process(container);
+            }, this);
+        }
+    }
+
+});
+
+namespace('Sy.ServiceContainer');
+
+/**
+ * Interface that each compiler pass must implement
+ *
+ * A pass allow to alter/optimize service definitions
+ * at container compilation time
+ *
+ * @package Sy
+ * @subpackage ServiceContainer
+ * @interface
+ */
+
+Sy.ServiceContainer.CompilerPassInterface = function () {};
+Sy.ServiceContainer.CompilerPassInterface.prototype = Object.create(Object.prototype, {
+
+    BEFORE_OPTIMIZATION: {
+        value: 'before_optimization',
+        writable: false
+    },
+
+    OPTIMIZE: {
+        value: 'optimize',
+        writable: false,
+    },
+
+    BEFORE_REMOVING: {
+        value: 'before_removing',
+        writable: false
+    },
+
+    REMOVE: {
+        value: 'remove',
+        writable: false
+    },
+
+    AFTER_REMOVING: {
+        value: 'after_removing',
+        writable: false
+    },
+
+    /**
+     * The container is passed to the pass to do its own work
+     *
+     * @param {Sy.ServiceContainer.Core} container
+     */
+
+    process: {
+        value: function (container) {}
+    }
+
+});
+
+namespace('Sy.ServiceContainer');
+
+/**
+ * Service definition
+ *
+ * @package Sy
+ * @subpackage ServiceContainer
+ * @class
+ */
+
+Sy.ServiceContainer.Definition = function () {
+    this.constructor = null;
+    this.factoryService = null;
+    this.factoryMethod = null;
+    this.configuratorService = null;
+    this.configuratorMethod = null;
+    this.calls = [];
+    this.public = true;
+    this.tags = [];
+    this.abstract = false;
+    this.parent = null;
+    this.proto = false;
+};
+
+Sy.ServiceContainer.Definition.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set the path to the service constructor
+     *
+     * @param {String} path
+     *
+     * @return {Sy.ServiceContainer.Definition} self
+     */
+
+    setConstructor: {
+        value: function (constructor) {
+            this.constructor = constructor;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the constructor path
+     *
+     * @return {String}
+     */
+
+    getConstructor: {
+        value: function () {
+            return this.constructor;
+        }
+    },
+
+    /**
+     * Set the factory service reference
+     *
+     * @param {Sy.ServiceContainer.Reference} reference
+     *
+     * @return {Sy.ServiceContainer.Definition} self
+     */
+
+    setFactoryService: {
+        value: function (reference) {
+            if (!(reference instanceof Sy.ServiceContainer.Reference)) {
+                throw new TypeError('Invalid reference');
+            }
+
+            this.factoryService = reference;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the factory service reference
+     *
+     * @return {Sy.ServiceContainer.Reference}
+     */
+
+    getFactoryService: {
+        value: function () {
+            return this.factoryService;
+        }
+    },
+
+    /**
+     * Set the factory method
+     *
+     * @param {String} method
+     *
+     * @return {Sy.ServiceContainer.Definition} self
+     */
+
+    setFactoryMethod: {
+        value: function (method) {
+            this.factoryMethod = method;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the factory method
+     *
+     * @return {String}
+     */
+
+    getFactoryMethod: {
+        value: function () {
+            return this.factoryMethod;
+        }
+    },
+
+    /**
+     * Check if a factory is defined
+     *
+     * @return {Boolean}
+     */
+
+    hasFactory: {
+        value: function () {
+            return !!this.factoryService && !!this.factoryMethod;
+        }
+    },
+
+    /**
+     * Set the configurator reference
+     *
+     * @param {Sy.ServiceContainer.Reference} configurator
+     *
+     * @return {Sy.ServiceContainer.Definition} self
+     */
+
+    setConfigurator: {
+        value: function (configurator) {
+            if (!(configurator instanceof Sy.ServiceContainer.Reference)) {
+                throw new TypeError('Invalid reference');
+            }
+
+            this.configuratorService = configurator;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the configurator reference
+     *
+     * @return {Sy.ServiceContainer.Reference}
+     */
+
+    getConfigurator: {
+        value: function () {
+            return this.configuratorService;
+        }
+    },
+
+    /**
+     * Set configurator method
+     *
+     * @param {String} method
+     *
+     * @return {Sy.ServiceConfigurator.Definition} self
+     */
+
+    setConfiguratorMethod: {
+        value: function (method) {
+            this.configuratorMethod = method;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return configurator method
+     *
+     * @return {String}
+     */
+
+    getConfiguratorMethod: {
+        value: function () {
+            return this.configuratorMethod;
+        }
+    },
+
+    /**
+     * Check if service has a configurator
+     *
+     * @return {Boolean}
+     */
+
+    hasConfigurator: {
+        value: function () {
+            return !!this.configuratorService && !!this.configuratorMethod;
+        }
+    },
+
+    /**
+     * Add a new call statement
+     *
+     * @param {String} method
+     * @param {Array} args Array of arguments
+     * @param {Boolean} pos Whether to append or prepend the call (default to append)
+     *
+     * @return {Sy.ServiceContainer.Definition} self
+     */
+
+    addCall: {
+        value: function (method, args, pos) {
+            var m = !!pos ? 'unshift' : 'push';
+
+            this.calls[m]([method, args]);
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the list of calls
+     *
+     * @return {Array}
+     */
+
+    getCalls: {
+        value: function () {
+            return this.calls;
+        }
+    },
+
+    /**
+     * Set the service as private
+     *
+     * @return {Sy.ServiceContainer.Definition} self
+     */
+
+    setPrivate: {
+        value: function () {
+            this.public = false;
+
+            return this;
+        }
+    },
+
+    /**
+     * Check if the service is public
+     *
+     * @return {Boolean}
+     */
+
+    isPublic: {
+        value: function () {
+            return this.public;
+        }
+    },
+
+    /**
+     * Add a tag
+     *
+     * @param {String} name
+     * @param {Object} data
+     *
+     * @return {Sy.ServiceContainer.Definition} self
+     */
+
+    addTag: {
+        value: function (name, data) {
+            data = data || {};
+            this.tags.push([name, data]);
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the list of tags
+     *
+     * @return {Array}
+     */
+
+    getTags: {
+        value: function () {
+            return this.tags;
+        }
+    },
+
+    /**
+     * Return the list of tags matching the name
+     *
+     * @param {String} name
+     *
+     * @return {Array}
+     */
+
+    getTag: {
+        value: function (name) {
+            return this.tags.filter(function (el) {
+                return el[0] === name;
+            }, this);
+        }
+    },
+
+    /**
+     * Set the service as abstract
+     *
+     * @return {Sy.ServiceContainer.Definition} self
+     */
+
+    setAbstract: {
+        value: function () {
+            this.abstract = true;
+
+            return this;
+        }
+    },
+
+    /**
+     * Check if the service is abstract
+     *
+     * @return {Boolean}
+     */
+
+    isAbstract: {
+        value: function () {
+            return this.abstract;
+        }
+    },
+
+    /**
+     * Set a service reference as parent
+     *
+     * @param {Sy.ServiceContainer.Reference} parent
+     *
+     * @return {Sy.ServiceContainer.Definition} self
+     */
+
+    setParent: {
+        value: function (parent) {
+            if (!(parent instanceof Sy.ServiceContainer.Reference)) {
+                throw new TypeError('Invalid reference');
+            }
+
+            this.parent = parent;
+
+            return this;
+        }
+    },
+
+    /**
+     * Check if the service has a parent
+     *
+     * @return {Boolean}
+     */
+
+    hasParent: {
+        value: function () {
+            return !!this.parent;
+        }
+    },
+
+    /**
+     * Return the parent reference
+     *
+     * @return {Sy.ServiceContainer.Reference}
+     */
+
+    getParent: {
+        value: function () {
+            return this.parent;
+        }
+    },
+
+    /**
+     * Set the service as prototype, meaning a new one
+     * is built each time the service is accessed
+     *
+     * @return {Sy.ServiceContainer.Definition} self
+     */
+
+    setPrototype: {
+        value: function () {
+            this.proto = true;
+
+            return this;
+        }
+    },
+
+    /**
+     * Check if the service is a prototype
+     *
+     * @return {Boolean}
+     */
+
+    isPrototype: {
+        value: function () {
+            return this.proto;
+        }
+    }
+
+});
+
+namespace('Sy.ServiceContainer');
+
+/**
+ * Reference of a parameter from the configurator
+ *
+ * @package Sy
+ * @subpackage ServiceContainer
+ * @class
+ */
+
+Sy.ServiceContainer.Parameter = function (id) {
+    this.id = id;
+};
+
+Sy.ServiceContainer.Parameter.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Return the parameter id
+     *
+     * @return {String}
+     */
+
+    toString: {
+        value: function () {
+            return this.id;
+        }
+    }
+
+})
+
+namespace('Sy.ServiceContainer');
+
+/**
+ * Reference to another service
+ *
+ * @package Sy
+ * @subpackage ServiceContainer
+ * @class
+ */
+
+Sy.ServiceContainer.Reference = function (id) {
+    this.id = id;
+};
+
+Sy.ServiceContainer.Reference.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Return the referenced service id
+     *
+     * @return {String}
+     */
+
+    toString: {
+        value: function () {
+            return this.id;
+        }
+    }
+
+});
+
+namespace('Sy.ServiceContainer.CompilerPass');
+
+/**
+ * Apply a parent definition to its children
+ *
+ * @package Sy
+ * @subpackage ServiceContainer
+ * @class
+ * @implements {Sy.ServiceContainer.CompilerPassInterface}
+ */
+
+Sy.ServiceContainer.CompilerPass.ApplyParentDefinition = function () {};
+Sy.ServiceContainer.CompilerPass.ApplyParentDefinition.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
+
+    process: {
+        value: function (container) {
+            container
+                .getServiceIds()
+                .forEach(function (id) {
+                    var def = this.getDefinition(id),
+                        parent,
+                        calls;
+
+                    if (!(def instanceof Sy.ServiceContainer.Definition)) {
+                        return;
+                    }
+
+                    if (def.hasParent()) {
+                        parent = this.getDefinition(
+                            def.getParent().toString()
+                        );
+
+                        if (parent.hasFactory() && !def.hasFactory()) {
+                            def.setFactoryService(
+                                parent.getFactoryService()
+                            );
+                            def.setFactoryMethod(
+                                parent.getFactoryMethod()
+                            );
+                        }
+
+                        if (parent.hasConfigurator() && !def.hasConfigurator()) {
+                            def.setConfigurator(
+                                parent.getConfigurator()
+                            );
+                            def.setConfiguratorMethod(
+                                parent.getConfiguratorMethod()
+                            );
+                        }
+
+                        calls = parent.getCalls();
+
+                        for (var i = calls.length - 1; i >= 0; i--) {
+                            def.addCall(
+                                calls[i][0],
+                                calls[i][1],
+                                true
+                            );
+                        }
+                    }
+                }, container);
+        }
+    }
+
+});
+
+namespace('Sy.ServiceContainer.CompilerPass');
+
+/**
+ * Remove abstract definitions as their're been copied to their children
+ *
+ * @package Sy
+ * @subpackage ServiceContainer
+ * @class
+ * @implements {Sy.ServiceContainer.CompilerPassInterface}
+ */
+
+Sy.ServiceContainer.CompilerPass.RemoveAbstractDefinitions = function () {};
+Sy.ServiceContainer.CompilerPass.RemoveAbstractDefinitions.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
+
+    process: {
+        value: function (container) {
+            container
+                .getServiceIds()
+                .forEach(function (id) {
+                    var def = this.getDefinition(id);
+
+                    if (!(def instanceof Sy.ServiceContainer.Definition)) {
+                        return;
+                    }
+
+                    if (def.isAbstract()) {
+                        this.remove(id);
+                    }
+                }, container);
+        }
+    }
+
+});
+
+namespace('Sy.ServiceContainer.CompilerPass');
+
+/**
+ * Replace the references of container parameters by a Parameter object
+ *
+ * @package Sy
+ * @subpackage ServiceContainer
+ * @class
+ * @implements {Sy.ServiceContainer.CompilerPassInterface}
+ */
+
+Sy.ServiceContainer.CompilerPass.ResolveParameterPlaceholder = function () {};
+Sy.ServiceContainer.CompilerPass.ResolveParameterPlaceholder.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
+
+    process: {
+        value: function (container) {
+            container
+                .getServiceIds()
+                .forEach(function (id) {
+                    var def = this.getDefinition(id),
+                        re = /^%[a-zA-Z-_.]+%$/,
+                        calls;
+
+                    if (!(def instanceof Sy.ServiceContainer.Definition)) {
+                        return;
+                    }
+
+                    calls = def.getCalls();
+
+                    for (var i = 0, l = calls.length; i < l; i++) {
+                        for (var j = 0, m = calls[i][1].length; j < m; j++) {
+                            if (re.test(calls[i][1][j])) {
+                                calls[i][1][j] = new Sy.ServiceContainer.Parameter(
+                                    calls[i][1][j].substring(
+                                        1,
+                                        calls[i][1][j].length - 1
+                                    )
+                                );
+                            }
+                        }
+                    }
+                }, container);
+        }
+    }
+
+});
+
+namespace('Sy.ServiceContainer.CompilerPass');
+
+/**
+ * Replace the references of other services by a Reference object
+ *
+ * @package Sy
+ * @subpackage ServiceContainer
+ * @class
+ * @implements {Sy.ServiceContainer.CompilerPassInterface}
+ */
+
+Sy.ServiceContainer.CompilerPass.ResolveReferencePlaceholder = function () {};
+Sy.ServiceContainer.CompilerPass.ResolveReferencePlaceholder.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
+
+    process: {
+        value: function (container) {
+            container
+                .getServiceIds()
+                .forEach(function (id) {
+                    var def = this.getDefinition(id),
+                        re = /^@.+$/,
+                        calls;
+
+                    if (!(def instanceof Sy.ServiceContainer.Definition)) {
+                        return;
+                    }
+
+                    calls = def.getCalls();
+
+                    for (var i = 0, l = calls.length; i < l; i++) {
+                        for (var j = 0, m = calls[i][1].length; j < m; j++) {
+                            if (re.test(calls[i][1][j])) {
+                                calls[i][1][j] = new Sy.ServiceContainer.Reference(
+                                    calls[i][1][j].substr(1)
+                                );
+                            }
+                        }
+                    }
+                }, container);
+        }
+    }
+
+});
+
+namespace('Sy.FrameworkBundle.CompilerPass');
+
+/**
+ * Pass that subscribe to registered event subscribers
+ *
+ * @package Sy
+ * @subpackage FrameworkBundle
+ * @class
+ * @implements {Sy.ServiceContainer.CompilerPassInterface}
+ */
+
+Sy.FrameworkBundle.CompilerPass.EventSubscriberPass = function () {};
+Sy.FrameworkBundle.CompilerPass.EventSubscriberPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
+
+    process: {
+        value: function (container) {
+            var mediator = container.get('sy::core::mediator');
+
+            container
+                .findTaggedServiceIds('event.subscriber')
+                .forEach(function (el) {
+                    var subscriber = container.get(el.id),
+                        events;
+
+                    if (!(subscriber instanceof Sy.EventSubscriberInterface)) {
+                        throw new TypeError('Invalid event subscriber');
+                    }
+
+                    events = subscriber.getSubscribedEvents();
+
+                    for (var evt in events) {
+                        if (events.hasOwnProperty(evt)) {
+                            mediator.subscribe({
+                                channel: evt,
+                                fn: subscriber[events[evt].method],
+                                context: subscriber,
+                                priority: subscriber[events[evt].priority],
+                                async: subscriber[events[evt].async]
+                            });
+                        }
+                    }
+
+                }, this);
+        }
+    }
+
+});
+
+namespace('Sy.FormBundle.CompilerPass');
+
+/**
+ * Pass that register registered form types
+ *
+ * @package Sy
+ * @subpackage FormBundle
+ * @class
+ * @implements {Sy.ServiceContainer.CompilerPassInterface}
+ */
+
+Sy.FormBundle.CompilerPass.FormTypePass = function () {};
+Sy.FormBundle.CompilerPass.FormTypePass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
+
+    process: {
+        value: function (container) {
+            var formBuilder = container.getDefinition('sy::core::form');
+
+            container
+                .findTaggedServiceIds('form.type')
+                .forEach(function (el) {
+                    formBuilder.addCall(
+                        'registerFormType',
+                        ['@' + el.id]
+                    );
+                }, this);
+        }
+    }
+
+});
+
+namespace('Sy.StorageBundle.CompilerPass');
+
+/**
+ * Pass to look for driver factories and register them in the appropriate factory
+ *
+ * @package Sy
+ * @subpackage StorageBundle
+ * @class
+ * @implements {Sy.ServiceContainer.CompilerPassInterface}
+ */
+
+Sy.StorageBundle.CompilerPass.RegisterDriverFactoryPass = function () {};
+Sy.StorageBundle.CompilerPass.RegisterDriverFactoryPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
+
+    process: {
+        value: function (container) {
+            var factory = container.getDefinition('sy::core::storage::dbal::factory');
+
+            container
+                .findTaggedServiceIds('storage.driver_factory')
+                .forEach(function (el) {
+                    for (var i = 0, l = el.tags.length; i < l; i++) {
+                        if (!el.tags[i][1].alias) {
+                            continue;
+                        }
+
+                        factory.addCall(
+                            'setDriverFactory',
+                            [
+                                el.tags[i][1].alias,
+                                '@' + el.id
+                            ]
+                        );
+                    }
+                }, this);
+        }
+    }
+
+});
+
+namespace('Sy.ViewBundle.CompilerPass');
+
+/**
+ * Scan for services tagged as layout wrappers
+ * and reference them to the appropriate factory
+ *
+ * @package Sy
+ * @subpackage ViewBundle
+ * @class
+ * @implements {Sy.ServiceContainer.CompilerPassInterface}
+ */
+
+Sy.ViewBundle.CompilerPass.RegisterLayoutWrapperPass = function () {};
+Sy.ViewBundle.CompilerPass.RegisterLayoutWrapperPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
+
+    process: {
+        value: function (container) {
+            var factory = container.getDefinition('sy::core::view::factory::layout');
+
+            container
+                .findTaggedServiceIds('view.layout')
+                .forEach(function (el) {
+                    for (var i = 0, l = el.tags.length; i < l; i++) {
+                        if (!el.tags[i][1].alias) {
+                            continue;
+                        }
+
+                        if (!el.tags[i][1].viewscreen) {
+                            continue;
+                        }
+
+                        factory.addCall(
+                            'setLayoutWrapper',
+                            [
+                                el.tags[i][1].viewscreen,
+                                el.tags[i][1].alias,
+                                '@' + el.id
+                            ]
+                        );
+                    }
+                });
+        }
+    }
+
+});
+
+namespace('Sy.ViewBundle.CompilerPass');
+
+/**
+ * Scan for services tagged as list wrappers
+ * and reference them to the appropriate factory
+ *
+ * @package Sy
+ * @subpackage ViewBundle
+ * @class
+ * @implements {Sy.ServiceContainer.CompilerPassInterface}
+ */
+
+Sy.ViewBundle.CompilerPass.RegisterListWrapperPass = function () {};
+Sy.ViewBundle.CompilerPass.RegisterListWrapperPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
+
+    process: {
+        value: function (container) {
+            var factory = container.getDefinition('sy::core::view::factory::list');
+
+            container
+                .findTaggedServiceIds('view.list')
+                .forEach(function (el) {
+                    for (var i = 0, l = el.tags.length; i < l; i++) {
+                        if (!el.tags[i][1].alias) {
+                            continue;
+                        }
+
+                        if (!el.tags[i][1].viewscreen) {
+                            continue;
+                        }
+
+                        if (!el.tags[i][1].layout) {
+                            continue;
+                        }
+
+                        factory.addCall(
+                            'setListWrapper',
+                            [
+                                el.tags[i][1].viewscreen,
+                                el.tags[i][1].layout,
+                                el.tags[i][1].alias,
+                                '@' + el.id
+                            ]
+                        );
+                    }
+                });
+        }
+    }
+
+});
+
+namespace('Sy.ViewBundle.CompilerPass');
+
+/**
+ * Scan for services tagged as viewscreen wrappers
+ * and reference them to the appropriate factory
+ *
+ * @package Sy
+ * @subpackage ViewBundle
+ * @class
+ * @implements {Sy.ServiceContainer.CompilerPassInterface}
+ */
+
+Sy.ViewBundle.CompilerPass.RegisterViewScreenWrapperPass = function () {};
+Sy.ViewBundle.CompilerPass.RegisterViewScreenWrapperPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
+
+    process: {
+        value: function (container) {
+            var factory = container.getDefinition('sy::core::view::factory::viewscreen');
+
+            container
+                .findTaggedServiceIds('view.viewscreen')
+                .forEach(function (el) {
+                    for (var i = 0, l = el.tags.length; i < l; i++){
+                        if (!el.tags[i][1].alias) {
+                            continue;
+                        }
+
+                        factory.addCall(
+                            'setViewScreenWrapper',
+                            [
+                                el.tags[i][1].alias,
+                                '@' + el.id
+                            ]
+                        );
+                    }
+                });
+        }
+    }
+
+});
+
 namespace('Sy');
 
 /**
@@ -15521,291 +17588,3 @@ Sy.Translator.prototype = Object.create(Object.prototype, {
     }
 
 });
-namespace('Sy');
-
-Sy.kernel = new Sy.Kernel.Core();
-Sy.kernel.getConfig().set({
-    env: 'prod',
-    parameters: {
-        app: {
-            meta: {
-                viewscreens: [] //array of objects containing `name` and `creator` attributes
-            }
-        },
-        storage: {
-            engines: [
-                {
-                    name: 'indexeddb',
-                    factory: 'sy::core::storage::factory::engine::indexeddb',
-                    mapper: 'sy::core::storage::storemapper::indexeddb'
-                },
-                {
-                    name: 'localstorage',
-                    factory: 'sy::core::storage::factory::engine::localstorage',
-                    mapper: 'sy::core::storage::storemapper::localstorage'
-                },
-                {
-                    name: 'rest',
-                    factory: 'sy::core::storage::factory::engine::rest',
-                    mapper: 'sy::core::storage::storemapper::rest'
-                }
-            ]
-        }
-    },
-    controllers: {
-        cache: true
-    }
-});
-
-Sy.kernel.getServiceContainer()
-    .setParameters(Sy.kernel.getConfig().get('parameters'))
-    .set({
-        'sy::core::generator::uuid': {
-            constructor: 'Sy.Lib.Generator.UUID'
-        },
-        'sy::core::mediator': {
-            constructor: 'Sy.Lib.Mediator',
-            calls: [
-                ['setGenerator', ['@sy::core::generator::uuid']],
-                ['setLogger', ['@sy::core::logger']]
-            ]
-        },
-        'sy::core::http::rest': {
-            constructor: 'Sy.HTTP.REST',
-            calls: [
-                ['setManager', ['@sy::core::http']]
-            ]
-        },
-        'sy::core::registry::factory': {
-            constructor: 'Sy.RegistryFactory'
-        },
-        'sy::core::stateregistry::factory': {
-            constructor: 'Sy.StateRegistryFactory',
-            calls: [
-                ['setRegistryFactory', ['@sy::core::registry::factory']]
-            ]
-        },
-        'sy::core::view::parser': {
-            constructor: 'Sy.View.Parser'
-        },
-        'sy::core::view::factory::list': {
-            constructor: 'Sy.View.ListFactory',
-            calls: [
-                ['setTemplateEngine', ['@sy::core::view::template::engine']]
-            ]
-        },
-        'sy::core::view::factory::layout': {
-            constructor: 'Sy.View.LayoutFactory',
-            calls: [
-                ['setParser', ['@sy::core::view::parser']],
-                ['setTemplateEngine', ['@sy::core::view::template::engine']],
-                ['setRegistryFactory', ['@sy::core::registry::factory']],
-                ['setListFactory', ['@sy::core::view::factory::list']]
-            ]
-        },
-        'sy::core::view::factory::viewscreen': {
-            constructor: 'Sy.View.ViewScreenFactory',
-            calls: [
-                ['setParser', ['@sy::core::view::parser']],
-                ['setTemplateEngine', ['@sy::core::view::template::engine']],
-                ['setRegistryFactory', ['@sy::core::registry::factory']],
-                ['setLayoutFactory', ['@sy::core::view::factory::layout']],
-                ['setDefinedWrappers', ['%app.meta.viewscreens%']]
-            ]
-        },
-        'sy::core::storage::factory::engine::indexeddb': {
-            constructor: 'Sy.Storage.EngineFactory.IndexedDBFactory',
-            calls: [
-                ['setLogger', ['@sy::core::logger']],
-                ['setMediator', ['@sy::core::mediator']]
-            ]
-        },
-        'sy::core::storage::factory::engine::localstorage': {
-            constructor: 'Sy.Storage.EngineFactory.LocalstorageFactory',
-            calls: [
-                ['setLogger', ['@sy::core::logger']],
-                ['setMediator', ['@sy::core::mediator']]
-            ]
-        },
-        'sy::core::storage::factory::engine::rest': {
-            constructor: 'Sy.Storage.EngineFactory.RestFactory',
-            calls: [
-                ['setLogger', ['@sy::core::logger']],
-                ['setMediator', ['@sy::core::mediator']],
-                ['setManager', ['@sy::core::http::rest']]
-            ]
-        },
-        'sy::core::storage::storemapper::indexeddb': {
-            constructor: 'Sy.Storage.StoreMapper.IndexedDBMapper'
-        },
-        'sy::core::storage::storemapper::localstorage': {
-            constructor: 'Sy.Storage.StoreMapper.LocalstorageMapper'
-        },
-        'sy::core::storage::storemapper::rest': {
-            constructor: 'Sy.Storage.StoreMapper.RestMapper'
-        },
-        'sy::core::storage::unitofwork::factory': {
-            constructor: 'Sy.Storage.UnitOfWorkFactory',
-            calls: [
-                ['setGenerator', ['@sy::core::generator::uuid']],
-                ['setStateRegistryFactory', ['@sy::core::stateregistry::factory']]
-            ]
-        },
-        'sy::core::storage::repository::factory': {
-            constructor: 'Sy.Storage.RepositoryFactory',
-            calls: [
-                ['setRegistryFactory', ['@sy::core::registry::factory']],
-                ['setUOWFactory', ['@sy::core::storage::unitofwork::factory']],
-                ['setMeta', ['%app.meta.entities%']]
-            ]
-        },
-        'sy::core::form': {
-            constructor: 'Sy.Form.Builder',
-            calls: [
-                ['setValidator', ['@sy::core::validator']]
-            ]
-        }
-    })
-    .set('sy::core::logger', function () {
-
-        var logger = new Sy.Lib.Logger.CoreLogger('core'),
-            info = new Sy.Lib.Logger.Handler.Console(logger.INFO),
-            debug = new Sy.Lib.Logger.Handler.Console(logger.DEBUG),
-            error = new Sy.Lib.Logger.Handler.Console(logger.ERROR),
-            log = new Sy.Lib.Logger.Handler.Console(logger.LOG);
-
-        logger.setHandler(info, logger.INFO);
-        logger.setHandler(debug, logger.DEBUG);
-        logger.setHandler(error, logger.ERROR);
-        logger.setHandler(log, logger.LOG);
-
-        return logger;
-
-    })
-    .set('sy::core::http', function () {
-
-        var parser = new Sy.HTTP.HeaderParser(),
-            manager = new Sy.HTTP.Manager();
-
-        manager.setParser(parser);
-        manager.setGenerator(this.get('sy::core::generator::uuid'));
-        manager.setRegistry(this.get('sy::core::registry::factory').make());
-        manager.setLogger(this.get('sy::core::logger'));
-
-        return manager;
-    })
-    .set('sy::core::storage::factory::engine::core', function () {
-
-        var factory = new Sy.Storage.EngineFactory.Core(),
-            factories = this.getParameter('storage.engines');
-
-        factory.setRegistry(
-            this.get('sy::core::registry::factory').make()
-        );
-
-        for (var i = 0, l = factories.length; i < l; i++) {
-            factory.setEngineFactory(
-                factories[i].name,
-                this.get(factories[i].factory),
-                this.get(factories[i].mapper)
-            );
-        }
-
-        return factory;
-
-    })
-    .set('sy::core::storage', function () {
-
-        var meta = this.getParameter('app.meta.entities'),
-            storage = new Sy.Storage.Core(),
-            managerFact = new Sy.Storage.ManagerFactory(),
-            engineFact = this.get('sy::core::storage::factory::engine::core'),
-            conf = this.getParameter('storage.managers'),
-            registryFact = this.get('sy::core::registry::factory');
-
-        storage.setRegistry(registryFact.make());
-
-        managerFact
-            .setEngineFactory(engineFact)
-            .setRepositoryFactory(this.get('sy::core::storage::repository::factory'));
-
-        for (var name in conf) {
-            if (conf.hasOwnProperty(name)) {
-                var manager = managerFact.make(name, conf[name], meta);
-
-                storage.setManager(name, manager);
-            }
-        }
-
-        return storage;
-
-    })
-    .set('sy::core::translator', function () {
-        var translator = new Sy.Translator();
-        translator
-            .setRegistry(this.get('sy::core::registry::factory').make())
-            .setStateRegistryFactory(this.get('sy::core::stateregistry::factory'));
-        return translator;
-    })
-    .set('sy::core::view::template::engine', function () {
-        var engine = new Sy.View.TemplateEngine();
-
-        return engine
-            .setRegistry(
-                this.get('sy::core::registry::factory').make()
-            )
-            .setGenerator(
-                this.get('sy::core::generator::uuid')
-            );
-    })
-    .set('sy::core::viewport', function () {
-
-        var viewport = new Sy.View.ViewPort();
-
-        return viewport
-            .setNode(
-                document.querySelector('.viewport')
-            )
-            .setViewManager(
-                this.get('sy::core::view::manager')
-            )
-            .setMediator(
-                this.get('sy::core::mediator')
-            );
-
-    })
-    .set('sy::core::view::manager', function () {
-
-        var manager = new Sy.View.Manager(),
-            viewscreens = this.get('sy::core::view::parser').getViewScreens();
-
-        manager
-            .setViewsRegistry(
-                this.get('sy::core::registry::factory').make()
-            )
-            .setViewScreenFactory(
-                this.get('sy::core::view::factory::viewscreen')
-            );
-
-        for (var i = 0, l = viewscreens.length; i < l; i++) {
-            manager.setViewScreen(viewscreens[i]);
-
-            if (!DOM(viewscreens[i]).isChildOf('.viewport')){
-                viewscreens[i].parentNode.removeChild(viewscreens[i]);
-            }
-        }
-
-        return manager;
-
-    })
-    .set('sy::core::validator', function () {
-        var validator = new Sy.Validator.Core(),
-            contextFactory = new Sy.Validator.ExecutionContextFactory();
-
-        contextFactory.setConstraintValidatorFactory(new Sy.Validator.ConstraintValidatorFactory());
-
-        return validator
-            .setRulesRegistry(this.get('sy::core::registry::factory').make())
-            .setContextFactory(contextFactory)
-            .setConstraintFactory(new Sy.Validator.ConstraintFactory());
-    });

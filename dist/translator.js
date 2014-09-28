@@ -1,4 +1,4 @@
-/*! sy#0.6.0 - 2014-06-11 */
+/*! sy#0.7.0 - 2014-09-28 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -706,6 +706,16 @@ Sy.StateRegistryInterface.prototype = Object.create(Object.prototype, {
 
     remove: {
         value: function (state, key) {}
+    },
+
+    /**
+     * Set the registry as strict, meaning a key can only exist in one state
+     *
+     * @return {Sy.StateRegistryInterface}
+     */
+
+    setStrict: {
+        value: function () {}
     }
 
 });
@@ -720,11 +730,10 @@ namespace('Sy');
  */
 
 Sy.StateRegistry = function () {
-
     this.data = null;
     this.states = [];
     this.registryFactory = null;
-
+    this.strict = false;
 };
 
 Sy.StateRegistry.prototype = Object.create(Sy.StateRegistryInterface.prototype, {
@@ -766,6 +775,14 @@ Sy.StateRegistry.prototype = Object.create(Sy.StateRegistryInterface.prototype, 
                 this.data.set(state, r);
                 this.states.push(state);
 
+            }
+
+            if (this.strict === true) {
+                var oldState = this.state(key);
+
+                if (oldState !== undefined) {
+                    this.remove(oldState, key);
+                }
             }
 
             this.data
@@ -876,6 +893,18 @@ Sy.StateRegistry.prototype = Object.create(Sy.StateRegistryInterface.prototype, 
 
             return this;
 
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    setStrict: {
+        value: function () {
+            this.strict = true;
+
+            return this;
         }
     }
 

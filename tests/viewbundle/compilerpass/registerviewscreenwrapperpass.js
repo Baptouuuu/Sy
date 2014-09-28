@@ -7,38 +7,39 @@
  * @venus-include ../../../src/ServiceContainer/Definition.js
  * @venus-include ../../../src/ServiceContainer/Reference.js
  * @venus-include ../../../src/ServiceContainer/CompilerPassInterface.js
- * @venus-code ../../../src/Kernel/CompilerPass/RegisterDriverFactoryPass.js
+ * @venus-code ../../../src/ViewBundle/CompilerPass/RegisterViewScreenWrapperPass.js
  */
 
-describe('register storage driver factory', function () {
+describe('register viewscreen wrapper', function () {
 
     var sc,
         pass;
 
     beforeEach(function () {
         sc = new Sy.ServiceContainer.Core();
-        pass = new Sy.Kernel.CompilerPass.RegisterDriverFactoryPass();
+        pass = new Sy.ViewBundle.CompilerPass.RegisterViewScreenWrapperPass();
 
         sc.set({
-            'sy::core::storage::dbal::factory': {},
-            'layout': {
+            'sy::core::view::factory::viewscreen': {},
+            'viewscreen': {
                 tags: [
-                    {name: 'storage.driver_factory', alias: 'foo'},
-                    {name: 'storage.driver_factory'}
+                    {name: 'view.viewscreen', alias: 'vs'},
+                    {name: 'view.viewscreen', alias: 'vs2'},
+                    {name: 'view.viewscreen'}
                 ]
             },
         });
     });
 
-    it('should register one driver factory', function () {
+    it('should register two viewscreens to the factory', function () {
         pass.process(sc);
 
         expect(
             sc
-                .getDefinition('sy::core::storage::dbal::factory')
+                .getDefinition('sy::core::view::factory::viewscreen')
                 .getCalls()
                 .length
-        ).toEqual(1);
+        ).toEqual(2);
     });
 
 });
