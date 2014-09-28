@@ -10,6 +10,14 @@
 describe('appstate route provider', function () {
     var p;
 
+    Function.prototype.bind = Function.prototype.bind || function (context) {
+        var self = this;
+
+        return function () {
+            return self.apply(context, arguments);
+        };
+    };
+
     beforeEach(function () {
         p = new Sy.AppState.RouteProvider();
     });
