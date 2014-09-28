@@ -8,13 +8,17 @@ namespace('Sy.Kernel');
  * @class
  */
 
-Sy.Kernel.Core = function () {
+Sy.Kernel.Core = function (env, debug) {
     this.config = new Sy.Configurator();
     this.container = new Sy.ServiceContainer.Core();
     this.controllerManager = new Sy.Kernel.ControllerManager();
     this.actionDispatcher = new Sy.Kernel.ActionDispatcher();
 
     this.container.setCompiler(new Sy.ServiceContainer.Compiler());
+
+    this.config
+        .set('app.environment', env)
+        .set('app.debug', !!debug);
 };
 Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
@@ -43,6 +47,18 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
     },
 
     /**
+     * Register all bundles needed for the app
+     *
+     * @return {Array}
+     */
+
+    registerBundles: {
+        value: function () {
+            return [];
+        }
+    },
+
+    /**
      * Initiate the kernel that will inspect the app and build necessary data
      *
      * @return {Sy.Kernel.Core}
@@ -56,12 +72,15 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
             tester.testBrowser();
 
-            if (this.config.get('env') !== 'prod') {
+            this.registerBundles().forEach(function (bundle) {
+                parser.setBundle(bundle[0], bundle[1]);
+            }.bind(this));
+
+            if (this.config.get('app.debug') === true) {
                 parser.setLogger(this.container.get('sy::core::logger'));
             }
 
             this.config.set('app.meta', {
-                bundles: parser.getBundles(),
                 controllers: parser.getControllers(),
                 entities: parser.getEntities()
             });
