@@ -171,10 +171,10 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
     configureLogger: {
         value: function () {
 
-            var env = this.config.get('env'),
+            var debug = this.config.get('app.debug'),
                 logger = this.container.get('sy::core::logger');
 
-            if (env === 'prod') {
+            if (debug === false) {
                 logger
                     .removeHandler(logger.LOG)
                     .removeHandler(logger.DEBUG)
