@@ -60,6 +60,8 @@ Sy.AppState.RouteProvider.prototype = Object.create(Object.prototype, {
                 route.setRequirements(requirements);
             }
 
+            route.buildRegex();
+
             this.routes.set(name, route);
 
             return this;
