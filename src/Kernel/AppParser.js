@@ -12,33 +12,16 @@ Sy.Kernel.AppParser = function () {
     this.bundles = {};
     this.controllers = [];
     this.entities = [];
-    this.logger = null;
 };
 Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
 
     /**
-     * Set the logger
-     *
-     * @param {Sy.Lib.Logger.Interface} logger
-     *
-     * @return {Sy.Kernle.AppParser}
-     */
-
-    setLogger: {
-        value: function (logger) {
-            this.logger = logger;
-
-            return this;
-        }
-    },
-
-    /**
-     * Return the list of defined bundles
+     * Set a new bundle
      *
      * @param {String} name Bundle name
      * @param {Object} object Object containing the whole bundle code
      *
-     * @return {Array}
+     * @return {Sy.Kernel.AppParser}
      */
 
     setBundle: {
@@ -73,7 +56,6 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
                     bundleCtrl = this.bundles[name].Controller;
 
                     if (!bundleCtrl) {
-                        this.logger && this.logger.debug('No controller found in', this.bundles[i]);
                         continue;
                     }
 
@@ -83,7 +65,6 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
                                 name: name + '::' + ctrl,
                                 creator: bundleCtrl[ctrl]
                             });
-                            this.logger && this.logger.debug('Controller found', name + '::' + ctrl);
                         }
                     }
                 }
@@ -118,7 +99,6 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
                     bundleRepositories = this.bundles[bundleName].Repository || {};
 
                     if (!bundleEntities) {
-                        this.logger && this.logger.debug('No entity found in', bundleName);
                         continue;
                     }
 
@@ -136,12 +116,6 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
                                 indexes: entity.prototype.INDEXES,
                                 uuid: entity.prototype.UUID
                             });
-
-                            this.logger && this.logger.debug('Entity found ' + alias + (
-                                bundleRepositories[name] ?
-                                    ' with custom repository' :
-                                    ''
-                            ));
                         }
                     }
                 }
@@ -180,8 +154,6 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
 
                     bundleConfig = new bundleConfig.Service();
                     bundleConfig.define(container);
-
-                    this.logger && this.logger.debug('Services loaded from ' + bundleName + ' bundle');
                 }
             }
 
@@ -218,8 +190,6 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
 
                     bundleConfig = new bundleConfig.Configuration();
                     bundleConfig.define(config);
-
-                    this.logger && this.logger.debug('Configuration loaded from ' + bundleName + ' bundle');
                 }
             }
 
@@ -260,8 +230,6 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
 
                     bundleConfig = new bundleConfig.Validation();
                     bundleConfig.define(validator);
-
-                    this.logger && this.logger.debug('Validation rules loaded from ' + bundleName + ' bundle');
                 }
             }
 

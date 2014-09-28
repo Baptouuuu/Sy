@@ -76,10 +76,6 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                 parser.setBundle(bundle[0], bundle[1]);
             }.bind(this));
 
-            if (this.config.get('app.debug') === true) {
-                parser.setLogger(this.container.get('sy::core::logger'));
-            }
-
             this.config.set('app.meta', {
                 controllers: parser.getControllers(),
                 entities: parser.getEntities()
