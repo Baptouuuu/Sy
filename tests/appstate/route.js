@@ -129,4 +129,18 @@ describe('appstate route', function () {
 
         expect(r.getVariables('/foo')).toEqual({});
     });
+
+    it('should say the route has a parameter', function () {
+        expect(r.hasParameter('foo')).toBe(false);
+
+        r.setParameters({foo: 'bar'});
+
+        expect(r.hasParameter('foo')).toBe(true);
+    });
+
+    it('should return a parameter value', function () {
+        r.setParameters({foo: 'bar'});
+
+        expect(r.getParameter('foo')).toEqual('bar');
+    });
 });

@@ -106,6 +106,34 @@ Sy.AppState.Route.prototype = Object.create(Object.prototype, {
     },
 
     /**
+     * Check if the route has a parameter
+     *
+     * @param {String} name
+     *
+     * @return {Boolean}
+     */
+
+    hasParameter: {
+        value: function (name) {
+            return this.parameters.hasOwnProperty(name);
+        }
+    },
+
+    /**
+     * Return a parameter value
+     *
+     * @param {String} name
+     *
+     * @return {mixed}
+     */
+
+    getParameter: {
+        value: function (name) {
+            return this.parameters[name];
+        }
+    },
+
+    /**
      * Set the requirements
      *
      * @param {Object} req
