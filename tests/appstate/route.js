@@ -123,5 +123,10 @@ describe('appstate route', function () {
             bar: 'bar',
             baz: '42'
         });
+
+        r.setPath('/foo');
+        r.buildRegex();
+
+        expect(r.getVariables('/foo')).toEqual({});
     });
 });

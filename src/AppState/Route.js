@@ -227,6 +227,10 @@ Sy.AppState.Route.prototype = Object.create(Object.prototype, {
                 values = url.match(new RegExp(this.regex)),
                 data = {};
 
+            if (!placeholders) {
+                return data;
+            }
+
             placeholders = placeholders.map(function (p) {
                 return p.substring(1, p.length - 1);
             });
