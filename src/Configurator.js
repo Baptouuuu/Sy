@@ -61,25 +61,21 @@ Sy.Configurator.prototype = Object.create(Sy.ConfiguratorInterface.prototype, {
 
     has: {
         value: function (key) {
+            var elements = key.split('.'),
+                object = this.config,
+                prop;
 
-            try {
+            while (elements.length !== 0) {
+                prop = elements.shift();
 
-                objectGetter.call(this.config, key);
-
-                if (key.split('.').length === 1 && !this.config.hasOwnProperty(key)) {
+                if (!object.hasOwnProperty(prop)) {
                     return false;
                 }
 
-                return true;
-
-            } catch (error) {
-
-                if (error instanceof ReferenceError) {
-                    return false;
-                }
-
+                object = object[prop];
             }
 
+            return true;
         }
     },
 
