@@ -14,6 +14,7 @@ App.Kernel.prototype = Object.create(Sy.Kernel.Core.prototype, {
                 ['SyTranslatorBundle', Sy.TranslatorBundle],
                 ['SyValidatorBundle', Sy.ValidatorBundle],
                 ['SyViewBundle', Sy.ViewBundle],
+                ['SyAppStateBundle', Sy.AppStateBundle],
                 ['Todo', App.Bundle.Todo]
             ];
         }
