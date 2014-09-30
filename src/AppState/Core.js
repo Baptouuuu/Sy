@@ -13,9 +13,8 @@ Sy.AppState.Core = function () {
     this.provider = null;
     this.generator = null;
     this.mediator = null;
+    this.handler = null;
     this.currentState = null;
-    this.history = [];
-    this.storageKey = 'sy::history';
 };
 Sy.AppState.Core.prototype = Object.create(Object.prototype, {
 
@@ -100,6 +99,26 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
     },
 
     /**
+     * Set the state handler
+     *
+     * @param {Sy.AppState.StateHandler} handler
+     *
+     * @return {Sy.AppState.Core} self
+     */
+
+    setStateHandler: {
+        value: function (handler) {
+            if (!(handler instanceof Sy.AppState.StateHandler)) {
+                throw new TypeError('Invalid state handler');
+            }
+
+            this.handler = handler;
+
+            return this;
+        }
+    },
+
+    /**
      * Init the url listener
      *
      * @return {Sy.AppState.Core} self
@@ -107,26 +126,14 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
 
     boot: {
         value: function () {
-            if (localStorage.getItem(this.storageKey)) {
-                this.history = JSON.parse(localStorage.getItem(this.storageKey))
-                    .map(function (el) {
-                        var state = new Sy.AppState.State();
-
-                        return state
-                            .setUUID(el.uuid)
-                            .setRoute(el.route)
-                            .setVariables(el.variables);
-                    });
-            }
-
             if (history.state) {
-                this.retrieveCurrentState(history.state.uuid);
+                this.currentState = this.handler
+                    .getState(history.state.uuid);
             } else {
-                this.createNewState();
+                this.createState();
             }
 
             window.addEventListener('popstate', this.listenPop.bind(this), false);
-            window.addEventListener('beforeunload', this.saveHistory.bind(this), false);
 
             return this;
         }
@@ -135,15 +142,17 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
     /**
      * Listen the pop state event
      *
+     * @private
      * @param {PopStateEvent} event
      */
 
     listenPop: {
         value: function (event) {
             if (!event.state) {
-                this.createNewState();
+                this.createState();
             } else {
-                this.retrieveCurrentState(event.state.uuid);
+                this.currentState = this.handler
+                    .getState(event.state.uuid);
             }
 
             var event = new Sy.AppState.AppStateEvent();
@@ -160,61 +169,50 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Add a new appstate
+     * Create a new state and set it as the current one
+     *
+     * @private
      */
 
-    createNewState: {
+    createState: {
         value: function () {
-            var uuid = this.generator.generate(),
-                url = location.hash.substr(1) || '/',
-                routes = this.provider.getRoutes(),
-                state = new Sy.AppState.State(),
+            var url = this.getUrl(),
                 route = this.matcher.match(url);
 
-            state
-                .setUUID(uuid)
-                .setRoute(route.getName())
-                .setVariables(route.getVariables(url));
-
-            this.history.push(state);
-
-            this.currentState = state;
-
-            history.replaceState(
-                state.toJSON(),
-                document.title,
-                location.toString()
+            this.currentState = this.handler.createState(
+                this.generator.generate(),
+                route.getName(),
+                route.getVariables(url)
             );
+
+            this.updateBrowserState();
         }
     },
 
     /**
-     * Look in the history for the state for the given identifier
+     * Update the browser state object
      *
-     * @param {String} uuid
+     * @private
      */
 
-    retrieveCurrentState: {
-        value: function (uuid) {
-            for (var i = 0, l = this.history.length; i < l; i++) {
-                if (this.history[i].getUUID() === uuid) {
-                    this.currentState = this.history[i];
-                    break;
-                }
-            }
+    updateBrowserState: {
+        value: function () {
+            history.replaceState(
+                this.currentState.toJSON(),
+                document.title
+            );
         }
     },
 
     /**
-     * Persist the history to localStorage
+     * Return the current url
+     *
+     * @return {String}
      */
 
-    saveHistory: {
+    getUrl: {
         value: function () {
-            localStorage.setItem(
-                this.storageKey,
-                JSON.stringify(this.history)
-            );
+            return location.hash.substr(1) || '/';
         }
     },
 

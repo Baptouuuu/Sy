@@ -37,8 +37,12 @@ Sy.AppStateBundle.Config.Service.prototype = Object.create(Object.prototype, {
                         ['setUrlMatcher', ['@sy::core::appstate::urlmatcher']],
                         ['setRouteProvider', ['@sy::core::appstate::routeprovider']],
                         ['setGenerator', ['@sy::core::generator::uuid']],
-                        ['setMediator', ['@sy::core::mediator']]
+                        ['setMediator', ['@sy::core::mediator']],
+                        ['setStateHandler', ['@sy::core::appstate::statehandler']]
                     ]
+                },
+                'sy::core::appstate::statehandler': {
+                    constructor: 'Sy.AppState.StateHandler'
                 }
             });
 

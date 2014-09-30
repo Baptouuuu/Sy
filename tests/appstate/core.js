@@ -10,18 +10,29 @@
  * @venus-include ../../src/AppState/RouteProvider.js
  * @venus-include ../../src/AppState/AppStateEvent.js
  * @venus-include ../../src/AppState/State.js
+ * @venus-include ../../src/AppState/StateHandler.js
  * @venus-include ../../src/AppState/Route.js
  * @venus-code ../../src/AppState/Core.js
  */
 
 describe('appstate core', function () {
-    var c, p, m, um;
+    var c, p, m, um, sh, g;
+
+    Function.prototype.bind = Function.prototype.bind || function (context) {
+        var self = this;
+
+        return function () {
+            return self.apply(context, arguments);
+        };
+    };
 
     beforeEach(function () {
         c = new Sy.AppState.Core();
         p = new Sy.AppState.RouteProvider();
         m = new Sy.Lib.Mediator();
         um = new Sy.AppState.UrlMatcher();
+        sh = new Sy.AppState.StateHandler();
+        g = new Sy.Lib.Generator.UUID();
 
         p.setRegistry(new Sy.Registry());
 
@@ -30,6 +41,8 @@ describe('appstate core', function () {
         c.setRouteProvider(p);
         c.setMediator(m);
         c.setUrlMatcher(um);
+        c.setStateHandler(sh);
+        c.setGenerator(g);
     });
 
     it('should throw if trying to set invalid url matcher', function () {
@@ -52,6 +65,16 @@ describe('appstate core', function () {
         expect(c.setRouteProvider(p)).toBe(c);
     });
 
+    it('should throw if trying to set invalid generator', function () {
+        expect(function () {
+            c.setGenerator({});
+        }).toThrow('Invalid generator');
+    });
+
+    it('should set the generator', function () {
+        expect(c.setGenerator(g)).toBe(c);
+    });
+
     it('should throw if trying to set invalid mediator', function () {
         expect(function () {
             c.setMediator({});
@@ -60,5 +83,31 @@ describe('appstate core', function () {
 
     it('should set the mediator', function () {
         expect(c.setMediator(m)).toBe(c);
+    });
+
+    it('should throw if trying to set invalid state handler', function () {
+        expect(function () {
+            c.setStateHandler({});
+        }).toThrow('Invalid state handler');
+    });
+
+    it('should set the state handler', function () {
+        expect(c.setStateHandler(sh)).toBe(c);
+    });
+
+    it('should load the current state when booting the engine', function () {
+        p.setRoute('home', '/');
+
+        expect(c.boot()).toBe(c);
+        expect(c.getCurrentState() instanceof Sy.AppState.State).toBe(true);
+        expect(sh.getState(c.getCurrentState().getUUID()) instanceof Sy.AppState.State).toBe(true);
+    });
+
+    it('should return the current url', function () {
+        expect(c.getUrl()).toEqual('/');
+
+        location.hash = '/foo';
+
+        expect(c.getUrl()).toEqual('/foo');
     });
 });
