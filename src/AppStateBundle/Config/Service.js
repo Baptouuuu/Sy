@@ -14,7 +14,31 @@ Sy.AppStateBundle.Config.Service.prototype = Object.create(Object.prototype, {
         value: function (container) {
             container.set({
                 'sy::core::appstate::routeprovider': {
-                    constructor: 'Sy.AppState.RouteProvider'
+                    constructor: 'Sy.AppState.RouteProvider',
+                    calls: [
+                        ['setRegistry', ['@sy::core::registry']]
+                    ]
+                },
+                'sy::core::appstate::router': {
+                    constructor: 'Sy.AppState.Router',
+                    calls: [
+                        ['setRouteProvider', ['@sy::core::appstate::routeprovider']]
+                    ]
+                },
+                'sy::core::appstate::urlmatcher': {
+                    constructor: 'Sy.AppState.UrlMatcher',
+                    calls: [
+                        ['setRouteProvider', ['@sy::core::appstate::routeprovider']]
+                    ]
+                },
+                'sy::core::appstate': {
+                    constructor: 'Sy.AppState.Core',
+                    calls: [
+                        ['setUrlMatcher', ['@sy::core::appstate::urlmatcher']],
+                        ['setRouteProvider', ['@sy::core::appstate::routeprovider']],
+                        ['setGenerator', ['@sy::core::generator::uuid']],
+                        ['setMediator', ['@sy::core::mediator']]
+                    ]
                 }
             });
 

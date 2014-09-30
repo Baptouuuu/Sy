@@ -14,7 +14,8 @@ Sy.ViewBundle.Config.Service.prototype = Object.create(Object.prototype, {
         value: function (container) {
             var vs = new Sy.ViewBundle.CompilerPass.RegisterViewScreenWrapperPass(),
                 layout = new Sy.ViewBundle.CompilerPass.RegisterLayoutWrapperPass(),
-                list = new Sy.ViewBundle.CompilerPass.RegisterListWrapperPass();
+                list = new Sy.ViewBundle.CompilerPass.RegisterListWrapperPass()
+                subscriber = new Sy.ViewBundle.CompilerPass.RegisterSubscriberPass();
 
             container.set({
                 'sy::core::view::parser': {
@@ -73,13 +74,21 @@ Sy.ViewBundle.Config.Service.prototype = Object.create(Object.prototype, {
                     calls: [
                         ['setParser', ['@sy::core::view::parser']]
                     ]
+                },
+                'sy::core::view::subscriber::appstate': {
+                    constructor: 'Sy.ViewBundle.Subscriber.AppStateSubscriber',
+                    calls: [
+                        ['setViewPort', ['@sy::core::viewport']],
+                        ['setLogger', ['@sy::core::logger']]
+                    ]
                 }
             });
 
             container
                 .addPass(vs)
                 .addPass(layout)
-                .addPass(list);
+                .addPass(list)
+                .addPass(subscriber);
         }
     }
 });
