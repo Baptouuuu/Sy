@@ -5,8 +5,6 @@ App.Bundle.Todo.Config.Configuration.prototype = Object.create(Object.prototype,
     define: {
         value: function (config) {
             config
-                .set('env', 'dev')
-                .set('name', 'TodoMVC')
                 .set('storage.dbal', {
                     defaultConnection: 'indexeddb',
                     connections: {
