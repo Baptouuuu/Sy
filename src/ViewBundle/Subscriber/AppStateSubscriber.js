@@ -53,7 +53,7 @@ Sy.ViewBundle.Subscriber.AppStateSubscriber.prototype = Object.create(Sy.EventSu
 
             return this;
         }
-    }
+    },
 
     /**
      * @inheritDoc
@@ -83,7 +83,7 @@ Sy.ViewBundle.Subscriber.AppStateSubscriber.prototype = Object.create(Sy.EventSu
                     {route: event.getRoute()}
                 );
                 this.viewport.display(
-                    event.getRoute().getParameter('_viewscreen');
+                    event.getRoute().getParameter('_viewscreen')
                 );
             }
         }
