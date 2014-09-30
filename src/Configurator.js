@@ -66,6 +66,10 @@ Sy.Configurator.prototype = Object.create(Sy.ConfiguratorInterface.prototype, {
 
                 objectGetter.call(this.config, key);
 
+                if (key.split('.').length === 1 && !this.config.hasOwnProperty(key)) {
+                    return false;
+                }
+
                 return true;
 
             } catch (error) {
