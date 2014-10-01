@@ -1,8 +1,6 @@
 # Documentation
 
-You will find in here all the documentation about the framework.
-
-At this time find documentation for these components:
+You will find in here all the documentation about the framework's components.
 
 * [Service container](Service-container.md)
 * [Registry](Registry.md)
@@ -16,3 +14,4 @@ At this time find documentation for these components:
 * [View engine](View-engine.md)
 * [Validation](Validation.md)
 * [Form](Form.md)
+* [AppState](AppState.md)
