@@ -1,6 +1,6 @@
 # Service container
 
-Sy is bundled with a service container object, a default instance can be retrieved from the framework kernel: `Sy.kernel.getContainer()`.
+Sy is bundled with a service container object, a default instance can be retrieved from the framework kernel: `app.getContainer()`.
 
 This component is here to build your objects and automatically manage the creation and injection of the dependencies.
 

@@ -2,6 +2,7 @@
  * @venus-library jasmine
  * @venus-include ../../vendor/Reflection.js/reflection.min.js
  * @venus-include ../../src/functions.js
+ * @venus-include ../../src/DOM.js
  * @venus-include ../../src/RegistryInterface.js
  * @venus-include ../../src/Registry.js
  * @venus-include ../../src/Lib/Generator/Interface.js
@@ -157,6 +158,17 @@ describe('view template engine', function () {
 
         expect(node.className).toEqual('render-classlist bar-foo');
 
+    });
+
+    it('should not render subtree', function () {
+        var node = document.querySelector('.render-nested-node');
+
+        engine.render(node, {
+            element: 42
+        }, '.nested');
+
+        expect(node.firstElementChild.textContent).toEqual('foo');
+        expect(node.children[1].textContent).toEqual('{{ element }}');
     });
 
 });

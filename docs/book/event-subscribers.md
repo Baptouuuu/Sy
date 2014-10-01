@@ -1,6 +1,6 @@
 # Event subscribers
 
-[< Previous chapter (Form)](form.md)
+[< Previous chapter (Form)](form.md) | [Next chapter (Routing)](routing.md)
 
 The [mediator](../Mediator.md) is used a lot in the framework, and is a good way to keep your code loosely coupled in your app. However, it's not really clear where you should register to channels and how you should organize all these subscribers.
 

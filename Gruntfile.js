@@ -24,6 +24,8 @@ module.exports = function (grunt) {
             'src/HTTP/HeaderParser.js',
             'src/HTTP/HTMLRequest.js',
             'src/HTTP/HTMLResponse.js',
+            'src/HTTP/ImageRequest.js',
+            'src/HTTP/ImageResponse.js',
             'src/HTTP/Manager.js',
             'src/HTTP/REST.js'
         ],
@@ -179,6 +181,17 @@ module.exports = function (grunt) {
         propertyAccessor = [  //need the reflection.js vendor
             'src/PropertyAccessor.js'
         ],
+        appState = [
+            'src/AppState/Route.js',
+            'src/AppState/Router.js',
+            'src/AppState/RouteProvider.js',
+            'src/AppState/Core.js',
+            'src/AppState/UrlMatcher.js',
+            'src/AppState/State.js',
+            'src/AppState/StateHandler.js',
+            'src/AppState/AppStateEvent.js',
+            'src/AppState/UrlMatcher.js',
+        ],
         framework = [
             'src/functions.js',
             'src/ControllerInterface.js',
@@ -190,15 +203,27 @@ module.exports = function (grunt) {
             'src/Event/AppShutdownEvent.js',
             'src/Event/ControllerEvent.js',
             'src/Controller.js',
-            'src/EventSubscriberInterface.js'
+            'src/EventSubscriberInterface.js',
+            'src/FrameworkBundle/Config/Configuration.js',
+            'src/FrameworkBundle/Config/Service.js',
+            'src/FormBundle/Config/Service.js',
+            'src/HttpBundle/Config/Service.js',
+            'src/StorageBundle/Config/Service.js',
+            'src/TranslatorBundle/Config/Service.js',
+            'src/ValidatorBundle/Config/Service.js',
+            'src/ViewBundle/Config/Service.js',
+            'src/ViewBundle/Subscriber/AppStateSubscriber.js',
+            'src/AppStateBundle/Config/Service.js',
         ],
         frameworkPasses = [
-            'src/Kernel/CompilerPass/EventSubscriberPass.js',
-            'src/Kernel/CompilerPass/FormTypePass.js',
-            'src/Kernel/CompilerPass/RegisterDriverFactoryPass.js',
-            'src/Kernel/CompilerPass/RegisterLayoutWrapperPass.js',
-            'src/Kernel/CompilerPass/RegisterListWrapperPass.js',
-            'src/Kernel/CompilerPass/RegisterViewScreenWrapperPass.js',
+            'src/FrameworkBundle/CompilerPass/EventSubscriberPass.js',
+            'src/FormBundle/CompilerPass/FormTypePass.js',
+            'src/StorageBundle/CompilerPass/RegisterDriverFactoryPass.js',
+            'src/ViewBundle/CompilerPass/RegisterLayoutWrapperPass.js',
+            'src/ViewBundle/CompilerPass/RegisterListWrapperPass.js',
+            'src/ViewBundle/CompilerPass/RegisterViewScreenWrapperPass.js',
+            'src/ViewBundle/CompilerPass/RegisterSubscriberPass.js',
+            'src/AppStateBundle/CompilerPass/RegisterRoutesPass.js',
         ],
         unique = function (el, idx, array) {
             if (array.indexOf(el) !== idx && array.indexOf(el) < idx) {
@@ -274,9 +299,8 @@ module.exports = function (grunt) {
         .concat(serviceContainer)
         .concat(frameworkPasses)
         .concat(translator)
-        .concat(dom);
-
-    framework.push('bootstrap.js');
+        .concat(dom)
+        .concat(appState);
 
     serviceContainer = serviceContainer.filter(unique);
     registry = registry.filter(unique);

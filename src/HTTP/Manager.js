@@ -265,6 +265,14 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
                     response = new Sy.HTTP.HTMLResponse();
 
+                } else if (
+                    headers['Content-Type'] !== undefined &&
+                    headers['Content-Type'].indexOf('image/') !== -1 &&
+                    request.obj.getType() === 'blob'
+                ) {
+
+                    response = new Sy.HTTP.ImageResponse();
+
                 } else {
 
                     response = new Sy.HTTP.Response();
@@ -316,6 +324,18 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
             return this;
 
+        }
+    },
+
+    /**
+     * Return an array of all pending xhrs
+     *
+     * @return {Array}
+     */
+
+    getStack: {
+        value: function () {
+            return this.requests.get();
         }
     }
 

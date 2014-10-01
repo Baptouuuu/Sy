@@ -1,4 +1,4 @@
-/*! sy#0.7.0 - 2014-09-26 */
+/*! sy#0.9.0 - 2014-10-01 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.

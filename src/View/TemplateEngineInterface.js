@@ -26,12 +26,13 @@ Sy.View.TemplateEngineInterface.prototype = Object.create(Object.prototype, {
      *
      * @param {HTMLElement} node
      * @param {Object} data
+     * @param {String} exempt CSS selector to exempt nodes of being rendered
      *
      * @return {Sy.View.TemplateEngineInterface}
      */
 
     render: {
-        value: function (node, data) {}
+        value: function (node, data, exempt) {}
     }
 
 });

@@ -1,16 +1,16 @@
-namespace('Sy.Kernel.CompilerPass');
+namespace('Sy.StorageBundle.CompilerPass');
 
 /**
  * Pass to look for driver factories and register them in the appropriate factory
  *
  * @package Sy
- * @subpackage Kernel
+ * @subpackage StorageBundle
  * @class
  * @implements {Sy.ServiceContainer.CompilerPassInterface}
  */
 
-Sy.Kernel.CompilerPass.RegisterDriverFactoryPass = function () {};
-Sy.Kernel.CompilerPass.RegisterDriverFactoryPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
+Sy.StorageBundle.CompilerPass.RegisterDriverFactoryPass = function () {};
+Sy.StorageBundle.CompilerPass.RegisterDriverFactoryPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
 
     /**
      * @inheritDoc

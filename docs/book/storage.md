@@ -43,7 +43,7 @@ Now that you know how to declare your entities, let's see how to handle them to 
 
 A manager is a way to define the storage engine you want to use for a set of entity types. You define one in the global config object:
 ```js
-Sy.kernel.getConfig()
+app.getConfig()
     .set('storage.dbal.connections.myconn', {
         driver: 'indexeddb',
         version: 1,
@@ -124,7 +124,7 @@ All the parameters can be declared inside the config object of the connection.
 
 Now that all the classes has been defined, let's tell the framework about our new driver.
 ```js
-Sy.kernel.getContainer()
+app.getContainer()
     .set({
         'our::factory::service::name': {
             constructor: 'Wherever.You.Want.MyFactory'

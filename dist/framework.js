@@ -1,4 +1,4 @@
-/*! sy#0.7.0 - 2014-09-26 */
+/*! sy#0.9.0 - 2014-10-01 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -208,19 +208,6 @@ Sy.ControllerInterface.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Create a new Entity object
-     *
-     * @param {string} entity Entity path like "BundleName::EntityName", you can pass only "EntityName" if it's in the current bundle
-     * @param {object} attributes Attributes object to create your entity
-     *
-     * @return {Sy.EntityInterface}
-     */
-
-    new: {
-        value: function (entity, attributes) {}
-    },
-
-    /**
      * Method called when the controller is not used by the framework,
      * like when the controller is not used for the current screen
      *
@@ -273,18 +260,6 @@ Sy.ControllerInterface.prototype = Object.create(Object.prototype, {
 
     setServiceContainer: {
         value: function (container) {}
-    },
-
-    /**
-     * Set the bundle of the controller
-     *
-     * @param {String} name
-     *
-     * @return {Sy.ControllerInterface}
-     */
-
-    setBundle: {
-        value: function (name) {}
     },
 
     /**
@@ -530,51 +505,30 @@ namespace('Sy.Kernel');
  */
 
 Sy.Kernel.AppParser = function () {
-    this.bundles = [];
+    this.bundles = {};
     this.controllers = [];
     this.entities = [];
-    this.logger = null;
 };
 Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
 
     /**
-     * Set the logger
+     * Set a new bundle
      *
-     * @param {Sy.Lib.Logger.Interface} logger
+     * @param {String} name Bundle name
+     * @param {Object} object Object containing the whole bundle code
      *
-     * @return {Sy.Kernle.AppParser}
+     * @return {Sy.Kernel.AppParser}
      */
 
-    setLogger: {
-        value: function (logger) {
-            this.logger = logger;
+    setBundle: {
+        value: function (name, object) {
+            if (this.bundles.hasOwnProperty(name)) {
+                throw new ReferenceError('Bundle "' + name + '" already defined');
+            }
+
+            this.bundles[name] = object;
 
             return this;
-        }
-    },
-
-    /**
-     * Return the list of defined bundles
-     *
-     * @return {Array}
-     */
-
-    getBundles: {
-        value: function () {
-
-            if (this.bundles.length > 0 || !objectGetter('App.Bundle')) {
-                return this.bundles;
-            }
-
-            for (var bundle in App.Bundle) {
-                if (App.Bundle.hasOwnProperty(bundle)) {
-                    this.bundles.push(bundle);
-                    this.logger && this.logger.debug('Bundle found', bundle);
-                }
-            }
-
-            return this.bundles;
-
         }
     },
 
@@ -593,21 +547,21 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
 
             var bundleCtrl;
 
-            for (var i = 0, l = this.bundles.length; i < l; i++) {
-                bundleCtrl = App.Bundle[this.bundles[i]].Controller;
+            for (var name in this.bundles) {
+                if (this.bundles.hasOwnProperty(name)) {
+                    bundleCtrl = this.bundles[name].Controller;
 
-                if (!bundleCtrl) {
-                    this.logger && this.logger.debug('No controller found in', this.bundles[i]);
-                    continue;
-                }
+                    if (!bundleCtrl) {
+                        continue;
+                    }
 
-                for (var ctrl in bundleCtrl) {
-                    if (bundleCtrl.hasOwnProperty(ctrl)) {
-                        this.controllers.push({
-                            name: this.bundles[i] + '::' + ctrl,
-                            creator: bundleCtrl[ctrl]
-                        });
-                        this.logger && this.logger.debug('Controller found', this.bundles[i] + '::' + ctrl);
+                    for (var ctrl in bundleCtrl) {
+                        if (bundleCtrl.hasOwnProperty(ctrl)) {
+                            this.controllers.push({
+                                name: name + '::' + ctrl,
+                                creator: bundleCtrl[ctrl]
+                            });
+                        }
                     }
                 }
             }
@@ -635,35 +589,30 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
                 alias,
                 entity;
 
-            for (var i = 0, l = this.bundles.length; i < l; i++) {
-                bundleEntities = App.Bundle[this.bundles[i]].Entity;
-                bundleRepositories = App.Bundle[this.bundles[i]].Repository || {};
+            for (var bundleName in this.bundles) {
+                if (this.bundles.hasOwnProperty(bundleName)) {
+                    bundleEntities = this.bundles[bundleName].Entity;
+                    bundleRepositories = this.bundles[bundleName].Repository || {};
 
-                if (!bundleEntities) {
-                    this.logger && this.logger.debug('No entity found in', this.bundles[i]);
-                    continue;
-                }
+                    if (!bundleEntities) {
+                        continue;
+                    }
 
-                for (var name in bundleEntities) {
-                    if (bundleEntities.hasOwnProperty(name)) {
-                        alias = this.bundles[i] + '::' + name;
-                        entity = bundleEntities[name];
+                    for (var name in bundleEntities) {
+                        if (bundleEntities.hasOwnProperty(name)) {
+                            alias = bundleName + '::' + name;
+                            entity = bundleEntities[name];
 
-                        this.entities.push({
-                            alias: alias,
-                            bundle: this.bundles[i],
-                            name: name,
-                            repository: bundleRepositories[name],
-                            entity: entity,
-                            indexes: entity.prototype.INDEXES,
-                            uuid: entity.prototype.UUID
-                        });
-
-                        this.logger && this.logger.debug('Entity found ' + alias + (
-                            bundleRepositories[name] ?
-                                ' with custom repository' :
-                                ''
-                        ));
+                            this.entities.push({
+                                alias: alias,
+                                bundle: bundleName,
+                                name: name,
+                                repository: bundleRepositories[name],
+                                entity: entity,
+                                indexes: entity.prototype.INDEXES,
+                                uuid: entity.prototype.UUID
+                            });
+                        }
                     }
                 }
             }
@@ -691,17 +640,17 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
 
             var bundleConfig;
 
-            for (var i = 0, l = this.bundles.length; i < l; i++) {
-                bundleConfig = App.Bundle[this.bundles[i]].Config;
+            for (var bundleName in this.bundles) {
+                if (this.bundles.hasOwnProperty(bundleName)) {
+                    bundleConfig = this.bundles[bundleName].Config;
 
-                if (!bundleConfig || !bundleConfig.Service) {
-                    continue;
+                    if (!bundleConfig || !bundleConfig.Service) {
+                        continue;
+                    }
+
+                    bundleConfig = new bundleConfig.Service();
+                    bundleConfig.define(container);
                 }
-
-                bundleConfig = new bundleConfig.Service();
-                bundleConfig.define(container);
-
-                this.logger && this.logger.debug('Services loaded from ' + this.bundles[i] + ' bundle');
             }
 
             return this;
@@ -727,17 +676,17 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
 
             var bundleConfig;
 
-            for (var i = 0, l = this.bundles.length; i < l; i++) {
-                bundleConfig = App.Bundle[this.bundles[i]].Config;
+            for (var bundleName in this.bundles) {
+                if (this.bundles.hasOwnProperty(bundleName)) {
+                    bundleConfig = this.bundles[bundleName].Config;
 
-                if (!bundleConfig || !bundleConfig.Configuration) {
-                    continue;
+                    if (!bundleConfig || !bundleConfig.Configuration) {
+                        continue;
+                    }
+
+                    bundleConfig = new bundleConfig.Configuration();
+                    bundleConfig.define(config);
                 }
-
-                bundleConfig = new bundleConfig.Configuration();
-                bundleConfig.define(config);
-
-                this.logger && this.logger.debug('Configuration loaded from ' + this.bundles[i] + ' bundle');
             }
 
             return this;
@@ -767,17 +716,17 @@ Sy.Kernel.AppParser.prototype = Object.create(Object.prototype, {
                 throw new TypeError('Invalid validator');
             }
 
-            for (var i = 0, l = this.bundles.length; i < l; i++) {
-                bundleConfig = App.Bundle[this.bundles[i]].Config;
+            for (var bundleName in this.bundles) {
+                if (this.bundles.hasOwnProperty(bundleName)) {
+                    bundleConfig = this.bundles[bundleName].Config;
 
-                if (!bundleConfig || !bundleConfig.Validation) {
-                    continue;
+                    if (!bundleConfig || !bundleConfig.Validation) {
+                        continue;
+                    }
+
+                    bundleConfig = new bundleConfig.Validation();
+                    bundleConfig.define(validator);
                 }
-
-                bundleConfig = new bundleConfig.Validation();
-                bundleConfig.define(validator);
-
-                this.logger && this.logger.debug('Validation rules loaded from ' + this.bundles[i] + ' bundle');
             }
 
             return this;
@@ -1043,7 +992,6 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
 
             instance = new (this.meta.get(alias))();
             instance
-                .setBundle(bundleName)
                 .setMediator(this.mediator)
                 .setServiceContainer(this.container)
                 .setViewScreen(viewscreen)
@@ -1119,13 +1067,17 @@ namespace('Sy.Kernel');
  * @class
  */
 
-Sy.Kernel.Core = function () {
+Sy.Kernel.Core = function (env, debug) {
     this.config = new Sy.Configurator();
     this.container = new Sy.ServiceContainer.Core();
     this.controllerManager = new Sy.Kernel.ControllerManager();
     this.actionDispatcher = new Sy.Kernel.ActionDispatcher();
 
     this.container.setCompiler(new Sy.ServiceContainer.Compiler());
+
+    this.config
+        .set('app.environment', env)
+        .set('app.debug', !!debug);
 };
 Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
@@ -1154,6 +1106,18 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
     },
 
     /**
+     * Register all bundles needed for the app
+     *
+     * @return {Array}
+     */
+
+    registerBundles: {
+        value: function () {
+            return [];
+        }
+    },
+
+    /**
      * Initiate the kernel that will inspect the app and build necessary data
      *
      * @return {Sy.Kernel.Core}
@@ -1167,26 +1131,22 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
 
             tester.testBrowser();
 
-            if (this.config.get('env') !== 'prod') {
-                parser.setLogger(this.container.get('sy::core::logger'));
-            }
+            this.registerBundles().forEach(function (bundle) {
+                parser.setBundle(bundle[0], bundle[1]);
+            }.bind(this));
 
             this.config.set('app.meta', {
-                bundles: parser.getBundles(),
                 controllers: parser.getControllers(),
                 entities: parser.getEntities()
             });
+
+            this.container.setParameters(this.config);
 
             parser
                 .buildConfig(this.config)
                 .buildServices(this.container);
 
-            this
-                .registerShutdownListener()
-                .registerFormTypes()
-                .registerEventSubscribers()
-                .registerViewPasses()
-                .registerStoragePasses();
+            this.registerShutdownListener();
 
             this.container.compile();
 
@@ -1195,6 +1155,12 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
             this
                 .registerControllers(parser.getControllers())
                 .configureLogger();
+
+            if (this.container.hasParameter('routes')) {
+                this.container
+                    .get('sy::core::appstate')
+                    .boot();
+            }
         }
     },
 
@@ -1263,10 +1229,10 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
     configureLogger: {
         value: function () {
 
-            var env = this.config.get('env'),
+            var debug = this.config.get('app.debug'),
                 logger = this.container.get('sy::core::logger');
 
-            if (env === 'prod') {
+            if (debug === false) {
                 logger
                     .removeHandler(logger.LOG)
                     .removeHandler(logger.DEBUG)
@@ -1299,84 +1265,6 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                     return error.message;
                 }
             }.bind(this), false);
-
-            return this;
-        }
-    },
-
-    /**
-     * Retrieve services tagged as form type and register them in the form builder
-     *
-     * @return {Sy.Kernel.Core} self
-     */
-
-    registerFormTypes: {
-        value: function () {
-            this.container.addPass(
-                new Sy.Kernel.CompilerPass.FormTypePass()
-            );
-
-            return this;
-        }
-    },
-
-    /**
-     * Retrieve services tagged as event subscriber and register them
-     * in the mediator
-     *
-     * @return {Sy.Kernel.Core} self
-     */
-
-    registerEventSubscribers: {
-        value: function () {
-            var pass = new Sy.Kernel.CompilerPass.EventSubscriberPass();
-
-            this.container.addPass(
-                pass,
-                pass.AFTER_REMOVING
-            );
-
-            return this;
-        }
-    },
-
-    /**
-     * Add the compiler passes related to the view engine to the container
-     *
-     * @return {Sy.Kernel.Core} self
-     */
-
-    registerViewPasses: {
-        value: function () {
-            var vs = new Sy.Kernel.CompilerPass.RegisterViewScreenWrapperPass(),
-                layout = new Sy.Kernel.CompilerPass.RegisterLayoutWrapperPass(),
-                list = new Sy.Kernel.CompilerPass.RegisterListWrapperPass(),
-                logger = this.container.get('sy::core::logger');
-
-            vs.setLogger(logger);
-            layout.setLogger(logger);
-            list.setLogger(logger);
-
-            this.container
-                .addPass(vs)
-                .addPass(layout)
-                .addPass(list);
-
-            return this;
-        }
-    },
-
-    /**
-     * Register all the passes to make the storage engine work
-     *
-     * @return {Sy.Kernel.Core} self
-     */
-
-    registerStoragePasses: {
-        value: function () {
-            this.container.addPass(
-                new Sy.Kernel.CompilerPass.RegisterDriverFactoryPass()
-            );
 
             return this;
         }
@@ -1616,7 +1504,6 @@ Sy.Controller = function () {
     this.container = null;
     this.mediator = null;
     this.mediatorListeners = {};
-    this.bundle = '';
     this.viewscreen = null;
 
 };
@@ -1655,58 +1542,6 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
         value: function () {
 
             this.mediator.publish.apply(this.mediator, arguments);
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    new: {
-        value: function (entity, attributes) {
-
-            var regexp = new RegExp(/^((\w+::)|(\w+))+$/gi),
-                path = null,
-                ent = null;
-
-            if (!regexp.test(entity)) {
-                throw new SyntaxError('Invalid entity name format');
-            }
-
-            path = entity.split('::');
-
-            if (path.length === 1) {
-                ent = new App.Bundle[this.bundle].Entity[path[0]]();
-            } else {
-                ent = new App.Bundle[path[0]].Entity[path[1]]();
-            }
-
-            if (!(ent instanceof Sy.EntityInterface)) {
-                throw new TypeError('"' + entity + '" does not implement "Sy.EntityInterface"');
-            }
-
-            ent.set(attributes);
-
-            return ent;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    setBundle: {
-        value: function (name) {
-
-            if (!App.Bundle[name]) {
-                throw new ReferenceError('The bundle "' + name + '" is undefined');
-            }
-
-            this.bundle = name;
 
             return this;
 
@@ -1901,6 +1736,626 @@ Sy.EventSubscriberInterface.prototype = Object.create(Object.prototype, {
 
 });
 
+namespace('Sy.FrameworkBundle.Config');
+
+/**
+ * Basic configuration needed by the framework
+ *
+ * @package Sy
+ * @subpackage FrameworkBundle
+ * @class
+ */
+
+Sy.FrameworkBundle.Config.Configuration = function () {};
+Sy.FrameworkBundle.Config.Configuration.prototype = Object.create(Object.prototype, {
+    define: {
+        value: function (config) {
+            config.set({
+                controllers: {
+                    cache: true
+                },
+                logger: {
+                    level: {
+                        info: Sy.Lib.Logger.CoreLogger.prototype.INFO,
+                        debug: Sy.Lib.Logger.CoreLogger.prototype.DEBUG,
+                        error: Sy.Lib.Logger.CoreLogger.prototype.ERROR,
+                        log: Sy.Lib.Logger.CoreLogger.prototype.LOG,
+                    }
+                }
+            });
+        }
+    }
+});
+namespace('Sy.FrameworkBundle.Config');
+
+/**
+ * Basic service needed throughout the framework
+ *
+ * @package Sy
+ * @subpackage FrameworkBundle
+ * @class
+ */
+
+Sy.FrameworkBundle.Config.Service = function () {};
+Sy.FrameworkBundle.Config.Service.prototype = Object.create(Object.prototype, {
+    define: {
+        value: function (container) {
+            var pass = new Sy.FrameworkBundle.CompilerPass.EventSubscriberPass();
+
+            container.set({
+                'sy::core::generator::uuid': {
+                    constructor: 'Sy.Lib.Generator.UUID'
+                },
+                mediator: '@sy::core::mediator',
+                'sy::core::mediator': {
+                    constructor: 'Sy.Lib.Mediator',
+                    calls: [
+                        ['setGenerator', ['@sy::core::generator::uuid']],
+                        ['setLogger', ['@sy::core::logger']]
+                    ]
+                },
+                'sy::core::registry::factory': {
+                    constructor: 'Sy.RegistryFactory'
+                },
+                registry: '@sy::core::registry',
+                'sy::core::registry': {
+                    constructor: 'Sy.Registry',
+                    factory: ['sy::core::registry::factory', 'make'],
+                    prototype: true
+                },
+                'sy::core::stateregistry::factory': {
+                    constructor: 'Sy.StateRegistryFactory',
+                    calls: [
+                        ['setRegistryFactory', ['@sy::core::registry::factory']]
+                    ]
+                },
+                stateregistry: '@sy::core::stateregistry',
+                'sy::core::stateregistry': {
+                    constructor: 'Sy.StateRegistry',
+                    fatory: ['sy::core::stateregistry::factory', 'make'],
+                    prototype: true
+                },
+                logger: '@sy::core::logger',
+                'sy::core::logger': {
+                    constructor: 'Sy.Lib.Logger.CoreLogger',
+                    calls: [
+                        ['setName', ['core']],
+                        ['setHandler', ['@sy::core::logger::handler::info', '%logger.level.info%']],
+                        ['setHandler', ['@sy::core::logger::handler::debug', '%logger.level.debug%']],
+                        ['setHandler', ['@sy::core::logger::handler::error', '%logger.level.error%']],
+                        ['setHandler', ['@sy::core::logger::handler::log', '%logger.level.log%']],
+                    ]
+                },
+                'sy::core::logger::handler::info': {
+                    constructor: 'Sy.Lib.Logger.Handler.Console',
+                    calls: [
+                        ['setLevel', ['%logger.level.info%']]
+                    ],
+                    private: true
+                },
+                'sy::core::logger::handler::debug': {
+                    constructor: 'Sy.Lib.Logger.Handler.Console',
+                    calls: [
+                        ['setLevel', ['%logger.level.debug%']]
+                    ],
+                    private: true
+                },
+                'sy::core::logger::handler::error': {
+                    constructor: 'Sy.Lib.Logger.Handler.Console',
+                    calls: [
+                        ['setLevel', ['%logger.level.error%']]
+                    ],
+                    private: true
+                },
+                'sy::core::logger::handler::log': {
+                    constructor: 'Sy.Lib.Logger.Handler.Console',
+                    calls: [
+                        ['setLevel', ['%logger.level.log%']]
+                    ],
+                    private: true
+                },
+                'sy::core::propertyaccessor': {
+                    constructor: 'Sy.PropertyAccessor',
+                    prototype: true
+                }
+            });
+
+            container.addPass(
+                pass,
+                pass.AFTER_REMOVING
+            );
+        }
+    }
+});
+namespace('Sy.FormBundle.Config');
+
+/**
+ * Register form service
+ *
+ * @package Sy
+ * @package FormBundle
+ * @class
+ */
+
+Sy.FormBundle.Config.Service = function () {};
+Sy.FormBundle.Config.Service.prototype = Object.create(Object.prototype, {
+    define: {
+        value: function (container) {
+            container.set({
+                'sy::core::form': {
+                    constructor: 'Sy.Form.Builder',
+                    calls: [
+                        ['setValidator', ['@sy::core::validator']]
+                    ]
+                }
+            });
+
+            container.addPass(
+                new Sy.FormBundle.CompilerPass.FormTypePass()
+            );
+        }
+    }
+});
+namespace('Sy.HttpBundle.Config');
+
+/**
+ * Register the http services
+ *
+ * @package Sy
+ * @subpackage HttpBundle
+ * @class
+ */
+
+Sy.HttpBundle.Config.Service = function () {};
+Sy.HttpBundle.Config.Service.prototype = Object.create(Object.prototype, {
+    define: {
+        value: function (container) {
+            container.set({
+                rest: '@sy::core::http::rest',
+                'sy::core::http::rest': {
+                    constructor: 'Sy.HTTP.REST',
+                    calls: [
+                        ['setManager', ['@sy::core::http']]
+                    ]
+                },
+                http: '@sy::core::http',
+                'sy::core::http': {
+                    constructor: 'Sy.HTTP.Manager',
+                    calls: [
+                        ['setParser', ['@sy::core::http::parser']],
+                        ['setGenerator', ['@sy::core::generator::uuid']],
+                        ['setRegistry', ['@sy::core::registry']],
+                        ['setLogger', ['@sy::core::logger']]
+                    ]
+                },
+                'sy::core::http::parser': {
+                    constructor: 'Sy.HTTP.HeaderParser',
+                    private: true
+                }
+            });
+        }
+    }
+});
+namespace('Sy.StorageBundle.Config');
+
+/**
+ * Register storage services
+ *
+ * @package Sy
+ * @subpackage StorageBundle
+ * @class
+ */
+
+Sy.StorageBundle.Config.Service = function () {};
+Sy.StorageBundle.Config.Service.prototype = Object.create(Object.prototype, {
+    define: {
+        value: function (container) {
+            container.set({
+                'sy::core::storage::dbal::factory': {
+                    constructor: 'Sy.Storage.Dbal.Factory',
+                    calls: [
+                        ['setFactoriesRegistry', ['@sy::core::registry']],
+                        ['setDefaultConnectionName', ['%storage.dbal.defaultConnection%']],
+                        ['setConnections', ['%storage.dbal.connections%']]
+                    ]
+                },
+                'sy::core::storage::dbal::driver_factory::indexeddb': {
+                    constructor: 'Sy.Storage.Dbal.IndexedDBFactory',
+                    private: true,
+                    calls: [
+                        ['setEntitiesMeta', ['%app.meta.entities%']],
+                        ['setLogger', ['@sy::core::logger']]
+                    ],
+                    tags: [
+                        {name: 'storage.driver_factory', alias: 'indexeddb'}
+                    ]
+                },
+                'sy::core::storage::dbal::driver_factory::localstorage': {
+                    constructor: 'Sy.Storage.Dbal.LocalstorageFactory',
+                    private: true,
+                    calls: [
+                        ['setEntitiesMeta', ['%app.meta.entities%']]
+                    ],
+                    tags: [
+                        {name: 'storage.driver_factory', alias: 'localstorage'}
+                    ]
+                },
+                'sy::core::storage::dbal::driver_factory::rest': {
+                    constructor: 'Sy.Storage.Dbal.RestFactory',
+                    private: true,
+                    calls: [
+                        ['setEntitiesMeta', ['%app.meta.entities%']],
+                        ['setREST', ['@sy::core::http::rest']]
+                    ],
+                    tags: [
+                        {name: 'storage.driver_factory', alias: 'rest'}
+                    ]
+                },
+                storage: '@sy::core::storage',
+                'sy::core::storage': {
+                    constructor: 'Sy.Storage.Core',
+                    calls: [
+                        ['setManagersRegistry', ['@sy::core::registry']],
+                        ['setDefaultManager', ['%storage.orm.defaultManager%']],
+                        ['setManagerFactory', ['@sy::core::storage::factory::manager']]
+                    ]
+                },
+                'sy::core::storage::factory::manager': {
+                    constructor: 'Sy.Storage.ManagerFactory',
+                    private: true,
+                    calls: [
+                        ['setDefinitions', ['%storage.orm.managers%']],
+                        ['setDbalFactory', ['@sy::core::storage::dbal::factory']],
+                        ['setRepositoryFactory', ['@sy::core::storage::factory::repository']],
+                        ['setUnitOfWorkFactory', ['@sy::core::storage::factory::unitofwork']]
+                    ]
+                },
+                'sy::core::storage::factory::repository': {
+                    constructor: 'Sy.Storage.RepositoryFactory',
+                    private: true,
+                    configurator: ['sy::core::storage::repofactconfigurator', 'configure'],
+                    calls: [
+                        ['setMetadataRegistry', ['@sy::core::registry']],
+                        ['setRepositoriesRegistry', ['@sy::core::registry']]
+                    ]
+                },
+                'sy::core::storage::repofactconfigurator': {
+                    constructor: 'Sy.Storage.RepositoryFactoryConfigurator',
+                    private: true,
+                    calls: [
+                        ['setMetadata', ['%app.meta.entities%']]
+                    ]
+                },
+                'sy::core::storage::factory::unitofwork': {
+                    constructor: 'Sy.Storage.UnitOfWorkFactory',
+                    private: true,
+                    calls: [
+                        ['setStateRegistryFactory', ['@sy::core::stateregistry::factory']],
+                        ['setGenerator', ['@sy::core::generator::uuid']],
+                        ['setLogger', ['@sy::core::logger']],
+                        ['setMediator', ['@sy::core::mediator']],
+                        ['setPropertyAccessor', ['@sy::core::propertyaccessor']],
+                        ['setEntitiesMetadata', ['%app.meta.entities%']]
+                    ]
+                }
+            });
+
+            container.addPass(
+                new Sy.StorageBundle.CompilerPass.RegisterDriverFactoryPass()
+            );
+        }
+    }
+});
+namespace('Sy.TranslatorBundle.Config');
+
+/**
+ * Register translator config
+ *
+ * @package Sy
+ * @subpackage TranslatorBundle
+ * @class
+ */
+
+Sy.TranslatorBundle.Config.Service = function () {};
+Sy.TranslatorBundle.Config.Service.prototype = Object.create(Object.prototype, {
+    define: {
+        value: function (container) {
+            container.set({
+                translator: '@sy::core::translator',
+                'sy::core::translator': {
+                    constructor: 'Sy.Translator',
+                    calls: [
+                        ['setRegistry', ['@sy::core::registry']],
+                        ['setStateRegistryFactory', ['@sy::core::stateregistry::factory']]
+                    ]
+                }
+            });
+        }
+    }
+});
+namespace('Sy.ValidatorBundle.Config');
+
+/**
+ * Register validator services
+ *
+ * @package Sy
+ * @subpackage ValidatorBundle
+ * @class
+ */
+
+Sy.ValidatorBundle.Config.Service = function () {};
+Sy.ValidatorBundle.Config.Service.prototype = Object.create(Object.prototype, {
+    define: {
+        value: function (container) {
+            container.set({
+                validator: '@sy::core::validator',
+                'sy::core::validator': {
+                    constructor: 'Sy.Validator.Core',
+                    calls: [
+                        ['setRulesRegistry', ['@sy::core::registry']],
+                        ['setContextFactory', ['@sy::core::validator::executioncontextfactory']],
+                        ['setConstraintFactory', ['@sy::core::validator::constraintfactory']]
+                    ]
+                },
+                'sy::core::validator::executioncontextfactory': {
+                    constructor: 'Sy.Validator.ExecutionContextFactory',
+                    calls: [
+                        ['setConstraintValidatorFactory', ['@sy::core::validator::constraintvalidatorfactory']]
+                    ],
+                    private: true
+                },
+                'sy::core::validator::constraintvalidatorfactory': {
+                    constructor: 'Sy.Validator.ConstraintValidatorFactory',
+                    private: true
+                },
+                'sy::core::validator::constraintfactory': {
+                    constructor: 'Sy.Validator.ConstraintFactory',
+                    private: true
+                }
+            });
+        }
+    }
+});
+namespace('Sy.ViewBundle.Config');
+
+/**
+ * Register view engine services
+ *
+ * @package Sy
+ * @subpackage ViewBundle
+ * @class
+ */
+
+Sy.ViewBundle.Config.Service = function () {};
+Sy.ViewBundle.Config.Service.prototype = Object.create(Object.prototype, {
+    define: {
+        value: function (container) {
+            var vs = new Sy.ViewBundle.CompilerPass.RegisterViewScreenWrapperPass(),
+                layout = new Sy.ViewBundle.CompilerPass.RegisterLayoutWrapperPass(),
+                list = new Sy.ViewBundle.CompilerPass.RegisterListWrapperPass()
+                subscriber = new Sy.ViewBundle.CompilerPass.RegisterSubscriberPass();
+
+            container.set({
+                'sy::core::view::parser': {
+                    constructor: 'Sy.View.Parser'
+                },
+                'sy::core::view::factory::list': {
+                    constructor: 'Sy.View.ListFactory',
+                    calls: [
+                        ['setTemplateEngine', ['@sy::core::view::template::engine']],
+                        ['setRegistry', ['@sy::core::registry']]
+                    ]
+                },
+                'sy::core::view::factory::layout': {
+                    constructor: 'Sy.View.LayoutFactory',
+                    calls: [
+                        ['setParser', ['@sy::core::view::parser']],
+                        ['setTemplateEngine', ['@sy::core::view::template::engine']],
+                        ['setRegistryFactory', ['@sy::core::registry::factory']],
+                        ['setListFactory', ['@sy::core::view::factory::list']]
+                    ]
+                },
+                'sy::core::view::factory::viewscreen': {
+                    constructor: 'Sy.View.ViewScreenFactory',
+                    calls: [
+                        ['setParser', ['@sy::core::view::parser']],
+                        ['setTemplateEngine', ['@sy::core::view::template::engine']],
+                        ['setRegistryFactory', ['@sy::core::registry::factory']],
+                        ['setLayoutFactory', ['@sy::core::view::factory::layout']],
+                    ]
+                },
+                'sy::core::view::template::engine': {
+                    constructor: 'Sy.View.TemplateEngine',
+                    calls: [
+                        ['setRegistry', ['@sy::core::registry']],
+                        ['setGenerator', ['@sy::core::generator::uuid']]
+                    ]
+                },
+                'sy::core::viewport': {
+                    constructor: 'Sy.View.ViewPort',
+                    calls: [
+                        ['setNode', [document.querySelector('.viewport')]],
+                        ['setViewManager', ['@sy::core::view::manager']],
+                        ['setMediator', ['@sy::core::mediator']]
+                    ]
+                },
+                'sy::core::view::manager': {
+                    constructor: 'Sy.View.Manager',
+                    configurator: ['sy::core::view::managerconfigurator', 'configure'],
+                    calls: [
+                        ['setViewsRegistry', ['@sy::core::registry']],
+                        ['setViewScreenFactory', ['@sy::core::view::factory::viewscreen']]
+                    ],
+                },
+                'sy::core::view::managerconfigurator': {
+                    constructor: 'Sy.View.ManagerConfigurator',
+                    calls: [
+                        ['setParser', ['@sy::core::view::parser']]
+                    ]
+                },
+                'sy::core::view::subscriber::appstate': {
+                    constructor: 'Sy.ViewBundle.Subscriber.AppStateSubscriber',
+                    calls: [
+                        ['setViewPort', ['@sy::core::viewport']],
+                        ['setLogger', ['@sy::core::logger']]
+                    ]
+                }
+            });
+
+            container
+                .addPass(vs)
+                .addPass(layout)
+                .addPass(list)
+                .addPass(subscriber);
+        }
+    }
+});
+namespace('Sy.ViewBundle.Subscriber');
+
+/**
+ * Listen for app state change to display appropriate viewscreen if available
+ *
+ * @package Sy
+ * @subpackage ViewBundle
+ * @class
+ * @implements {Sy.EventSubscriberInterface}
+ */
+
+Sy.ViewBundle.Subscriber.AppStateSubscriber = function () {
+    this.viewport = null;
+    this.logger = null;
+};
+Sy.ViewBundle.Subscriber.AppStateSubscriber.prototype = Object.create(Sy.EventSubscriberInterface.prototype, {
+
+    /**
+     * Set the viewport manager
+     *
+     * @param {Sy.View.ViewPort} viewport
+     *
+     * @return {Sy.ViewBundle.Subscriber.AppStateSubscriber} self
+     */
+
+    setViewPort: {
+        value: function (viewport) {
+            if (!(viewport instanceof Sy.View.ViewPort)) {
+                throw new TypeError('Invalid viewport manager');
+            }
+
+            this.viewport = viewport;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set logger
+     *
+     * @param {Sy.Lib.Logger.Interface} logger
+     *
+     * @return {Sy.ViewBundle.Subscriber.AppStateSubscriber} self
+     */
+
+    setLogger: {
+        value: function (logger) {
+            if (!(logger instanceof Sy.Lib.Logger.Interface)) {
+                throw new TypeError('Invalid logger');
+            }
+
+            this.logger = logger;
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    getSubscribedEvents: {
+        value: function () {
+            return {
+                'appstate.change': {
+                    method: 'onChange'
+                }
+            };
+        }
+    },
+
+    /**
+     * Called when the appstate.change channel is published
+     *
+     * @param {Sy.AppState.AppStateEvent} event
+     */
+
+    onChange: {
+        value: function (event) {
+            if (event.getRoute().hasParameter('_viewscreen')) {
+                this.logger && this.logger.info(
+                    'App state changed, displaying appropriate viewscreen',
+                    {route: event.getRoute()}
+                );
+                this.viewport.display(
+                    event.getRoute().getParameter('_viewscreen')
+                );
+            }
+        }
+    }
+
+});
+namespace('Sy.AppStateBundle.Config');
+
+/**
+ * Register appstate services
+ *
+ * @package Sy
+ * @subpackage AppStateBundle
+ * @class
+ */
+
+Sy.AppStateBundle.Config.Service = function () {};
+Sy.AppStateBundle.Config.Service.prototype = Object.create(Object.prototype, {
+    define: {
+        value: function (container) {
+            container.set({
+                'sy::core::appstate::routeprovider': {
+                    constructor: 'Sy.AppState.RouteProvider',
+                    calls: [
+                        ['setRegistry', ['@sy::core::registry']]
+                    ]
+                },
+                'sy::core::appstate::router': {
+                    constructor: 'Sy.AppState.Router',
+                    calls: [
+                        ['setRouteProvider', ['@sy::core::appstate::routeprovider']]
+                    ]
+                },
+                'sy::core::appstate::urlmatcher': {
+                    constructor: 'Sy.AppState.UrlMatcher',
+                    calls: [
+                        ['setRouteProvider', ['@sy::core::appstate::routeprovider']]
+                    ]
+                },
+                'sy::core::appstate': {
+                    constructor: 'Sy.AppState.Core',
+                    calls: [
+                        ['setUrlMatcher', ['@sy::core::appstate::urlmatcher']],
+                        ['setRouteProvider', ['@sy::core::appstate::routeprovider']],
+                        ['setGenerator', ['@sy::core::generator::uuid']],
+                        ['setMediator', ['@sy::core::mediator']],
+                        ['setStateHandler', ['@sy::core::appstate::statehandler']]
+                    ]
+                },
+                'sy::core::appstate::statehandler': {
+                    constructor: 'Sy.AppState.StateHandler'
+                }
+            });
+
+            container.addPass(
+                new Sy.AppStateBundle.CompilerPass.RegisterRoutesPass()
+            );
+        }
+    }
+});
 namespace('Sy.Lib.Generator');
 
 /**
@@ -4060,6 +4515,53 @@ Sy.HTTP.HTMLResponse.prototype = Object.create(Sy.HTTP.Response.prototype);
 namespace('Sy.HTTP');
 
 /**
+ * Object for requesting images via ajax
+ *
+ * @package Sy
+ * @subpackage HTTP
+ * @extends {Sy.HTTP.Request}
+ * @class
+ */
+
+Sy.HTTP.ImageRequest = function () {
+    Sy.HTTP.Request.call(this);
+    this.setType('blob');
+    this.setHeader('Accept', 'image/*');
+};
+Sy.HTTP.ImageRequest.prototype = Object.create(Sy.HTTP.Request.prototype);
+
+namespace('Sy.HTTP');
+
+/**
+ * Image request response as blob
+ *
+ * @package Sy
+ * @subpackage HTTP
+ * @extends {Sy.HTTP.Response}
+ * @lass
+ */
+
+Sy.HTTP.ImageResponse = function () {
+    Sy.HTTP.Response.call(this);
+};
+Sy.HTTP.ImageResponse.prototype = Object.create(Sy.HTTP.Response.prototype, {
+
+    /**
+     * Return the image blob
+     *
+     * @return {Blob}
+     */
+
+    getBlob: {
+        value: function () {
+            return this.getBody();
+        }
+    }
+
+})
+namespace('Sy.HTTP');
+
+/**
  * Accept Request objects and handle launching them,
  * it's possible to cancel them as well
  *
@@ -4324,6 +4826,14 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
                     response = new Sy.HTTP.HTMLResponse();
 
+                } else if (
+                    headers['Content-Type'] !== undefined &&
+                    headers['Content-Type'].indexOf('image/') !== -1 &&
+                    request.obj.getType() === 'blob'
+                ) {
+
+                    response = new Sy.HTTP.ImageResponse();
+
                 } else {
 
                     response = new Sy.HTTP.Response();
@@ -4375,6 +4885,18 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
             return this;
 
+        }
+    },
+
+    /**
+     * Return an array of all pending xhrs
+     *
+     * @return {Array}
+     */
+
+    getStack: {
+        value: function () {
+            return this.requests.get();
         }
     }
 
@@ -12789,7 +13311,15 @@ Sy.Form.Form.prototype = Object.create(Sy.Form.FormInterface.prototype, {
                     this.config.get('validationGroups')
                 );
             } else if (this.form) {
-                return this.form.checkValidity();
+                for (var i = 0, l = this.elements.length; i < l; i++) {
+                    if (!this.form.hasOwnProperty(this.elements[i])) {
+                        return false;
+                    } else if (this.form[this.elements[i]].checkValidity() === false) {
+                        return false;
+                    }
+                }
+
+                return true;
             }
 
             return true;
@@ -13263,21 +13793,21 @@ Sy.Configurator.prototype = Object.create(Sy.ConfiguratorInterface.prototype, {
 
     has: {
         value: function (key) {
+            var elements = key.split('.'),
+                object = this.config,
+                prop;
 
-            try {
+            while (elements.length !== 0) {
+                prop = elements.shift();
 
-                objectGetter.call(this.config, key);
-
-                return true;
-
-            } catch (error) {
-
-                if (error instanceof ReferenceError) {
+                if (!object.hasOwnProperty(prop)) {
                     return false;
                 }
 
+                object = object[prop];
             }
 
+            return true;
         }
     },
 
@@ -13550,12 +14080,13 @@ Sy.View.TemplateEngineInterface.prototype = Object.create(Object.prototype, {
      *
      * @param {HTMLElement} node
      * @param {Object} data
+     * @param {String} exempt CSS selector to exempt nodes of being rendered
      *
      * @return {Sy.View.TemplateEngineInterface}
      */
 
     render: {
-        value: function (node, data) {}
+        value: function (node, data, exempt) {}
     }
 
 });
@@ -13971,6 +14502,18 @@ Sy.View.Layout.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
     getList: {
         value: function (name) {
             return this.lists.get(name);
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    render: {
+        value: function (data) {
+            this.engine.render(this.node, data, '[data-sy-list]');
+
+            return this;
         }
     }
 
@@ -14755,7 +15298,7 @@ Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface
      */
 
     render: {
-        value: function (node, data) {
+        value: function (node, data, exempt) {
 
             if (!node.dataset.syUuid) {
                 this.register(node);
@@ -14763,12 +15306,12 @@ Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface
 
             if (node.dataset.syUuid && this.registry.has(node.dataset.syUuid)) {
                 this.renderAllAttributes(node, data);
-                this.renderContent(node, data);
+                this.renderContent(node, data, exempt);
             }
 
             if (node.childElementCount > 0) {
                 for (var i = 0, l = node.childElementCount; i < l; i++) {
-                    this.render(node.children[i], data);
+                    this.render(node.children[i], data, exempt);
                 }
             }
 
@@ -14893,14 +15436,19 @@ Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface
      * @private
      * @param {HTMLElement} node
      * @param {Object} data
+     * @param {String} exempt CSS selector to exempt nodes of being rendered
      *
      * @return {void}
      */
 
     renderContent: {
-        value: function (node, data) {
+        value: function (node, data, exempt) {
 
             if (node.childElementCount > 0) {
+                return node;
+            }
+
+            if (exempt && DOM(node).matches(exempt)) {
                 return node;
             }
 
@@ -15236,6 +15784,18 @@ Sy.View.ViewScreen.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
     getLayout: {
         value: function (name) {
             return this.layouts.get(name);
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    render: {
+        value: function (data) {
+            this.engine.render(this.node, data, '[data-sy-list]');
+
+            return this;
         }
     }
 
@@ -16685,19 +17245,19 @@ Sy.ServiceContainer.CompilerPass.ResolveReferencePlaceholder.prototype = Object.
 
 });
 
-namespace('Sy.Kernel.CompilerPass');
+namespace('Sy.FrameworkBundle.CompilerPass');
 
 /**
  * Pass that subscribe to registered event subscribers
  *
  * @package Sy
- * @subpackage Kernel
+ * @subpackage FrameworkBundle
  * @class
  * @implements {Sy.ServiceContainer.CompilerPassInterface}
  */
 
-Sy.Kernel.CompilerPass.EventSubscriberPass = function () {};
-Sy.Kernel.CompilerPass.EventSubscriberPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
+Sy.FrameworkBundle.CompilerPass.EventSubscriberPass = function () {};
+Sy.FrameworkBundle.CompilerPass.EventSubscriberPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
 
     /**
      * @inheritDoc
@@ -16737,19 +17297,19 @@ Sy.Kernel.CompilerPass.EventSubscriberPass.prototype = Object.create(Sy.ServiceC
 
 });
 
-namespace('Sy.Kernel.CompilerPass');
+namespace('Sy.FormBundle.CompilerPass');
 
 /**
  * Pass that register registered form types
  *
  * @package Sy
- * @subpackage Kernel
+ * @subpackage FormBundle
  * @class
  * @implements {Sy.ServiceContainer.CompilerPassInterface}
  */
 
-Sy.Kernel.CompilerPass.FormTypePass = function () {};
-Sy.Kernel.CompilerPass.FormTypePass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
+Sy.FormBundle.CompilerPass.FormTypePass = function () {};
+Sy.FormBundle.CompilerPass.FormTypePass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
 
     /**
      * @inheritDoc
@@ -16772,19 +17332,19 @@ Sy.Kernel.CompilerPass.FormTypePass.prototype = Object.create(Sy.ServiceContaine
 
 });
 
-namespace('Sy.Kernel.CompilerPass');
+namespace('Sy.StorageBundle.CompilerPass');
 
 /**
  * Pass to look for driver factories and register them in the appropriate factory
  *
  * @package Sy
- * @subpackage Kernel
+ * @subpackage StorageBundle
  * @class
  * @implements {Sy.ServiceContainer.CompilerPassInterface}
  */
 
-Sy.Kernel.CompilerPass.RegisterDriverFactoryPass = function () {};
-Sy.Kernel.CompilerPass.RegisterDriverFactoryPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
+Sy.StorageBundle.CompilerPass.RegisterDriverFactoryPass = function () {};
+Sy.StorageBundle.CompilerPass.RegisterDriverFactoryPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
 
     /**
      * @inheritDoc
@@ -16816,34 +17376,20 @@ Sy.Kernel.CompilerPass.RegisterDriverFactoryPass.prototype = Object.create(Sy.Se
 
 });
 
-namespace('Sy.Kernel.CompilerPass');
+namespace('Sy.ViewBundle.CompilerPass');
 
 /**
  * Scan for services tagged as layout wrappers
  * and reference them to the appropriate factory
  *
  * @package Sy
- * @subpackage Kernel
+ * @subpackage ViewBundle
  * @class
  * @implements {Sy.ServiceContainer.CompilerPassInterface}
  */
 
-Sy.Kernel.CompilerPass.RegisterLayoutWrapperPass = function () {
-    this.logger = null;
-};
-Sy.Kernel.CompilerPass.RegisterLayoutWrapperPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
-
-    /**
-     * Set the logger
-     *
-     * @param {Sy.Lib.Logger.Interface} logger
-     */
-
-    setLogger: {
-        value: function (logger) {
-            this.logger = logger;
-        }
-    },
+Sy.ViewBundle.CompilerPass.RegisterLayoutWrapperPass = function () {};
+Sy.ViewBundle.CompilerPass.RegisterLayoutWrapperPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
 
     /**
      * @inheritDoc
@@ -16858,22 +17404,10 @@ Sy.Kernel.CompilerPass.RegisterLayoutWrapperPass.prototype = Object.create(Sy.Se
                 .forEach(function (el) {
                     for (var i = 0, l = el.tags.length; i < l; i++) {
                         if (!el.tags[i][1].alias) {
-                            if (this.logger) {
-                                this.logger.info(
-                                    'Missing alias statement for layout wrapper',
-                                    {service: el.id}
-                                );
-                            }
                             continue;
                         }
 
                         if (!el.tags[i][1].viewscreen) {
-                            if (this.logger) {
-                                this.logger.info(
-                                    'Missing viewscreen statement for layout wrapper',
-                                    {service: el.id}
-                                );
-                            }
                             continue;
                         }
 
@@ -16892,34 +17426,20 @@ Sy.Kernel.CompilerPass.RegisterLayoutWrapperPass.prototype = Object.create(Sy.Se
 
 });
 
-namespace('Sy.Kernel.CompilerPass');
+namespace('Sy.ViewBundle.CompilerPass');
 
 /**
  * Scan for services tagged as list wrappers
  * and reference them to the appropriate factory
  *
  * @package Sy
- * @subpackage Kernel
+ * @subpackage ViewBundle
  * @class
  * @implements {Sy.ServiceContainer.CompilerPassInterface}
  */
 
-Sy.Kernel.CompilerPass.RegisterListWrapperPass = function () {
-    this.logger = null;
-};
-Sy.Kernel.CompilerPass.RegisterListWrapperPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
-
-    /**
-     * Set the logger
-     *
-     * @param {Sy.Lib.Logger.Interface} logger
-     */
-
-    setLogger: {
-        value: function (logger) {
-            this.logger = logger;
-        }
-    },
+Sy.ViewBundle.CompilerPass.RegisterListWrapperPass = function () {};
+Sy.ViewBundle.CompilerPass.RegisterListWrapperPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
 
     /**
      * @inheritDoc
@@ -16934,32 +17454,14 @@ Sy.Kernel.CompilerPass.RegisterListWrapperPass.prototype = Object.create(Sy.Serv
                 .forEach(function (el) {
                     for (var i = 0, l = el.tags.length; i < l; i++) {
                         if (!el.tags[i][1].alias) {
-                            if (this.logger) {
-                                this.logger.info(
-                                    'Missing alias statement for list wrapper',
-                                    {service: el.id}
-                                );
-                            }
                             continue;
                         }
 
                         if (!el.tags[i][1].viewscreen) {
-                            if (this.logger) {
-                                this.logger.info(
-                                    'Missing viewscreen statement for list wrapper',
-                                    {service: el.id}
-                                );
-                            }
                             continue;
                         }
 
                         if (!el.tags[i][1].layout) {
-                            if (this.logger) {
-                                this.logger.info(
-                                    'Missing layout statement for list wrapper',
-                                    {service: el.id}
-                                );
-                            }
                             continue;
                         }
 
@@ -16979,34 +17481,20 @@ Sy.Kernel.CompilerPass.RegisterListWrapperPass.prototype = Object.create(Sy.Serv
 
 });
 
-namespace('Sy.Kernel.CompilerPass');
+namespace('Sy.ViewBundle.CompilerPass');
 
 /**
  * Scan for services tagged as viewscreen wrappers
  * and reference them to the appropriate factory
  *
  * @package Sy
- * @subpackage Kernel
+ * @subpackage ViewBundle
  * @class
  * @implements {Sy.ServiceContainer.CompilerPassInterface}
  */
 
-Sy.Kernel.CompilerPass.RegisterViewScreenWrapperPass = function () {
-    this.logger = null;
-};
-Sy.Kernel.CompilerPass.RegisterViewScreenWrapperPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
-
-    /**
-     * Set the logger
-     *
-     * @param {Sy.Lib.Logger.Interface} logger
-     */
-
-    setLogger: {
-        value: function (logger) {
-            this.logger = logger;
-        }
-    },
+Sy.ViewBundle.CompilerPass.RegisterViewScreenWrapperPass = function () {};
+Sy.ViewBundle.CompilerPass.RegisterViewScreenWrapperPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
 
     /**
      * @inheritDoc
@@ -17021,12 +17509,6 @@ Sy.Kernel.CompilerPass.RegisterViewScreenWrapperPass.prototype = Object.create(S
                 .forEach(function (el) {
                     for (var i = 0, l = el.tags.length; i < l; i++){
                         if (!el.tags[i][1].alias) {
-                            if (this.logger) {
-                                this.logger.info(
-                                    'Missing alias statement for viewscreen wrapper',
-                                    {service: el.id}
-                                );
-                            }
                             continue;
                         }
 
@@ -17044,6 +17526,80 @@ Sy.Kernel.CompilerPass.RegisterViewScreenWrapperPass.prototype = Object.create(S
 
 });
 
+namespace('Sy.ViewBundle.CompilerPass');
+
+/**
+ * Add the app state subscriber tag if the app state will initialize
+ *
+ * @package Sy
+ * @subpackage ViewBundle
+ * @class
+ * @implements {Sy.ServiceContainer.CompilerPassInterface}
+ */
+
+Sy.ViewBundle.CompilerPass.RegisterSubscriberPass = function () {};
+Sy.ViewBundle.CompilerPass.RegisterSubscriberPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
+
+    process: {
+        value: function (container) {
+            var def = container.getDefinition('sy::core::view::subscriber::appstate');
+
+            if (container.hasParameter('routes')) {
+                def.addTag('event.subscriber', {name: 'event.subscriber'});
+            }
+        }
+    }
+
+});
+
+namespace('Sy.AppStateBundle.CompilerPass');
+
+/**
+ * Service container pass to extract routes from config
+ *
+ * @package Sy
+ * @subpackage AppStateBundle
+ * @class
+ * @implements {Sy.ServiceContainer.CompilerPassInterface}
+ */
+
+Sy.AppStateBundle.CompilerPass.RegisterRoutesPass = function () {};
+Sy.AppStateBundle.CompilerPass.RegisterRoutesPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
+
+    process: {
+        value: function (container) {
+            var def = container.getDefinition('sy::core::appstate::routeprovider'),
+                routes = container.getParameter('routes');
+
+            if (!routes) {
+                return;
+            }
+
+            for (var name in routes) {
+                if (routes.hasOwnProperty(name)) {
+                    def.addCall(
+                        'setRoute',
+                        [
+                            name,
+                            routes[name].path,
+                            routes[name].parameters,
+                            routes[name].requirements
+                        ]
+                    );
+                }
+            }
+        }
+    }
+
+});
 namespace('Sy');
 
 /**
@@ -17218,303 +17774,1082 @@ Sy.Translator.prototype = Object.create(Object.prototype, {
     }
 
 });
-namespace('Sy');
+namespace('Sy.AppState');
 
-Sy.kernel = new Sy.Kernel.Core();
-Sy.kernel.getConfig().set({
-    env: 'prod',
-    controllers: {
-        cache: true
+/**
+ * Represent a URL
+ *
+ * @package Sy
+ * @subpackage AppState
+ * @class
+ */
+
+Sy.AppState.Route = function () {
+    this.name = null;
+    this.path = null;
+    this.parameters = {};
+    this.requirements = {};
+    this.regex = null;
+};
+Sy.AppState.Route.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set the route name
+     *
+     * @param {String} name
+     *
+     * @return {Sy.AppState.Route} self
+     */
+
+    setName: {
+        value: function (name) {
+            this.name = name;
+
+            return this;
+        }
     },
-    logger: {
-        level: {
-            info: Sy.Lib.Logger.CoreLogger.prototype.INFO,
-            debug: Sy.Lib.Logger.CoreLogger.prototype.DEBUG,
-            error: Sy.Lib.Logger.CoreLogger.prototype.ERROR,
-            log: Sy.Lib.Logger.CoreLogger.prototype.LOG,
+
+    /**
+     * Return the route name
+     *
+     * @return {String}
+     */
+
+    getName: {
+        value: function () {
+            return this.name;
+        }
+    },
+
+    /**
+     * Set the path
+     *
+     * @param {String} path
+     *
+     * @return {Sy.AppState.Route} self
+     */
+
+    setPath: {
+        value: function (path) {
+            this.path = path;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the path
+     *
+     * @return {String}
+     */
+
+    getPath: {
+        value: function () {
+            return this.path;
+        }
+    },
+
+    /**
+     * Set the parameters
+     *
+     * @param {Object} params
+     *
+     * @return {Sy.AppState.Route} self
+     */
+
+    setParameters: {
+        value: function (params) {
+            if (!Object.isFrozen(this.parameters)) {
+                this.parameters = params;
+            }
+
+            Object.freeze(this.parameters);
+
+            return this;
+        }
+    },
+
+    /**
+     * Get the parameters
+     *
+     * @return {Object}
+     */
+
+    getParameters: {
+        value: function () {
+            return this.parameters;
+        }
+    },
+
+    /**
+     * Check if the route has a parameter
+     *
+     * @param {String} name
+     *
+     * @return {Boolean}
+     */
+
+    hasParameter: {
+        value: function (name) {
+            return this.parameters.hasOwnProperty(name);
+        }
+    },
+
+    /**
+     * Return a parameter value
+     *
+     * @param {String} name
+     *
+     * @return {mixed}
+     */
+
+    getParameter: {
+        value: function (name) {
+            return this.parameters[name];
+        }
+    },
+
+    /**
+     * Set the requirements
+     *
+     * @param {Object} req
+     *
+     * @return {Sy.AppState.Route} self
+     */
+
+    setRequirements: {
+        value: function (req) {
+            if (!Object.isFrozen(this.requirements)) {
+                this.requirements = req;
+            }
+
+            Object.freeze(this.requirements);
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the requirements
+     *
+     * @return {Object}
+     */
+
+    getRequirements: {
+        value: function () {
+            return this.requirements;
+        }
+    },
+
+    /**
+     * Return a requirement
+     *
+     * @param {String} name
+     *
+     * @return {mixed}
+     */
+
+    getRequirement: {
+        value: function (name) {
+            return this.requirements[name];
+        }
+    },
+
+    /**
+     * Check if the route has a requirement
+     *
+     * @param {String} name
+     *
+     * @return {Boolean}
+     */
+
+    hasRequirement: {
+        value: function (name) {
+            return this.requirements.hasOwnProperty(name);
+        }
+    },
+
+    /**
+     * Create a regex from the path and requirements
+     *
+     * @return {Sy.AppState.Route} self
+     */
+
+    buildRegex: {
+        value: function () {
+            var placeholders = this.path.match(new RegExp(/{\w+}/g));
+
+            this.regex = '^' + this.path + '$';
+
+            if (placeholders instanceof Array) {
+                placeholders.forEach(function (placeholder) {
+                    var name = placeholder.substring(1, placeholder.length - 1);
+
+                    if (this.hasRequirement(name)) {
+                        this.regex = this.regex.replace(
+                            placeholder,
+                            '(' + this.getRequirement(name) + ')'
+                        );
+                    } else {
+                        this.regex = this.regex.replace(
+                            placeholder,
+                            '(.+)'
+                        );
+                    }
+                }.bind(this));
+            }
+
+            return this;
+        }
+    },
+
+    /**
+     * Check if a string matches the url
+     *
+     * @param {String} url
+     *
+     * @return {Boolean}
+     */
+
+    matches: {
+        value: function (url) {
+            return (new RegExp(this.regex)).test(url);
+        }
+    },
+
+    /**
+     * Return the variables from the url
+     *
+     * @param {String} url
+     *
+     * @return {Object}
+     */
+
+    getVariables: {
+        value: function (url) {
+            var placeholders = this.path.match(new RegExp(/{\w+}/g)),
+                values = url.match(new RegExp(this.regex)),
+                data = {};
+
+            if (!placeholders) {
+                return data;
+            }
+
+            placeholders = placeholders.map(function (p) {
+                return p.substring(1, p.length - 1);
+            });
+
+            values = values.filter(function (val) {
+                return val !== url;
+            });
+
+            for (var i = 0, l = placeholders.length; i < l; i++) {
+                data[placeholders[i]] = values[i];
+            }
+
+            return data;
         }
     }
-});
 
-Sy.kernel.getContainer()
-    .setParameters(Sy.kernel.getConfig())
-    .set({
-        'sy::core::generator::uuid': {
-            constructor: 'Sy.Lib.Generator.UUID'
-        },
-        'mediator': '@sy::core::mediator',
-        'sy::core::mediator': {
-            constructor: 'Sy.Lib.Mediator',
-            calls: [
-                ['setGenerator', ['@sy::core::generator::uuid']],
-                ['setLogger', ['@sy::core::logger']]
-            ]
-        },
-        'rest': '@sy::core::http::rest',
-        'sy::core::http::rest': {
-            constructor: 'Sy.HTTP.REST',
-            calls: [
-                ['setManager', ['@sy::core::http']]
-            ]
-        },
-        'sy::core::registry::factory': {
-            constructor: 'Sy.RegistryFactory'
-        },
-        'registry': '@sy::core::registry',
-        'sy::core::registry': {
-            constructor: 'Sy.Registry',
-            factory: ['sy::core::registry::factory', 'make'],
-            prototype: true
-        },
-        'sy::core::stateregistry::factory': {
-            constructor: 'Sy.StateRegistryFactory',
-            calls: [
-                ['setRegistryFactory', ['@sy::core::registry::factory']]
-            ]
-        },
-        'stateregistry': '@sy::core::stateregistry',
-        'sy::core::stateregistry': {
-            constructor: 'Sy.StateRegistry',
-            fatory: ['sy::core::stateregistry::factory', 'make'],
-            prototype: true
-        },
-        'sy::core::view::parser': {
-            constructor: 'Sy.View.Parser'
-        },
-        'sy::core::view::factory::list': {
-            constructor: 'Sy.View.ListFactory',
-            calls: [
-                ['setTemplateEngine', ['@sy::core::view::template::engine']],
-                ['setRegistry', ['@sy::core::registry']]
-            ]
-        },
-        'sy::core::view::factory::layout': {
-            constructor: 'Sy.View.LayoutFactory',
-            calls: [
-                ['setParser', ['@sy::core::view::parser']],
-                ['setTemplateEngine', ['@sy::core::view::template::engine']],
-                ['setRegistryFactory', ['@sy::core::registry::factory']],
-                ['setListFactory', ['@sy::core::view::factory::list']]
-            ]
-        },
-        'sy::core::view::factory::viewscreen': {
-            constructor: 'Sy.View.ViewScreenFactory',
-            calls: [
-                ['setParser', ['@sy::core::view::parser']],
-                ['setTemplateEngine', ['@sy::core::view::template::engine']],
-                ['setRegistryFactory', ['@sy::core::registry::factory']],
-                ['setLayoutFactory', ['@sy::core::view::factory::layout']],
-            ]
-        },
-        'sy::core::form': {
-            constructor: 'Sy.Form.Builder',
-            calls: [
-                ['setValidator', ['@sy::core::validator']]
-            ]
-        },
-        'logger': '@sy::core::logger',
-        'sy::core::logger': {
-            constructor: 'Sy.Lib.Logger.CoreLogger',
-            calls: [
-                ['setName', ['core']],
-                ['setHandler', ['@sy::core::logger::handler::info', '%logger.level.info%']],
-                ['setHandler', ['@sy::core::logger::handler::debug', '%logger.level.debug%']],
-                ['setHandler', ['@sy::core::logger::handler::error', '%logger.level.error%']],
-                ['setHandler', ['@sy::core::logger::handler::log', '%logger.level.log%']],
-            ]
-        },
-        'sy::core::logger::handler::info': {
-            constructor: 'Sy.Lib.Logger.Handler.Console',
-            calls: [
-                ['setLevel', ['%logger.level.info%']]
-            ],
-            private: true
-        },
-        'sy::core::logger::handler::debug': {
-            constructor: 'Sy.Lib.Logger.Handler.Console',
-            calls: [
-                ['setLevel', ['%logger.level.debug%']]
-            ],
-            private: true
-        },
-        'sy::core::logger::handler::error': {
-            constructor: 'Sy.Lib.Logger.Handler.Console',
-            calls: [
-                ['setLevel', ['%logger.level.error%']]
-            ],
-            private: true
-        },
-        'sy::core::logger::handler::log': {
-            constructor: 'Sy.Lib.Logger.Handler.Console',
-            calls: [
-                ['setLevel', ['%logger.level.log%']]
-            ],
-            private: true
-        },
-        'http': '@sy::core::http',
-        'sy::core::http': {
-            constructor: 'Sy.HTTP.Manager',
-            calls: [
-                ['setParser', ['@sy::core::http::parser']],
-                ['setGenerator', ['@sy::core::generator::uuid']],
-                ['setRegistry', ['@sy::core::registry']],
-                ['setLogger', ['@sy::core::logger']]
-            ]
-        },
-        'sy::core::http::parser': {
-            constructor: 'Sy.HTTP.HeaderParser',
-            private: true
-        },
-        'translator': '@sy::core::translator',
-        'sy::core::translator': {
-            constructor: 'Sy.Translator',
-            calls: [
-                ['setRegistry', ['@sy::core::registry']],
-                ['setStateRegistryFactory', ['@sy::core::stateregistry::factory']]
-            ]
-        },
-        'sy::core::view::template::engine': {
-            constructor: 'Sy.View.TemplateEngine',
-            calls: [
-                ['setRegistry', ['@sy::core::registry']],
-                ['setGenerator', ['@sy::core::generator::uuid']]
-            ]
-        },
-        'sy::core::viewport': {
-            constructor: 'Sy.View.ViewPort',
-            calls: [
-                ['setNode', [document.querySelector('.viewport')]],
-                ['setViewManager', ['@sy::core::view::manager']],
-                ['setMediator', ['@sy::core::mediator']]
-            ]
-        },
-        'sy::core::view::manager': {
-            constructor: 'Sy.View.Manager',
-            configurator: ['sy::core::view::managerconfigurator', 'configure'],
-            calls: [
-                ['setViewsRegistry', ['@sy::core::registry']],
-                ['setViewScreenFactory', ['@sy::core::view::factory::viewscreen']]
-            ],
-        },
-        'sy::core::view::managerconfigurator': {
-            constructor: 'Sy.View.ManagerConfigurator',
-            calls: [
-                ['setParser', ['@sy::core::view::parser']]
-            ]
-        },
-        'validator': '@sy::core::validator',
-        'sy::core::validator': {
-            constructor: 'Sy.Validator.Core',
-            calls: [
-                ['setRulesRegistry', ['@sy::core::registry']],
-                ['setContextFactory', ['@sy::core::validator::executioncontextfactory']],
-                ['setConstraintFactory', ['@sy::core::validator::constraintfactory']]
-            ]
-        },
-        'sy::core::validator::executioncontextfactory': {
-            constructor: 'Sy.Validator.ExecutionContextFactory',
-            calls: [
-                ['setConstraintValidatorFactory', ['@sy::core::validator::constraintvalidatorfactory']]
-            ],
-            private: true
-        },
-        'sy::core::validator::constraintvalidatorfactory': {
-            constructor: 'Sy.Validator.ConstraintValidatorFactory',
-            private: true
-        },
-        'sy::core::validator::constraintfactory': {
-            constructor: 'Sy.Validator.ConstraintFactory',
-            private: true
-        },
-        'sy::core::storage::dbal::factory': {
-            constructor: 'Sy.Storage.Dbal.Factory',
-            calls: [
-                ['setFactoriesRegistry', ['@sy::core::registry']],
-                ['setDefaultConnectionName', ['%storage.dbal.defaultConnection%']],
-                ['setConnections', ['%storage.dbal.connections%']]
-            ]
-        },
-        'sy::core::storage::dbal::driver_factory::indexeddb': {
-            constructor: 'Sy.Storage.Dbal.IndexedDBFactory',
-            private: true,
-            calls: [
-                ['setEntitiesMeta', ['%app.meta.entities%']],
-                ['setLogger', ['@sy::core::logger']]
-            ],
-            tags: [
-                {name: 'storage.driver_factory', alias: 'indexeddb'}
-            ]
-        },
-        'sy::core::storage::dbal::driver_factory::localstorage': {
-            constructor: 'Sy.Storage.Dbal.LocalstorageFactory',
-            private: true,
-            calls: [
-                ['setEntitiesMeta', ['%app.meta.entities%']]
-            ],
-            tags: [
-                {name: 'storage.driver_factory', alias: 'localstorage'}
-            ]
-        },
-        'sy::core::storage::dbal::driver_factory::rest': {
-            constructor: 'Sy.Storage.Dbal.RestFactory',
-            private: true,
-            calls: [
-                ['setEntitiesMeta', ['%app.meta.entities%']],
-                ['setREST', ['@sy::core::http::rest']]
-            ],
-            tags: [
-                {name: 'storage.driver_factory', alias: 'rest'}
-            ]
-        },
-        'storage': '@sy::core::storage',
-        'sy::core::storage': {
-            constructor: 'Sy.Storage.Core',
-            calls: [
-                ['setManagersRegistry', ['@sy::core::registry']],
-                ['setDefaultManager', ['%storage.orm.defaultManager%']],
-                ['setManagerFactory', ['@sy::core::storage::factory::manager']]
-            ]
-        },
-        'sy::core::storage::factory::manager': {
-            constructor: 'Sy.Storage.ManagerFactory',
-            private: true,
-            calls: [
-                ['setDefinitions', ['%storage.orm.managers%']],
-                ['setDbalFactory', ['@sy::core::storage::dbal::factory']],
-                ['setRepositoryFactory', ['@sy::core::storage::factory::repository']],
-                ['setUnitOfWorkFactory', ['@sy::core::storage::factory::unitofwork']]
-            ]
-        },
-        'sy::core::storage::factory::repository': {
-            constructor: 'Sy.Storage.RepositoryFactory',
-            private: true,
-            configurator: ['sy::core::storage::repofactconfigurator', 'configure'],
-            calls: [
-                ['setMetadataRegistry', ['@sy::core::registry']],
-                ['setRepositoriesRegistry', ['@sy::core::registry']]
-            ]
-        },
-        'sy::core::storage::repofactconfigurator': {
-            constructor: 'Sy.Storage.RepositoryFactoryConfigurator',
-            private: true,
-            calls: [
-                ['setMetadata', ['%app.meta.entities%']]
-            ]
-        },
-        'sy::core::storage::factory::unitofwork': {
-            constructor: 'Sy.Storage.UnitOfWorkFactory',
-            private: true,
-            calls: [
-                ['setStateRegistryFactory', ['@sy::core::stateregistry::factory']],
-                ['setGenerator', ['@sy::core::generator::uuid']],
-                ['setLogger', ['@sy::core::logger']],
-                ['setMediator', ['@sy::core::mediator']],
-                ['setPropertyAccessor', ['@sy::core::propertyaccessor']],
-                ['setEntitiesMetadata', ['%app.meta.entities%']]
-            ]
-        },
-        'sy::core::propertyaccessor': {
-            constructor: 'Sy.PropertyAccessor',
-            prototype: true
+});
+namespace('Sy.AppState');
+
+/**
+ * Help build urls via a route definition
+ *
+ * @package Sy
+ * @subpackage AppState
+ * @class
+ */
+
+Sy.AppState.Router = function () {
+    this.provider = null;
+};
+Sy.AppState.Router.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set the route provider
+     *
+     * @param {Sy.AppState.RouteProvider} provider
+     *
+     * @return {Sy.AppState.Router} self
+     */
+
+    setRouteProvider: {
+        value: function (provider) {
+            if (!(provider instanceof Sy.AppState.RouteProvider)) {
+                throw new TypeError('Invalid route provider');
+            }
+
+            this.provider = provider;
+
+            return this;
         }
-    });
+    },
+
+    /**
+     * Generate a url
+     *
+     * @param {String} name Route name
+     * @param {Object} variables
+     *
+     * @return {String}
+     */
+
+    generate: {
+        value: function (name, variables) {
+            if (!this.provider.hasRoute(name)) {
+                throw new ReferenceError('Unknown route "' + name + '"');
+            }
+
+            var route = this.provider.getRoute(name),
+                params = route.getParameters(),
+                url = route.getPath();
+
+            variables = variables || {};
+
+            for (var name in params) {
+                if (
+                    params.hasOwnProperty(name) &&
+                    !variables.hasOwnProperty(name)
+                ) {
+                    variables[name] = params[name];
+                }
+            }
+
+            for (var name in variables) {
+                if (variables.hasOwnProperty(name)) {
+                    if (
+                        route.hasRequirement(name) &&
+                        !(new RegExp('^' + route.getRequirement(name) + '$')).test(variables[name])
+                    ) {
+                        throw new SyntaxError(
+                            'Variable "' + name + '" doesn\'t fulfill its requirement ' +
+                            'for the route "' + route.getName() + '"'
+                        );
+                    }
+                    url = url.replace('{' + name + '}', variables[name]);
+                }
+            }
+
+            return url;
+        }
+    }
+
+});
+namespace('Sy.AppState');
+
+/**
+ * Holds all the routes definitions
+ *
+ * @package Sy
+ * @subpackage AppState
+ * @class
+ */
+
+Sy.AppState.RouteProvider = function () {
+    this.routes = null;
+};
+Sy.AppState.RouteProvider.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set a registry to hold routes
+     *
+     * @param {Sy.RegistryInterface} registry
+     *
+     * @return {Sy.AppState.RouteProvider} self
+     */
+
+    setRegistry: {
+        value: function (registry) {
+            if (!(registry instanceof Sy.RegistryInterface)) {
+                throw new TypeError('Invalid registry');
+            }
+
+            this.routes = registry;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a route
+     *
+     * @param {String} name
+     * @param {String} path
+     * @param {Object} params Optional
+     * @param {Object} requirements Optional
+     *
+     * @return {Sy.AppState.RouteProvider} self
+     */
+
+    setRoute: {
+        value: function (name, path, params, requirements) {
+            var route = new Sy.AppState.Route();
+
+            route
+                .setName(name)
+                .setPath(path);
+
+            if (typeof params === 'object') {
+                route.setParameters(params);
+            }
+
+            if (typeof requirements === 'object') {
+                route.setRequirements(requirements);
+            }
+
+            route.buildRegex();
+
+            this.routes.set(name, route);
+
+            return this;
+        }
+    },
+
+    /**
+     * Return a route via its name
+     *
+     * @param {String} name
+     *
+     * @return {Sy.AppState.Route}
+     */
+
+    getRoute: {
+        value: function (name) {
+            return this.routes.get(name);
+        }
+    },
+
+    /**
+     * Return all routes
+     *
+     * @return {Array}
+     */
+
+    getRoutes: {
+        value: function () {
+            return this.routes.get();
+        }
+    },
+
+    /**
+     * Check if a route name exist
+     *
+     * @param {String} name
+     *
+     * @return {Boolean}
+     */
+
+    hasRoute: {
+        value: function (name) {
+            return this.routes.has(name);
+        }
+    }
+
+});
+namespace('Sy.AppState');
+
+/**
+ * Entry point to handle the states mechanism
+ *
+ * @package Sy
+ * @subpackage AppState
+ * @class
+ */
+
+Sy.AppState.Core = function () {
+    this.matcher = null;
+    this.provider = null;
+    this.generator = null;
+    this.mediator = null;
+    this.handler = null;
+    this.currentState = null;
+};
+Sy.AppState.Core.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set the url matcher
+     *
+     * @param {Sy.AppState.UrlMatcher} matcher
+     *
+     * @return {Sy.AppState.Core} self
+     */
+
+    setUrlMatcher: {
+        value: function (matcher) {
+            if (!(matcher instanceof Sy.AppState.UrlMatcher)) {
+                throw new TypeError('Invalid url matcher');
+            }
+
+            this.matcher = matcher;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the route provider
+     *
+     * @param {Sy.AppState.RouteProvider} provider
+     *
+     * @return {Sy.AppState.Core} self
+     */
+
+    setRouteProvider: {
+        value: function (provider) {
+            if (!(provider instanceof Sy.AppState.RouteProvider)) {
+                throw new TypeError('Invalid route provider');
+            }
+
+            this.provider = provider;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a uuid generator
+     *
+     * @param {Sy.Lib.Generator.Interface} generator
+     *
+     * @return {Sy.AppState.Core} self
+     */
+
+    setGenerator: {
+        value: function (generator) {
+            if (!(generator instanceof Sy.Lib.Generator.Interface)) {
+                throw new TypeError('Invalid generator');
+            }
+
+            this.generator = generator;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set te mediator
+     *
+     * @param {Sy.Lib.Mediator} mediator
+     *
+     * @return {Sy.AppState.Core} self
+     */
+
+    setMediator: {
+        value: function (mediator) {
+            if (!(mediator instanceof Sy.Lib.Mediator)) {
+                throw new TypeError('Invalid mediator');
+            }
+
+            this.mediator = mediator;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the state handler
+     *
+     * @param {Sy.AppState.StateHandler} handler
+     *
+     * @return {Sy.AppState.Core} self
+     */
+
+    setStateHandler: {
+        value: function (handler) {
+            if (!(handler instanceof Sy.AppState.StateHandler)) {
+                throw new TypeError('Invalid state handler');
+            }
+
+            this.handler = handler;
+
+            return this;
+        }
+    },
+
+    /**
+     * Init the url listener
+     *
+     * @return {Sy.AppState.Core} self
+     */
+
+    boot: {
+        value: function () {
+            if (history.state) {
+                this.currentState = this.handler
+                    .getState(history.state.uuid);
+            } else {
+                this.createState();
+            }
+
+            window.addEventListener('popstate', this.listenPop.bind(this), false);
+
+            return this;
+        }
+    },
+
+    /**
+     * Listen the pop state event
+     *
+     * @private
+     * @param {PopStateEvent} event
+     */
+
+    listenPop: {
+        value: function (event) {
+            if (!event.state) {
+                this.createState();
+            } else {
+                this.currentState = this.handler
+                    .getState(event.state.uuid);
+            }
+
+            var event = new Sy.AppState.AppStateEvent();
+
+            event
+                .setState(this.currentState)
+                .setRoute(
+                    this.provider
+                        .getRoute(this.currentState.getRoute())
+                );
+
+            this.mediator.publish(event.KEY, event);
+        }
+    },
+
+    /**
+     * Create a new state and set it as the current one
+     *
+     * @private
+     */
+
+    createState: {
+        value: function () {
+            var url = this.getUrl(),
+                route = this.matcher.match(url);
+
+            this.currentState = this.handler.createState(
+                this.generator.generate(),
+                route.getName(),
+                route.getVariables(url)
+            );
+
+            this.updateBrowserState();
+        }
+    },
+
+    /**
+     * Update the browser state object
+     *
+     * @private
+     */
+
+    updateBrowserState: {
+        value: function () {
+            history.replaceState(
+                this.currentState.toJSON(),
+                document.title
+            );
+        }
+    },
+
+    /**
+     * Return the current url
+     *
+     * @return {String}
+     */
+
+    getUrl: {
+        value: function () {
+            return location.hash.substr(1) || '/';
+        }
+    },
+
+    /**
+     * Return the current state
+     *
+     * @return {Sy.AppState.State}
+     */
+
+    getCurrentState: {
+        value: function () {
+            return this.currentState;
+        }
+    }
+
+});
+namespace('Sy.AppState');
+
+/**
+ * Return the appropriate route corresponding to a url
+ *
+ * @package Sy
+ * @subpackage AppState
+ * @class
+ */
+
+Sy.AppState.UrlMatcher = function () {
+    this.provider = null;
+};
+Sy.AppState.UrlMatcher.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set the route provider
+     *
+     * @param {Sy.AppState.RouteProvider} provider
+     *
+     * @return {Sy.AppState.UrlMatcher} self
+     */
+
+    setRouteProvider: {
+        value: function (provider) {
+            if (!(provider instanceof Sy.AppState.RouteProvider)) {
+                throw new TypeError('Invalid route provider');
+            }
+
+            this.provider = provider;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return a route for the given url
+     *
+     * @param {String} url
+     *
+     * @return {Sy.AppState.Route}
+     */
+
+    match: {
+        value: function (url) {
+            var routes = this.provider.getRoutes(),
+                route;
+
+            for (var i = 0, l = routes.length; i < l; i++) {
+                if (routes[i].matches(url)) {
+                    route = routes[i];
+                    break;
+                }
+            }
+
+            if (!route) {
+                throw new ReferenceError('No route found for the url "' + url + '"');
+            }
+
+            return route;
+        }
+    }
+
+});
+namespace('Sy.AppState');
+
+/**
+ * Represent a state of the app
+ *
+ * @package Sy
+ * @subpackage AppState
+ * @class
+ */
+
+Sy.AppState.State = function () {
+    this.uuid = null;
+    this.route = null;
+    this.variables = {};
+};
+Sy.AppState.State.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set the state identifier
+     *
+     * @param {String} uuid
+     *
+     * @return {Sy.AppState.State} self
+     */
+
+    setUUID: {
+        value: function (uuid) {
+            this.uuid = uuid;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the state identifier
+     *
+     * @return {String}
+     */
+
+    getUUID: {
+        value: function () {
+            return this.uuid;
+        }
+    },
+
+    /**
+     * Set the route name of the state
+     *
+     * @param {String} name
+     *
+     * @return {Sy.AppState.State} self
+     */
+
+    setRoute: {
+        value: function (name) {
+            this.route = name;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the route name
+     *
+     * @return {String}
+     */
+
+    getRoute: {
+        value: function () {
+            return this.route;
+        }
+    },
+
+    /**
+     * Set the variables contained in the url
+     *
+     * @param {Object} variables
+     *
+     * @return {Sy.AppState.State} self
+     */
+
+    setVariables: {
+        value: function (variables) {
+            this.variables = variables;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the variables
+     *
+     * @return {Object}
+     */
+
+    getVariables: {
+        value: function () {
+            return this.variables;
+        }
+    },
+
+    /**
+     * Return a raw representation of the state
+     *
+     * @return {Object}
+     */
+
+    toJSON: {
+        value: function () {
+            return {
+                uuid: this.uuid,
+                route: this.route,
+                variables: this.variables
+            };
+        }
+    }
+
+});
+namespace('Sy.AppState');
+
+/**
+ * Holds all the app states and handles saving/retrieval
+ *
+ * @package Sy
+ * @subpackage AppState
+ * @class
+ */
+
+Sy.AppState.StateHandler = function () {
+    this.storage = localStorage;
+    this.key = 'sy::history';
+    this.states = [];
+
+    this.loadStates();
+
+    window.addEventListener(
+        'beforeunload',
+        this.saveHistory.bind(this),
+        false
+    );
+};
+Sy.AppState.StateHandler.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Load all the states from the storage
+     */
+
+    loadStates: {
+        value: function () {
+            var states = this.storage.getItem(this.key);
+
+            if (states) {
+                states = JSON.parse(states);
+
+                states.forEach(function (raw) {
+                    this.states.push(
+                        this.createState(
+                            raw.uuid,
+                            raw.route,
+                            raw.variables
+                        )
+                    );
+                }.bind(this));
+            }
+        }
+    },
+
+    /**
+     * Create a new state
+     *
+     * @param {String} uuid
+     * @param {String} route Route name
+     * @param {Object} variables
+     *
+     * @return {Sy.AppState.State}
+     */
+
+    createState: {
+        value: function (uuid, route, variables) {
+            var state = new Sy.AppState.State();
+
+            this.states.push(state);
+
+            return state
+                .setUUID(uuid)
+                .setRoute(route)
+                .setVariables(variables);
+        }
+    },
+
+    /**
+     * Retrieve the state for the given uuid
+     *
+     * @param {String} uuid
+     *
+     * @return {Sy.AppState.State}
+     */
+
+    getState: {
+        value: function (uuid) {
+            for (var i = 0, l = this.states.length; i < l; i++) {
+                if (this.states[i].getUUID() === uuid) {
+                    return this.states[i];
+                }
+            }
+        }
+    },
+
+    /**
+     * Save the history when page unload
+     *
+     * @private
+     */
+
+    saveHistory: {
+        value: function () {
+            this.storage.setItem(
+                this.key,
+                JSON.stringify(this.states)
+            );
+        }
+    }
+
+});
+namespace('Sy.AppState');
+
+/**
+ * Event fired when the app state changes
+ *
+ * @package Sy
+ * @subpackage AppState
+ * @class
+ */
+
+Sy.AppState.AppStateEvent = function () {
+    this.state = null;
+    this.route = null;
+};
+Sy.AppState.AppStateEvent.prototype = Object.create(Object.prototype, {
+
+    KEY: {
+        value: 'appstate.change',
+        writable: false
+    },
+
+    /**
+     * Set the current app state
+     *
+     * @param {Sy.AppState.State} state
+     *
+     * @return {Sy.AppState.AppStateEvent} self
+     */
+
+    setState: {
+        value: function (state) {
+            if (!(state instanceof Sy.AppState.State)) {
+                throw new TypeError('Invalid state object');
+            }
+
+            this.state = state;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the current state
+     *
+     * @return {Sy.AppState.State}
+     */
+
+    getState: {
+        value: function () {
+            return this.state;
+        }
+    },
+
+    /**
+     * Set the route associated to the state
+     *
+     * @param {Sy.AppState.Route} route
+     *
+     * @return {Sy.AppState.AppStateEvent} self
+     */
+
+    setRoute: {
+        value: function (route) {
+            if (!(route instanceof Sy.AppState.Route)) {
+                throw new TypeError('Invalid route');
+            }
+
+            this.route = route;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the route
+     *
+     * @return {Sy.AppState.Route}
+     */
+
+    getRoute: {
+        value: function () {
+            return this.route;
+        }
+    }
+
+});

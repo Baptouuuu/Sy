@@ -82,7 +82,15 @@ Sy.Form.Form.prototype = Object.create(Sy.Form.FormInterface.prototype, {
                     this.config.get('validationGroups')
                 );
             } else if (this.form) {
-                return this.form.checkValidity();
+                for (var i = 0, l = this.elements.length; i < l; i++) {
+                    if (!this.form.hasOwnProperty(this.elements[i])) {
+                        return false;
+                    } else if (this.form[this.elements[i]].checkValidity() === false) {
+                        return false;
+                    }
+                }
+
+                return true;
             }
 
             return true;

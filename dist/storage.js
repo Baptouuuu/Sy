@@ -1,4 +1,4 @@
-/*! sy#0.7.0 - 2014-09-26 */
+/*! sy#0.9.0 - 2014-10-01 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -1759,6 +1759,53 @@ Sy.HTTP.HTMLResponse.prototype = Object.create(Sy.HTTP.Response.prototype);
 namespace('Sy.HTTP');
 
 /**
+ * Object for requesting images via ajax
+ *
+ * @package Sy
+ * @subpackage HTTP
+ * @extends {Sy.HTTP.Request}
+ * @class
+ */
+
+Sy.HTTP.ImageRequest = function () {
+    Sy.HTTP.Request.call(this);
+    this.setType('blob');
+    this.setHeader('Accept', 'image/*');
+};
+Sy.HTTP.ImageRequest.prototype = Object.create(Sy.HTTP.Request.prototype);
+
+namespace('Sy.HTTP');
+
+/**
+ * Image request response as blob
+ *
+ * @package Sy
+ * @subpackage HTTP
+ * @extends {Sy.HTTP.Response}
+ * @lass
+ */
+
+Sy.HTTP.ImageResponse = function () {
+    Sy.HTTP.Response.call(this);
+};
+Sy.HTTP.ImageResponse.prototype = Object.create(Sy.HTTP.Response.prototype, {
+
+    /**
+     * Return the image blob
+     *
+     * @return {Blob}
+     */
+
+    getBlob: {
+        value: function () {
+            return this.getBody();
+        }
+    }
+
+})
+namespace('Sy.HTTP');
+
+/**
  * Accept Request objects and handle launching them,
  * it's possible to cancel them as well
  *
@@ -2023,6 +2070,14 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
                     response = new Sy.HTTP.HTMLResponse();
 
+                } else if (
+                    headers['Content-Type'] !== undefined &&
+                    headers['Content-Type'].indexOf('image/') !== -1 &&
+                    request.obj.getType() === 'blob'
+                ) {
+
+                    response = new Sy.HTTP.ImageResponse();
+
                 } else {
 
                     response = new Sy.HTTP.Response();
@@ -2074,6 +2129,18 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
             return this;
 
+        }
+    },
+
+    /**
+     * Return an array of all pending xhrs
+     *
+     * @return {Array}
+     */
+
+    getStack: {
+        value: function () {
+            return this.requests.get();
         }
     }
 

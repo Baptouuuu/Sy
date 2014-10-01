@@ -155,6 +155,9 @@ describe('form', function () {
     });
 
     it('should validate with native form validation', function () {
+        form
+            .add('foo')
+            .add('bar');
         form.setObject({});
         form.handle(element);
 

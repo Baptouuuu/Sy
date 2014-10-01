@@ -255,7 +255,6 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
 
             instance = new (this.meta.get(alias))();
             instance
-                .setBundle(bundleName)
                 .setMediator(this.mediator)
                 .setServiceContainer(this.container)
                 .setViewScreen(viewscreen)

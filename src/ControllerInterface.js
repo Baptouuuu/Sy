@@ -42,19 +42,6 @@ Sy.ControllerInterface.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Create a new Entity object
-     *
-     * @param {string} entity Entity path like "BundleName::EntityName", you can pass only "EntityName" if it's in the current bundle
-     * @param {object} attributes Attributes object to create your entity
-     *
-     * @return {Sy.EntityInterface}
-     */
-
-    new: {
-        value: function (entity, attributes) {}
-    },
-
-    /**
      * Method called when the controller is not used by the framework,
      * like when the controller is not used for the current screen
      *
@@ -107,18 +94,6 @@ Sy.ControllerInterface.prototype = Object.create(Object.prototype, {
 
     setServiceContainer: {
         value: function (container) {}
-    },
-
-    /**
-     * Set the bundle of the controller
-     *
-     * @param {String} name
-     *
-     * @return {Sy.ControllerInterface}
-     */
-
-    setBundle: {
-        value: function (name) {}
     },
 
     /**

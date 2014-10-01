@@ -42,7 +42,7 @@ App.Bundle.Todo.Controller.Main.prototype = Object.create(Sy.Controller.prototyp
         value: function (event) {
 
             if (event.keyCode === 13 && event.target.value.trim() !== '') {
-                var t = this.new('Todo::Task', {});
+                var t = new App.Bundle.Todo.Entity.Task();
                 t.set({
                     name: event.target.value,
                     status: t.ACTIVE

@@ -13,7 +13,6 @@ Sy.Controller = function () {
     this.container = null;
     this.mediator = null;
     this.mediatorListeners = {};
-    this.bundle = '';
     this.viewscreen = null;
 
 };
@@ -52,58 +51,6 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
         value: function () {
 
             this.mediator.publish.apply(this.mediator, arguments);
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    new: {
-        value: function (entity, attributes) {
-
-            var regexp = new RegExp(/^((\w+::)|(\w+))+$/gi),
-                path = null,
-                ent = null;
-
-            if (!regexp.test(entity)) {
-                throw new SyntaxError('Invalid entity name format');
-            }
-
-            path = entity.split('::');
-
-            if (path.length === 1) {
-                ent = new App.Bundle[this.bundle].Entity[path[0]]();
-            } else {
-                ent = new App.Bundle[path[0]].Entity[path[1]]();
-            }
-
-            if (!(ent instanceof Sy.EntityInterface)) {
-                throw new TypeError('"' + entity + '" does not implement "Sy.EntityInterface"');
-            }
-
-            ent.set(attributes);
-
-            return ent;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    setBundle: {
-        value: function (name) {
-
-            if (!App.Bundle[name]) {
-                throw new ReferenceError('The bundle "' + name + '" is undefined');
-            }
-
-            this.bundle = name;
 
             return this;
 

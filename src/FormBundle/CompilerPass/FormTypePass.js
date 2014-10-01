@@ -1,16 +1,16 @@
-namespace('Sy.Kernel.CompilerPass');
+namespace('Sy.FormBundle.CompilerPass');
 
 /**
  * Pass that register registered form types
  *
  * @package Sy
- * @subpackage Kernel
+ * @subpackage FormBundle
  * @class
  * @implements {Sy.ServiceContainer.CompilerPassInterface}
  */
 
-Sy.Kernel.CompilerPass.FormTypePass = function () {};
-Sy.Kernel.CompilerPass.FormTypePass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
+Sy.FormBundle.CompilerPass.FormTypePass = function () {};
+Sy.FormBundle.CompilerPass.FormTypePass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
 
     /**
      * @inheritDoc

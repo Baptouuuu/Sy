@@ -1,4 +1,4 @@
-/*! sy#0.7.0 - 2014-09-26 */
+/*! sy#0.9.0 - 2014-10-01 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -300,21 +300,21 @@ Sy.Configurator.prototype = Object.create(Sy.ConfiguratorInterface.prototype, {
 
     has: {
         value: function (key) {
+            var elements = key.split('.'),
+                object = this.config,
+                prop;
 
-            try {
+            while (elements.length !== 0) {
+                prop = elements.shift();
 
-                objectGetter.call(this.config, key);
-
-                return true;
-
-            } catch (error) {
-
-                if (error instanceof ReferenceError) {
+                if (!object.hasOwnProperty(prop)) {
                     return false;
                 }
 
+                object = object[prop];
             }
 
+            return true;
         }
     },
 
