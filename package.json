@@ -1,6 +1,6 @@
 {
   "name": "sy",
-  "version": "0.7.0",
+  "version": "0.9.0",
   "devDependencies": {
     "grunt": "~0.4.2",
     "grunt-bower-install": "~1.0.0",
