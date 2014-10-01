@@ -1,4 +1,4 @@
-/*! sy#0.7.0 - 2014-09-28 */
+/*! sy#0.9.0 - 2014-10-01 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -1774,12 +1774,13 @@ Sy.View.TemplateEngineInterface.prototype = Object.create(Object.prototype, {
      *
      * @param {HTMLElement} node
      * @param {Object} data
+     * @param {String} exempt CSS selector to exempt nodes of being rendered
      *
      * @return {Sy.View.TemplateEngineInterface}
      */
 
     render: {
-        value: function (node, data) {}
+        value: function (node, data, exempt) {}
     }
 
 });
@@ -2195,6 +2196,18 @@ Sy.View.Layout.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
     getList: {
         value: function (name) {
             return this.lists.get(name);
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    render: {
+        value: function (data) {
+            this.engine.render(this.node, data, '[data-sy-list]');
+
+            return this;
         }
     }
 
@@ -2979,7 +2992,7 @@ Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface
      */
 
     render: {
-        value: function (node, data) {
+        value: function (node, data, exempt) {
 
             if (!node.dataset.syUuid) {
                 this.register(node);
@@ -2987,12 +3000,12 @@ Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface
 
             if (node.dataset.syUuid && this.registry.has(node.dataset.syUuid)) {
                 this.renderAllAttributes(node, data);
-                this.renderContent(node, data);
+                this.renderContent(node, data, exempt);
             }
 
             if (node.childElementCount > 0) {
                 for (var i = 0, l = node.childElementCount; i < l; i++) {
-                    this.render(node.children[i], data);
+                    this.render(node.children[i], data, exempt);
                 }
             }
 
@@ -3117,14 +3130,19 @@ Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface
      * @private
      * @param {HTMLElement} node
      * @param {Object} data
+     * @param {String} exempt CSS selector to exempt nodes of being rendered
      *
      * @return {void}
      */
 
     renderContent: {
-        value: function (node, data) {
+        value: function (node, data, exempt) {
 
             if (node.childElementCount > 0) {
+                return node;
+            }
+
+            if (exempt && DOM(node).matches(exempt)) {
                 return node;
             }
 
@@ -3460,6 +3478,18 @@ Sy.View.ViewScreen.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
     getLayout: {
         value: function (name) {
             return this.layouts.get(name);
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    render: {
+        value: function (data) {
+            this.engine.render(this.node, data, '[data-sy-list]');
+
+            return this;
         }
     }
 

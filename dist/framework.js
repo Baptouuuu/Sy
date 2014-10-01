@@ -1,4 +1,4 @@
-/*! sy#0.7.0 - 2014-09-28 */
+/*! sy#0.9.0 - 2014-10-01 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -208,19 +208,6 @@ Sy.ControllerInterface.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Create a new Entity object
-     *
-     * @param {string} entity Entity path like "BundleName::EntityName", you can pass only "EntityName" if it's in the current bundle
-     * @param {object} attributes Attributes object to create your entity
-     *
-     * @return {Sy.EntityInterface}
-     */
-
-    new: {
-        value: function (entity, attributes) {}
-    },
-
-    /**
      * Method called when the controller is not used by the framework,
      * like when the controller is not used for the current screen
      *
@@ -273,18 +260,6 @@ Sy.ControllerInterface.prototype = Object.create(Object.prototype, {
 
     setServiceContainer: {
         value: function (container) {}
-    },
-
-    /**
-     * Set the bundle of the controller
-     *
-     * @param {String} name
-     *
-     * @return {Sy.ControllerInterface}
-     */
-
-    setBundle: {
-        value: function (name) {}
     },
 
     /**
@@ -1017,7 +992,6 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
 
             instance = new (this.meta.get(alias))();
             instance
-                .setBundle(bundleName)
                 .setMediator(this.mediator)
                 .setServiceContainer(this.container)
                 .setViewScreen(viewscreen)
@@ -1181,6 +1155,12 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
             this
                 .registerControllers(parser.getControllers())
                 .configureLogger();
+
+            if (this.container.hasParameter('routes')) {
+                this.container
+                    .get('sy::core::appstate')
+                    .boot();
+            }
         }
     },
 
@@ -1524,7 +1504,6 @@ Sy.Controller = function () {
     this.container = null;
     this.mediator = null;
     this.mediatorListeners = {};
-    this.bundle = '';
     this.viewscreen = null;
 
 };
@@ -1563,58 +1542,6 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
         value: function () {
 
             this.mediator.publish.apply(this.mediator, arguments);
-
-            return this;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    new: {
-        value: function (entity, attributes) {
-
-            var regexp = new RegExp(/^((\w+::)|(\w+))+$/gi),
-                path = null,
-                ent = null;
-
-            if (!regexp.test(entity)) {
-                throw new SyntaxError('Invalid entity name format');
-            }
-
-            path = entity.split('::');
-
-            if (path.length === 1) {
-                ent = new App.Bundle[this.bundle].Entity[path[0]]();
-            } else {
-                ent = new App.Bundle[path[0]].Entity[path[1]]();
-            }
-
-            if (!(ent instanceof Sy.EntityInterface)) {
-                throw new TypeError('"' + entity + '" does not implement "Sy.EntityInterface"');
-            }
-
-            ent.set(attributes);
-
-            return ent;
-
-        }
-    },
-
-    /**
-     * @inheritDoc
-     */
-
-    setBundle: {
-        value: function (name) {
-
-            if (!App.Bundle[name]) {
-                throw new ReferenceError('The bundle "' + name + '" is undefined');
-            }
-
-            this.bundle = name;
 
             return this;
 
@@ -2205,7 +2132,8 @@ Sy.ViewBundle.Config.Service.prototype = Object.create(Object.prototype, {
         value: function (container) {
             var vs = new Sy.ViewBundle.CompilerPass.RegisterViewScreenWrapperPass(),
                 layout = new Sy.ViewBundle.CompilerPass.RegisterLayoutWrapperPass(),
-                list = new Sy.ViewBundle.CompilerPass.RegisterListWrapperPass();
+                list = new Sy.ViewBundle.CompilerPass.RegisterListWrapperPass()
+                subscriber = new Sy.ViewBundle.CompilerPass.RegisterSubscriberPass();
 
             container.set({
                 'sy::core::view::parser': {
@@ -2264,13 +2192,167 @@ Sy.ViewBundle.Config.Service.prototype = Object.create(Object.prototype, {
                     calls: [
                         ['setParser', ['@sy::core::view::parser']]
                     ]
+                },
+                'sy::core::view::subscriber::appstate': {
+                    constructor: 'Sy.ViewBundle.Subscriber.AppStateSubscriber',
+                    calls: [
+                        ['setViewPort', ['@sy::core::viewport']],
+                        ['setLogger', ['@sy::core::logger']]
+                    ]
                 }
             });
 
             container
                 .addPass(vs)
                 .addPass(layout)
-                .addPass(list);
+                .addPass(list)
+                .addPass(subscriber);
+        }
+    }
+});
+namespace('Sy.ViewBundle.Subscriber');
+
+/**
+ * Listen for app state change to display appropriate viewscreen if available
+ *
+ * @package Sy
+ * @subpackage ViewBundle
+ * @class
+ * @implements {Sy.EventSubscriberInterface}
+ */
+
+Sy.ViewBundle.Subscriber.AppStateSubscriber = function () {
+    this.viewport = null;
+    this.logger = null;
+};
+Sy.ViewBundle.Subscriber.AppStateSubscriber.prototype = Object.create(Sy.EventSubscriberInterface.prototype, {
+
+    /**
+     * Set the viewport manager
+     *
+     * @param {Sy.View.ViewPort} viewport
+     *
+     * @return {Sy.ViewBundle.Subscriber.AppStateSubscriber} self
+     */
+
+    setViewPort: {
+        value: function (viewport) {
+            if (!(viewport instanceof Sy.View.ViewPort)) {
+                throw new TypeError('Invalid viewport manager');
+            }
+
+            this.viewport = viewport;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set logger
+     *
+     * @param {Sy.Lib.Logger.Interface} logger
+     *
+     * @return {Sy.ViewBundle.Subscriber.AppStateSubscriber} self
+     */
+
+    setLogger: {
+        value: function (logger) {
+            if (!(logger instanceof Sy.Lib.Logger.Interface)) {
+                throw new TypeError('Invalid logger');
+            }
+
+            this.logger = logger;
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    getSubscribedEvents: {
+        value: function () {
+            return {
+                'appstate.change': {
+                    method: 'onChange'
+                }
+            };
+        }
+    },
+
+    /**
+     * Called when the appstate.change channel is published
+     *
+     * @param {Sy.AppState.AppStateEvent} event
+     */
+
+    onChange: {
+        value: function (event) {
+            if (event.getRoute().hasParameter('_viewscreen')) {
+                this.logger && this.logger.info(
+                    'App state changed, displaying appropriate viewscreen',
+                    {route: event.getRoute()}
+                );
+                this.viewport.display(
+                    event.getRoute().getParameter('_viewscreen')
+                );
+            }
+        }
+    }
+
+});
+namespace('Sy.AppStateBundle.Config');
+
+/**
+ * Register appstate services
+ *
+ * @package Sy
+ * @subpackage AppStateBundle
+ * @class
+ */
+
+Sy.AppStateBundle.Config.Service = function () {};
+Sy.AppStateBundle.Config.Service.prototype = Object.create(Object.prototype, {
+    define: {
+        value: function (container) {
+            container.set({
+                'sy::core::appstate::routeprovider': {
+                    constructor: 'Sy.AppState.RouteProvider',
+                    calls: [
+                        ['setRegistry', ['@sy::core::registry']]
+                    ]
+                },
+                'sy::core::appstate::router': {
+                    constructor: 'Sy.AppState.Router',
+                    calls: [
+                        ['setRouteProvider', ['@sy::core::appstate::routeprovider']]
+                    ]
+                },
+                'sy::core::appstate::urlmatcher': {
+                    constructor: 'Sy.AppState.UrlMatcher',
+                    calls: [
+                        ['setRouteProvider', ['@sy::core::appstate::routeprovider']]
+                    ]
+                },
+                'sy::core::appstate': {
+                    constructor: 'Sy.AppState.Core',
+                    calls: [
+                        ['setUrlMatcher', ['@sy::core::appstate::urlmatcher']],
+                        ['setRouteProvider', ['@sy::core::appstate::routeprovider']],
+                        ['setGenerator', ['@sy::core::generator::uuid']],
+                        ['setMediator', ['@sy::core::mediator']],
+                        ['setStateHandler', ['@sy::core::appstate::statehandler']]
+                    ]
+                },
+                'sy::core::appstate::statehandler': {
+                    constructor: 'Sy.AppState.StateHandler'
+                }
+            });
+
+            container.addPass(
+                new Sy.AppStateBundle.CompilerPass.RegisterRoutesPass()
+            );
         }
     }
 });
@@ -13711,21 +13793,21 @@ Sy.Configurator.prototype = Object.create(Sy.ConfiguratorInterface.prototype, {
 
     has: {
         value: function (key) {
+            var elements = key.split('.'),
+                object = this.config,
+                prop;
 
-            try {
+            while (elements.length !== 0) {
+                prop = elements.shift();
 
-                objectGetter.call(this.config, key);
-
-                return true;
-
-            } catch (error) {
-
-                if (error instanceof ReferenceError) {
+                if (!object.hasOwnProperty(prop)) {
                     return false;
                 }
 
+                object = object[prop];
             }
 
+            return true;
         }
     },
 
@@ -13998,12 +14080,13 @@ Sy.View.TemplateEngineInterface.prototype = Object.create(Object.prototype, {
      *
      * @param {HTMLElement} node
      * @param {Object} data
+     * @param {String} exempt CSS selector to exempt nodes of being rendered
      *
      * @return {Sy.View.TemplateEngineInterface}
      */
 
     render: {
-        value: function (node, data) {}
+        value: function (node, data, exempt) {}
     }
 
 });
@@ -14419,6 +14502,18 @@ Sy.View.Layout.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
     getList: {
         value: function (name) {
             return this.lists.get(name);
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    render: {
+        value: function (data) {
+            this.engine.render(this.node, data, '[data-sy-list]');
+
+            return this;
         }
     }
 
@@ -15203,7 +15298,7 @@ Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface
      */
 
     render: {
-        value: function (node, data) {
+        value: function (node, data, exempt) {
 
             if (!node.dataset.syUuid) {
                 this.register(node);
@@ -15211,12 +15306,12 @@ Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface
 
             if (node.dataset.syUuid && this.registry.has(node.dataset.syUuid)) {
                 this.renderAllAttributes(node, data);
-                this.renderContent(node, data);
+                this.renderContent(node, data, exempt);
             }
 
             if (node.childElementCount > 0) {
                 for (var i = 0, l = node.childElementCount; i < l; i++) {
-                    this.render(node.children[i], data);
+                    this.render(node.children[i], data, exempt);
                 }
             }
 
@@ -15341,14 +15436,19 @@ Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface
      * @private
      * @param {HTMLElement} node
      * @param {Object} data
+     * @param {String} exempt CSS selector to exempt nodes of being rendered
      *
      * @return {void}
      */
 
     renderContent: {
-        value: function (node, data) {
+        value: function (node, data, exempt) {
 
             if (node.childElementCount > 0) {
+                return node;
+            }
+
+            if (exempt && DOM(node).matches(exempt)) {
                 return node;
             }
 
@@ -15684,6 +15784,18 @@ Sy.View.ViewScreen.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
     getLayout: {
         value: function (name) {
             return this.layouts.get(name);
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    render: {
+        value: function (data) {
+            this.engine.render(this.node, data, '[data-sy-list]');
+
+            return this;
         }
     }
 
@@ -17414,6 +17526,80 @@ Sy.ViewBundle.CompilerPass.RegisterViewScreenWrapperPass.prototype = Object.crea
 
 });
 
+namespace('Sy.ViewBundle.CompilerPass');
+
+/**
+ * Add the app state subscriber tag if the app state will initialize
+ *
+ * @package Sy
+ * @subpackage ViewBundle
+ * @class
+ * @implements {Sy.ServiceContainer.CompilerPassInterface}
+ */
+
+Sy.ViewBundle.CompilerPass.RegisterSubscriberPass = function () {};
+Sy.ViewBundle.CompilerPass.RegisterSubscriberPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
+
+    process: {
+        value: function (container) {
+            var def = container.getDefinition('sy::core::view::subscriber::appstate');
+
+            if (container.hasParameter('routes')) {
+                def.addTag('event.subscriber', {name: 'event.subscriber'});
+            }
+        }
+    }
+
+});
+
+namespace('Sy.AppStateBundle.CompilerPass');
+
+/**
+ * Service container pass to extract routes from config
+ *
+ * @package Sy
+ * @subpackage AppStateBundle
+ * @class
+ * @implements {Sy.ServiceContainer.CompilerPassInterface}
+ */
+
+Sy.AppStateBundle.CompilerPass.RegisterRoutesPass = function () {};
+Sy.AppStateBundle.CompilerPass.RegisterRoutesPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
+
+    process: {
+        value: function (container) {
+            var def = container.getDefinition('sy::core::appstate::routeprovider'),
+                routes = container.getParameter('routes');
+
+            if (!routes) {
+                return;
+            }
+
+            for (var name in routes) {
+                if (routes.hasOwnProperty(name)) {
+                    def.addCall(
+                        'setRoute',
+                        [
+                            name,
+                            routes[name].path,
+                            routes[name].parameters,
+                            routes[name].requirements
+                        ]
+                    );
+                }
+            }
+        }
+    }
+
+});
 namespace('Sy');
 
 /**
@@ -17584,6 +17770,1085 @@ Sy.Translator.prototype = Object.create(Object.prototype, {
 
             return this.languages.get(lang).get(domain, key);
 
+        }
+    }
+
+});
+namespace('Sy.AppState');
+
+/**
+ * Represent a URL
+ *
+ * @package Sy
+ * @subpackage AppState
+ * @class
+ */
+
+Sy.AppState.Route = function () {
+    this.name = null;
+    this.path = null;
+    this.parameters = {};
+    this.requirements = {};
+    this.regex = null;
+};
+Sy.AppState.Route.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set the route name
+     *
+     * @param {String} name
+     *
+     * @return {Sy.AppState.Route} self
+     */
+
+    setName: {
+        value: function (name) {
+            this.name = name;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the route name
+     *
+     * @return {String}
+     */
+
+    getName: {
+        value: function () {
+            return this.name;
+        }
+    },
+
+    /**
+     * Set the path
+     *
+     * @param {String} path
+     *
+     * @return {Sy.AppState.Route} self
+     */
+
+    setPath: {
+        value: function (path) {
+            this.path = path;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the path
+     *
+     * @return {String}
+     */
+
+    getPath: {
+        value: function () {
+            return this.path;
+        }
+    },
+
+    /**
+     * Set the parameters
+     *
+     * @param {Object} params
+     *
+     * @return {Sy.AppState.Route} self
+     */
+
+    setParameters: {
+        value: function (params) {
+            if (!Object.isFrozen(this.parameters)) {
+                this.parameters = params;
+            }
+
+            Object.freeze(this.parameters);
+
+            return this;
+        }
+    },
+
+    /**
+     * Get the parameters
+     *
+     * @return {Object}
+     */
+
+    getParameters: {
+        value: function () {
+            return this.parameters;
+        }
+    },
+
+    /**
+     * Check if the route has a parameter
+     *
+     * @param {String} name
+     *
+     * @return {Boolean}
+     */
+
+    hasParameter: {
+        value: function (name) {
+            return this.parameters.hasOwnProperty(name);
+        }
+    },
+
+    /**
+     * Return a parameter value
+     *
+     * @param {String} name
+     *
+     * @return {mixed}
+     */
+
+    getParameter: {
+        value: function (name) {
+            return this.parameters[name];
+        }
+    },
+
+    /**
+     * Set the requirements
+     *
+     * @param {Object} req
+     *
+     * @return {Sy.AppState.Route} self
+     */
+
+    setRequirements: {
+        value: function (req) {
+            if (!Object.isFrozen(this.requirements)) {
+                this.requirements = req;
+            }
+
+            Object.freeze(this.requirements);
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the requirements
+     *
+     * @return {Object}
+     */
+
+    getRequirements: {
+        value: function () {
+            return this.requirements;
+        }
+    },
+
+    /**
+     * Return a requirement
+     *
+     * @param {String} name
+     *
+     * @return {mixed}
+     */
+
+    getRequirement: {
+        value: function (name) {
+            return this.requirements[name];
+        }
+    },
+
+    /**
+     * Check if the route has a requirement
+     *
+     * @param {String} name
+     *
+     * @return {Boolean}
+     */
+
+    hasRequirement: {
+        value: function (name) {
+            return this.requirements.hasOwnProperty(name);
+        }
+    },
+
+    /**
+     * Create a regex from the path and requirements
+     *
+     * @return {Sy.AppState.Route} self
+     */
+
+    buildRegex: {
+        value: function () {
+            var placeholders = this.path.match(new RegExp(/{\w+}/g));
+
+            this.regex = '^' + this.path + '$';
+
+            if (placeholders instanceof Array) {
+                placeholders.forEach(function (placeholder) {
+                    var name = placeholder.substring(1, placeholder.length - 1);
+
+                    if (this.hasRequirement(name)) {
+                        this.regex = this.regex.replace(
+                            placeholder,
+                            '(' + this.getRequirement(name) + ')'
+                        );
+                    } else {
+                        this.regex = this.regex.replace(
+                            placeholder,
+                            '(.+)'
+                        );
+                    }
+                }.bind(this));
+            }
+
+            return this;
+        }
+    },
+
+    /**
+     * Check if a string matches the url
+     *
+     * @param {String} url
+     *
+     * @return {Boolean}
+     */
+
+    matches: {
+        value: function (url) {
+            return (new RegExp(this.regex)).test(url);
+        }
+    },
+
+    /**
+     * Return the variables from the url
+     *
+     * @param {String} url
+     *
+     * @return {Object}
+     */
+
+    getVariables: {
+        value: function (url) {
+            var placeholders = this.path.match(new RegExp(/{\w+}/g)),
+                values = url.match(new RegExp(this.regex)),
+                data = {};
+
+            if (!placeholders) {
+                return data;
+            }
+
+            placeholders = placeholders.map(function (p) {
+                return p.substring(1, p.length - 1);
+            });
+
+            values = values.filter(function (val) {
+                return val !== url;
+            });
+
+            for (var i = 0, l = placeholders.length; i < l; i++) {
+                data[placeholders[i]] = values[i];
+            }
+
+            return data;
+        }
+    }
+
+});
+namespace('Sy.AppState');
+
+/**
+ * Help build urls via a route definition
+ *
+ * @package Sy
+ * @subpackage AppState
+ * @class
+ */
+
+Sy.AppState.Router = function () {
+    this.provider = null;
+};
+Sy.AppState.Router.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set the route provider
+     *
+     * @param {Sy.AppState.RouteProvider} provider
+     *
+     * @return {Sy.AppState.Router} self
+     */
+
+    setRouteProvider: {
+        value: function (provider) {
+            if (!(provider instanceof Sy.AppState.RouteProvider)) {
+                throw new TypeError('Invalid route provider');
+            }
+
+            this.provider = provider;
+
+            return this;
+        }
+    },
+
+    /**
+     * Generate a url
+     *
+     * @param {String} name Route name
+     * @param {Object} variables
+     *
+     * @return {String}
+     */
+
+    generate: {
+        value: function (name, variables) {
+            if (!this.provider.hasRoute(name)) {
+                throw new ReferenceError('Unknown route "' + name + '"');
+            }
+
+            var route = this.provider.getRoute(name),
+                params = route.getParameters(),
+                url = route.getPath();
+
+            variables = variables || {};
+
+            for (var name in params) {
+                if (
+                    params.hasOwnProperty(name) &&
+                    !variables.hasOwnProperty(name)
+                ) {
+                    variables[name] = params[name];
+                }
+            }
+
+            for (var name in variables) {
+                if (variables.hasOwnProperty(name)) {
+                    if (
+                        route.hasRequirement(name) &&
+                        !(new RegExp('^' + route.getRequirement(name) + '$')).test(variables[name])
+                    ) {
+                        throw new SyntaxError(
+                            'Variable "' + name + '" doesn\'t fulfill its requirement ' +
+                            'for the route "' + route.getName() + '"'
+                        );
+                    }
+                    url = url.replace('{' + name + '}', variables[name]);
+                }
+            }
+
+            return url;
+        }
+    }
+
+});
+namespace('Sy.AppState');
+
+/**
+ * Holds all the routes definitions
+ *
+ * @package Sy
+ * @subpackage AppState
+ * @class
+ */
+
+Sy.AppState.RouteProvider = function () {
+    this.routes = null;
+};
+Sy.AppState.RouteProvider.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set a registry to hold routes
+     *
+     * @param {Sy.RegistryInterface} registry
+     *
+     * @return {Sy.AppState.RouteProvider} self
+     */
+
+    setRegistry: {
+        value: function (registry) {
+            if (!(registry instanceof Sy.RegistryInterface)) {
+                throw new TypeError('Invalid registry');
+            }
+
+            this.routes = registry;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a route
+     *
+     * @param {String} name
+     * @param {String} path
+     * @param {Object} params Optional
+     * @param {Object} requirements Optional
+     *
+     * @return {Sy.AppState.RouteProvider} self
+     */
+
+    setRoute: {
+        value: function (name, path, params, requirements) {
+            var route = new Sy.AppState.Route();
+
+            route
+                .setName(name)
+                .setPath(path);
+
+            if (typeof params === 'object') {
+                route.setParameters(params);
+            }
+
+            if (typeof requirements === 'object') {
+                route.setRequirements(requirements);
+            }
+
+            route.buildRegex();
+
+            this.routes.set(name, route);
+
+            return this;
+        }
+    },
+
+    /**
+     * Return a route via its name
+     *
+     * @param {String} name
+     *
+     * @return {Sy.AppState.Route}
+     */
+
+    getRoute: {
+        value: function (name) {
+            return this.routes.get(name);
+        }
+    },
+
+    /**
+     * Return all routes
+     *
+     * @return {Array}
+     */
+
+    getRoutes: {
+        value: function () {
+            return this.routes.get();
+        }
+    },
+
+    /**
+     * Check if a route name exist
+     *
+     * @param {String} name
+     *
+     * @return {Boolean}
+     */
+
+    hasRoute: {
+        value: function (name) {
+            return this.routes.has(name);
+        }
+    }
+
+});
+namespace('Sy.AppState');
+
+/**
+ * Entry point to handle the states mechanism
+ *
+ * @package Sy
+ * @subpackage AppState
+ * @class
+ */
+
+Sy.AppState.Core = function () {
+    this.matcher = null;
+    this.provider = null;
+    this.generator = null;
+    this.mediator = null;
+    this.handler = null;
+    this.currentState = null;
+};
+Sy.AppState.Core.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set the url matcher
+     *
+     * @param {Sy.AppState.UrlMatcher} matcher
+     *
+     * @return {Sy.AppState.Core} self
+     */
+
+    setUrlMatcher: {
+        value: function (matcher) {
+            if (!(matcher instanceof Sy.AppState.UrlMatcher)) {
+                throw new TypeError('Invalid url matcher');
+            }
+
+            this.matcher = matcher;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the route provider
+     *
+     * @param {Sy.AppState.RouteProvider} provider
+     *
+     * @return {Sy.AppState.Core} self
+     */
+
+    setRouteProvider: {
+        value: function (provider) {
+            if (!(provider instanceof Sy.AppState.RouteProvider)) {
+                throw new TypeError('Invalid route provider');
+            }
+
+            this.provider = provider;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set a uuid generator
+     *
+     * @param {Sy.Lib.Generator.Interface} generator
+     *
+     * @return {Sy.AppState.Core} self
+     */
+
+    setGenerator: {
+        value: function (generator) {
+            if (!(generator instanceof Sy.Lib.Generator.Interface)) {
+                throw new TypeError('Invalid generator');
+            }
+
+            this.generator = generator;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set te mediator
+     *
+     * @param {Sy.Lib.Mediator} mediator
+     *
+     * @return {Sy.AppState.Core} self
+     */
+
+    setMediator: {
+        value: function (mediator) {
+            if (!(mediator instanceof Sy.Lib.Mediator)) {
+                throw new TypeError('Invalid mediator');
+            }
+
+            this.mediator = mediator;
+
+            return this;
+        }
+    },
+
+    /**
+     * Set the state handler
+     *
+     * @param {Sy.AppState.StateHandler} handler
+     *
+     * @return {Sy.AppState.Core} self
+     */
+
+    setStateHandler: {
+        value: function (handler) {
+            if (!(handler instanceof Sy.AppState.StateHandler)) {
+                throw new TypeError('Invalid state handler');
+            }
+
+            this.handler = handler;
+
+            return this;
+        }
+    },
+
+    /**
+     * Init the url listener
+     *
+     * @return {Sy.AppState.Core} self
+     */
+
+    boot: {
+        value: function () {
+            if (history.state) {
+                this.currentState = this.handler
+                    .getState(history.state.uuid);
+            } else {
+                this.createState();
+            }
+
+            window.addEventListener('popstate', this.listenPop.bind(this), false);
+
+            return this;
+        }
+    },
+
+    /**
+     * Listen the pop state event
+     *
+     * @private
+     * @param {PopStateEvent} event
+     */
+
+    listenPop: {
+        value: function (event) {
+            if (!event.state) {
+                this.createState();
+            } else {
+                this.currentState = this.handler
+                    .getState(event.state.uuid);
+            }
+
+            var event = new Sy.AppState.AppStateEvent();
+
+            event
+                .setState(this.currentState)
+                .setRoute(
+                    this.provider
+                        .getRoute(this.currentState.getRoute())
+                );
+
+            this.mediator.publish(event.KEY, event);
+        }
+    },
+
+    /**
+     * Create a new state and set it as the current one
+     *
+     * @private
+     */
+
+    createState: {
+        value: function () {
+            var url = this.getUrl(),
+                route = this.matcher.match(url);
+
+            this.currentState = this.handler.createState(
+                this.generator.generate(),
+                route.getName(),
+                route.getVariables(url)
+            );
+
+            this.updateBrowserState();
+        }
+    },
+
+    /**
+     * Update the browser state object
+     *
+     * @private
+     */
+
+    updateBrowserState: {
+        value: function () {
+            history.replaceState(
+                this.currentState.toJSON(),
+                document.title
+            );
+        }
+    },
+
+    /**
+     * Return the current url
+     *
+     * @return {String}
+     */
+
+    getUrl: {
+        value: function () {
+            return location.hash.substr(1) || '/';
+        }
+    },
+
+    /**
+     * Return the current state
+     *
+     * @return {Sy.AppState.State}
+     */
+
+    getCurrentState: {
+        value: function () {
+            return this.currentState;
+        }
+    }
+
+});
+namespace('Sy.AppState');
+
+/**
+ * Return the appropriate route corresponding to a url
+ *
+ * @package Sy
+ * @subpackage AppState
+ * @class
+ */
+
+Sy.AppState.UrlMatcher = function () {
+    this.provider = null;
+};
+Sy.AppState.UrlMatcher.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set the route provider
+     *
+     * @param {Sy.AppState.RouteProvider} provider
+     *
+     * @return {Sy.AppState.UrlMatcher} self
+     */
+
+    setRouteProvider: {
+        value: function (provider) {
+            if (!(provider instanceof Sy.AppState.RouteProvider)) {
+                throw new TypeError('Invalid route provider');
+            }
+
+            this.provider = provider;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return a route for the given url
+     *
+     * @param {String} url
+     *
+     * @return {Sy.AppState.Route}
+     */
+
+    match: {
+        value: function (url) {
+            var routes = this.provider.getRoutes(),
+                route;
+
+            for (var i = 0, l = routes.length; i < l; i++) {
+                if (routes[i].matches(url)) {
+                    route = routes[i];
+                    break;
+                }
+            }
+
+            if (!route) {
+                throw new ReferenceError('No route found for the url "' + url + '"');
+            }
+
+            return route;
+        }
+    }
+
+});
+namespace('Sy.AppState');
+
+/**
+ * Represent a state of the app
+ *
+ * @package Sy
+ * @subpackage AppState
+ * @class
+ */
+
+Sy.AppState.State = function () {
+    this.uuid = null;
+    this.route = null;
+    this.variables = {};
+};
+Sy.AppState.State.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Set the state identifier
+     *
+     * @param {String} uuid
+     *
+     * @return {Sy.AppState.State} self
+     */
+
+    setUUID: {
+        value: function (uuid) {
+            this.uuid = uuid;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the state identifier
+     *
+     * @return {String}
+     */
+
+    getUUID: {
+        value: function () {
+            return this.uuid;
+        }
+    },
+
+    /**
+     * Set the route name of the state
+     *
+     * @param {String} name
+     *
+     * @return {Sy.AppState.State} self
+     */
+
+    setRoute: {
+        value: function (name) {
+            this.route = name;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the route name
+     *
+     * @return {String}
+     */
+
+    getRoute: {
+        value: function () {
+            return this.route;
+        }
+    },
+
+    /**
+     * Set the variables contained in the url
+     *
+     * @param {Object} variables
+     *
+     * @return {Sy.AppState.State} self
+     */
+
+    setVariables: {
+        value: function (variables) {
+            this.variables = variables;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the variables
+     *
+     * @return {Object}
+     */
+
+    getVariables: {
+        value: function () {
+            return this.variables;
+        }
+    },
+
+    /**
+     * Return a raw representation of the state
+     *
+     * @return {Object}
+     */
+
+    toJSON: {
+        value: function () {
+            return {
+                uuid: this.uuid,
+                route: this.route,
+                variables: this.variables
+            };
+        }
+    }
+
+});
+namespace('Sy.AppState');
+
+/**
+ * Holds all the app states and handles saving/retrieval
+ *
+ * @package Sy
+ * @subpackage AppState
+ * @class
+ */
+
+Sy.AppState.StateHandler = function () {
+    this.storage = localStorage;
+    this.key = 'sy::history';
+    this.states = [];
+
+    this.loadStates();
+
+    window.addEventListener(
+        'beforeunload',
+        this.saveHistory.bind(this),
+        false
+    );
+};
+Sy.AppState.StateHandler.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Load all the states from the storage
+     */
+
+    loadStates: {
+        value: function () {
+            var states = this.storage.getItem(this.key);
+
+            if (states) {
+                states = JSON.parse(states);
+
+                states.forEach(function (raw) {
+                    this.states.push(
+                        this.createState(
+                            raw.uuid,
+                            raw.route,
+                            raw.variables
+                        )
+                    );
+                }.bind(this));
+            }
+        }
+    },
+
+    /**
+     * Create a new state
+     *
+     * @param {String} uuid
+     * @param {String} route Route name
+     * @param {Object} variables
+     *
+     * @return {Sy.AppState.State}
+     */
+
+    createState: {
+        value: function (uuid, route, variables) {
+            var state = new Sy.AppState.State();
+
+            this.states.push(state);
+
+            return state
+                .setUUID(uuid)
+                .setRoute(route)
+                .setVariables(variables);
+        }
+    },
+
+    /**
+     * Retrieve the state for the given uuid
+     *
+     * @param {String} uuid
+     *
+     * @return {Sy.AppState.State}
+     */
+
+    getState: {
+        value: function (uuid) {
+            for (var i = 0, l = this.states.length; i < l; i++) {
+                if (this.states[i].getUUID() === uuid) {
+                    return this.states[i];
+                }
+            }
+        }
+    },
+
+    /**
+     * Save the history when page unload
+     *
+     * @private
+     */
+
+    saveHistory: {
+        value: function () {
+            this.storage.setItem(
+                this.key,
+                JSON.stringify(this.states)
+            );
+        }
+    }
+
+});
+namespace('Sy.AppState');
+
+/**
+ * Event fired when the app state changes
+ *
+ * @package Sy
+ * @subpackage AppState
+ * @class
+ */
+
+Sy.AppState.AppStateEvent = function () {
+    this.state = null;
+    this.route = null;
+};
+Sy.AppState.AppStateEvent.prototype = Object.create(Object.prototype, {
+
+    KEY: {
+        value: 'appstate.change',
+        writable: false
+    },
+
+    /**
+     * Set the current app state
+     *
+     * @param {Sy.AppState.State} state
+     *
+     * @return {Sy.AppState.AppStateEvent} self
+     */
+
+    setState: {
+        value: function (state) {
+            if (!(state instanceof Sy.AppState.State)) {
+                throw new TypeError('Invalid state object');
+            }
+
+            this.state = state;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the current state
+     *
+     * @return {Sy.AppState.State}
+     */
+
+    getState: {
+        value: function () {
+            return this.state;
+        }
+    },
+
+    /**
+     * Set the route associated to the state
+     *
+     * @param {Sy.AppState.Route} route
+     *
+     * @return {Sy.AppState.AppStateEvent} self
+     */
+
+    setRoute: {
+        value: function (route) {
+            if (!(route instanceof Sy.AppState.Route)) {
+                throw new TypeError('Invalid route');
+            }
+
+            this.route = route;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the route
+     *
+     * @return {Sy.AppState.Route}
+     */
+
+    getRoute: {
+        value: function () {
+            return this.route;
         }
     }
 
