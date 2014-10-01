@@ -96,6 +96,12 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
             this
                 .registerControllers(parser.getControllers())
                 .configureLogger();
+
+            if (this.container.hasParameter('routes')) {
+                this.container
+                    .get('sy::core::appstate')
+                    .boot();
+            }
         }
     },
 

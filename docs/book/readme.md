@@ -11,3 +11,4 @@ This book will guide you through the different framework's components and how th
 * [Validation](validation.md)
 * [Form](form.md)
 * [Event subscribers](event-subscribers.md)
+* [Routing](routing.md)

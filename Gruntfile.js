@@ -181,6 +181,17 @@ module.exports = function (grunt) {
         propertyAccessor = [  //need the reflection.js vendor
             'src/PropertyAccessor.js'
         ],
+        appState = [
+            'src/AppState/Route.js',
+            'src/AppState/Router.js',
+            'src/AppState/RouteProvider.js',
+            'src/AppState/Core.js',
+            'src/AppState/UrlMatcher.js',
+            'src/AppState/State.js',
+            'src/AppState/StateHandler.js',
+            'src/AppState/AppStateEvent.js',
+            'src/AppState/UrlMatcher.js',
+        ],
         framework = [
             'src/functions.js',
             'src/ControllerInterface.js',
@@ -201,6 +212,8 @@ module.exports = function (grunt) {
             'src/TranslatorBundle/Config/Service.js',
             'src/ValidatorBundle/Config/Service.js',
             'src/ViewBundle/Config/Service.js',
+            'src/ViewBundle/Subscriber/AppStateSubscriber.js',
+            'src/AppStateBundle/Config/Service.js',
         ],
         frameworkPasses = [
             'src/FrameworkBundle/CompilerPass/EventSubscriberPass.js',
@@ -209,6 +222,8 @@ module.exports = function (grunt) {
             'src/ViewBundle/CompilerPass/RegisterLayoutWrapperPass.js',
             'src/ViewBundle/CompilerPass/RegisterListWrapperPass.js',
             'src/ViewBundle/CompilerPass/RegisterViewScreenWrapperPass.js',
+            'src/ViewBundle/CompilerPass/RegisterSubscriberPass.js',
+            'src/AppStateBundle/CompilerPass/RegisterRoutesPass.js',
         ],
         unique = function (el, idx, array) {
             if (array.indexOf(el) !== idx && array.indexOf(el) < idx) {
@@ -284,7 +299,8 @@ module.exports = function (grunt) {
         .concat(serviceContainer)
         .concat(frameworkPasses)
         .concat(translator)
-        .concat(dom);
+        .concat(dom)
+        .concat(appState);
 
     serviceContainer = serviceContainer.filter(unique);
     registry = registry.filter(unique);
