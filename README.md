@@ -17,7 +17,7 @@ The aim of this framework is to help you build Single-Page Application (SPA). Sy
 
 Sy is still in development, but all the libraries available in the branch `develop` are fully functional.
 
-Bare in mind that until the release 1.0 some methods of those libraries may change.
+Bear in mind that until the release 1.0 some methods of those libraries may change.
 
 ## Documentation
 
