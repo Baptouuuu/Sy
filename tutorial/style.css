@@ -8,7 +8,7 @@ body {
 }
 
 .contacts {
-    margin: 15px;
+    margin: 20px;
 }
 
 .contact-card {
@@ -31,4 +31,8 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.profile-edit {
+    margin: 20px;
 }

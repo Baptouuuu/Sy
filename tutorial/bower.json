@@ -5,6 +5,7 @@
     "core-toolbar": "Polymer/core-toolbar#~0.4.1",
     "core-input": "Polymer/core-input#~0.4.1",
     "paper-shadow": "Polymer/paper-shadow#~0.4.1",
-    "paper-icon-button": "Polymer/paper-icon-button#~0.4.1"
+    "paper-icon-button": "Polymer/paper-icon-button#~0.4.1",
+    "bootstrap": "~3.2.0"
   }
 }
