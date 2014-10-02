@@ -2,3 +2,4 @@ vendor/*
 node_modules/*
 coverage.csv
 .sizecache.json
+tutorial/vendor/*
