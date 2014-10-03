@@ -12,66 +12,66 @@
     </head>
     <body>
         <section class="viewport">
-            <section data-sy-view="edit">
-                <core-toolbar class="toolbar">
-                    <a href="#/">
-                        <paper-icon-button icon="arrow-back"></paper-icon-button>
-                    </a>
-                    <span flex>Fullname</span>
-                    <paper-icon-button icon="check"></paper-icon-button>
-                    <paper-icon-button icon="delete"></paper-icon-button>
-                    <paper-shadow z="1"></paper-shadow>
-                </core-toolbar>
-                <section class="profile-edit" horizontal layout>
-                    <form class="form-horizontal" flex>
-                        <div class="form-group">
-                            <label for="firstname" class="col-sm-2 control-label">Firstname</label>
-                            <div class="col-sm-8">
-                                <input id="firstname" name="firstname" class="form-control">
-                            </div>
+        </section>
+        <section data-sy-view="edit" data-sy-controller="AddressBook::Edit">
+            <core-toolbar class="toolbar">
+                <a href="#/">
+                    <paper-icon-button icon="arrow-back"></paper-icon-button>
+                </a>
+                <span flex>Fullname</span>
+                <paper-icon-button icon="check"></paper-icon-button>
+                <paper-icon-button icon="delete"></paper-icon-button>
+                <paper-shadow z="1"></paper-shadow>
+            </core-toolbar>
+            <section class="profile-edit" horizontal layout>
+                <form class="form-horizontal" flex>
+                    <div class="form-group">
+                        <label for="firstname" class="col-sm-2 control-label">Firstname</label>
+                        <div class="col-sm-8">
+                            <input id="firstname" name="firstname" class="form-control">
                         </div>
-                        <div class="form-group">
-                            <label for="lastname" class="col-sm-2 control-label">Lastname</label>
-                            <div class="col-sm-8">
-                                <input id="lastname" name="lastname" class="form-control">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="picture" class="col-sm-2 control-label">Picture</label>
-                            <div class="col-sm-8">
-                                <input id="picture" name="picture" type="file" class="form-control">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="phone" class="col-sm-2 control-label">Phone</label>
-                            <div class="col-sm-4">
-                                <input id="phone" name="phone" class="form-control">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="address" class="col-sm-2 control-label">Address</label>
-                            <div class="col-sm-8">
-                                <input id="address" name="address" class="form-control">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="zip" class="col-sm-2 control-label">Zipcode</label>
-                            <div class="col-sm-2">
-                                <input id="zip" name="zip" class="form-control">
-                            </div>
-                            <label for="city" class="col-sm-1 control-label">City</label>
-                            <div class="col-sm-5">
-                                <input id="city" name="city" class="form-control">
-                            </div>
-                        </div>
-                    </form>
-                    <div class="profile-picture" flex horizontal layout center-justified>
-                        <img src="http://www.gravatar.com/avatar/00000000000000000000000000000000?s=125" alt="" self-center>
                     </div>
-                </section>
+                    <div class="form-group">
+                        <label for="lastname" class="col-sm-2 control-label">Lastname</label>
+                        <div class="col-sm-8">
+                            <input id="lastname" name="lastname" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="picture" class="col-sm-2 control-label">Picture</label>
+                        <div class="col-sm-8">
+                            <input id="picture" name="picture" type="file" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone" class="col-sm-2 control-label">Phone</label>
+                        <div class="col-sm-4">
+                            <input id="phone" name="phone" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="address" class="col-sm-2 control-label">Address</label>
+                        <div class="col-sm-8">
+                            <input id="address" name="address" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="zip" class="col-sm-2 control-label">Zipcode</label>
+                        <div class="col-sm-2">
+                            <input id="zip" name="zip" class="form-control">
+                        </div>
+                        <label for="city" class="col-sm-1 control-label">City</label>
+                        <div class="col-sm-5">
+                            <input id="city" name="city" class="form-control">
+                        </div>
+                    </div>
+                </form>
+                <div class="profile-picture" flex horizontal layout center-justified>
+                    <img src="http://www.gravatar.com/avatar/00000000000000000000000000000000?s=125" alt="" self-center>
+                </div>
             </section>
         </section>
-        <section data-sy-view="home">
+        <section data-sy-view="home" data-sy-controller="AddressBook::Home">
             <core-toolbar class="toolbar">
                 <core-input placeholder="Search a contact" flex></core-input>
                 <paper-icon-button icon="add"></paper-icon-button>
@@ -90,5 +90,15 @@
                 </div>
             </section>
         </section>
+        <script src="../vendor/Reflection.js/reflection.min.js"></script>
+        <script src="../vendor/moment/moment.js"></script>
+        <script src="../vendor/observe-js/src/observe.js"></script>
+        <script src="../vendor/underscore/underscore-min.js"></script>
+        <script src="../dist/framework.js"></script>
+        <script src="js/App/Bundle/AddressBook/Controller/Home.js"></script>
+        <script src="js/App/Bundle/AddressBook/Controller/Edit.js"></script>
+        <script src="js/App/Bundle/AddressBook/Config/Configuration.js"></script>
+        <script src="js/App/Kernel.js"></script>
+        <script src="js/app.js"></script>
     </body>
 </html>
