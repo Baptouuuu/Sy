@@ -2,6 +2,10 @@ body {
     margin: 0;
 }
 
+body > [data-sy-view] {
+    display: none;
+}
+
 .toolbar {
     background-color: #39f;
     color: #f1f1f1;
