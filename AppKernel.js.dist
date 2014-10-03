@@ -1,7 +1,7 @@
 namespace('App');
 
 App.Kernel = function (env, debug) {
-    Sy.App.Kernel.Core.call(this, env, debug);
+    Sy.Kernel.Core.call(this, env, debug);
 };
 App.Kernel.prototype = Object.create(Sy.Kernel.Core.prototype, {
     registerBundles: {
