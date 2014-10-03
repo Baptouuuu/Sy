@@ -18383,6 +18383,8 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
                 this.createState();
             }
 
+            this.dispatchEvent();
+
             window.addEventListener('popstate', this.listenPop.bind(this), false);
 
             return this;
@@ -18405,6 +18407,18 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
                     .getState(event.state.uuid);
             }
 
+            this.dispatchEvent();
+        }
+    },
+
+    /**
+     * Dispatch the appstate event
+     *
+     * @private
+     */
+
+    dispatchEvent: {
+        value: function () {
             var event = new Sy.AppState.AppStateEvent();
 
             event
