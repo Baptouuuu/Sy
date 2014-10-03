@@ -1,4 +1,4 @@
-/*! sy#0.9.0 - 2014-10-01 */
+/*! sy#0.9.1 - 2014-10-03 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -2926,7 +2926,7 @@ Sy.Validator.Constraint.Regex = function (options) {
 
     this.pattern = options.pattern;
     this.flags = options.flags;
-    this.message = options.message || 'The value do not match the wished pattern';
+    this.message = options.message || 'The value do not match the wished pattern';
 };
 Sy.Validator.Constraint.Regex.prototype = Object.create(Sy.Validator.AbstractConstraint.prototype, {
 
