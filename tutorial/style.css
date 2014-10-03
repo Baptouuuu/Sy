@@ -7,6 +7,16 @@ body {
     color: #f1f1f1;
 }
 
+.toolbar > a {
+    color: #f1f1f1;
+    display: block;
+    height: 40px;
+}
+
+.toolbar > a:hover {
+    color: #f1f1f1;
+}
+
 .contacts {
     margin: 20px;
 }
