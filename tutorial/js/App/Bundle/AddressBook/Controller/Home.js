@@ -18,7 +18,7 @@ App.Bundle.AddressBook.Controller.Home.prototype = Object.create(Sy.Controller.p
     searchAction: {
         value: function (event) {
             this.repo
-                .findBy('fullname', event.target.value)
+                .findBy('fullname', [event.target.value, undefined])
                 .then(function (profiles) {
                     this.renderer
                         .renderProfiles(profiles);
