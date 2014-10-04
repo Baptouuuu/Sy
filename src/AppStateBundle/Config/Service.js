@@ -19,7 +19,7 @@ Sy.AppStateBundle.Config.Service.prototype = Object.create(Object.prototype, {
                         ['setRegistry', ['@sy::core::registry']]
                     ]
                 },
-                'router': '@sy::core::appstate::router',
+                router: '@sy::core::appstate::router',
                 'sy::core::appstate::router': {
                     constructor: 'Sy.AppState.Router',
                     calls: [
@@ -32,7 +32,7 @@ Sy.AppStateBundle.Config.Service.prototype = Object.create(Object.prototype, {
                         ['setRouteProvider', ['@sy::core::appstate::routeprovider']]
                     ]
                 },
-                'appstate': '@sy::core::appstate',
+                appstate: '@sy::core::appstate',
                 'sy::core::appstate': {
                     constructor: 'Sy.AppState.Core',
                     calls: [
