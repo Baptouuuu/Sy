@@ -25,6 +25,10 @@ Sy.Validator.Constraint.LengthValidator.prototype = Object.create(Sy.Validator.A
                 throw new TypeError('Invalid constraint');
             }
 
+            if (['', null, undefined].indexOf(value) !== -1) {
+                return;
+            }
+
             if (value.length === undefined) {
                 throw new TypeError('The value has no length attribute');
             }
