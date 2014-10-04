@@ -1700,6 +1700,25 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
         value: function () {
             return this.container.get('sy::core::storage');
         }
+    },
+
+    /**
+     * Redirect to the specified route name
+     *
+     * @param {String} route
+     * @param {Object} params
+     *
+     * @return {Sy.Controller} self
+     */
+
+    redirect: {
+        value: function (route, params) {
+            location.hash = this.container
+                .get('sy::core::appstate::router')
+                .generate(route, params);
+
+            return this;
+        }
     }
 
 });
@@ -2323,6 +2342,7 @@ Sy.AppStateBundle.Config.Service.prototype = Object.create(Object.prototype, {
                         ['setRegistry', ['@sy::core::registry']]
                     ]
                 },
+                router: '@sy::core::appstate::router',
                 'sy::core::appstate::router': {
                     constructor: 'Sy.AppState.Router',
                     calls: [
@@ -2335,6 +2355,7 @@ Sy.AppStateBundle.Config.Service.prototype = Object.create(Object.prototype, {
                         ['setRouteProvider', ['@sy::core::appstate::routeprovider']]
                     ]
                 },
+                appstate: '@sy::core::appstate',
                 'sy::core::appstate': {
                     constructor: 'Sy.AppState.Core',
                     calls: [

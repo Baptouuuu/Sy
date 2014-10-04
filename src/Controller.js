@@ -209,6 +209,25 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
         value: function () {
             return this.container.get('sy::core::storage');
         }
+    },
+
+    /**
+     * Redirect to the specified route name
+     *
+     * @param {String} route
+     * @param {Object} params
+     *
+     * @return {Sy.Controller} self
+     */
+
+    redirect: {
+        value: function (route, params) {
+            location.hash = this.container
+                .get('sy::core::appstate::router')
+                .generate(route, params);
+
+            return this;
+        }
     }
 
 });
