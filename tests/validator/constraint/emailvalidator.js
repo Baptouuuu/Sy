@@ -51,4 +51,14 @@ describe('email constraint validator', function () {
         expect(violations.length).toEqual(3);
     });
 
+    it('should not set a violation if empty value', function () {
+        var c = new Sy.Validator.Constraint.Email({});
+
+        validator.validate('', c);
+        validator.validate(null, c);
+        validator.validate(undefined, c);
+
+        expect(violations.length).toEqual(0);
+    });
+
 });

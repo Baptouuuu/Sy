@@ -25,6 +25,10 @@ Sy.Validator.Constraint.UrlValidator.prototype = Object.create(Sy.Validator.Abst
                 throw new TypeError('Invalid constraint');
             }
 
+            if (['', null, undefined].indexOf(value) !== -1) {
+                return;
+            }
+
             var protocols = constraint.getProtocols().join('|'),
                 regex = new RegExp('^(' + protocols + ')://[a-z\-\_\.]+(?:\.[a-z]{2,})?.*$', 'i');
 
