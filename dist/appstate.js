@@ -1136,10 +1136,6 @@ Sy.AppState.StateHandler.prototype = Object.create(Object.prototype, {
         value: function (uuid, route, variables) {
             var state = new Sy.AppState.State();
 
-            if (this.states.length === 10) {
-                this.states.shift();
-            }
-
             this.states.push(state);
 
             return state
@@ -1177,7 +1173,7 @@ Sy.AppState.StateHandler.prototype = Object.create(Object.prototype, {
         value: function () {
             this.storage.setItem(
                 this.key,
-                JSON.stringify(this.states)
+                JSON.stringify(this.states.splice(0 - 10))
             );
         }
     }
