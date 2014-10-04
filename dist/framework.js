@@ -1,4 +1,4 @@
-/*! sy#0.9.1 - 2014-10-03 */
+/*! sy#0.9.1 - 2014-10-04 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -18379,6 +18379,10 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
             if (history.state) {
                 this.currentState = this.handler
                     .getState(history.state.uuid);
+
+                if (!this.currentState) {
+                    this.createState();
+                }
             } else {
                 this.createState();
             }
@@ -18405,6 +18409,10 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
             } else {
                 this.currentState = this.handler
                     .getState(event.state.uuid);
+
+                if (!this.currentState) {
+                    this.createState();
+                }
             }
 
             this.dispatchEvent();
@@ -18737,6 +18745,10 @@ Sy.AppState.StateHandler.prototype = Object.create(Object.prototype, {
     createState: {
         value: function (uuid, route, variables) {
             var state = new Sy.AppState.State();
+
+            if (this.states.length === 10) {
+                this.states.shift();
+            }
 
             this.states.push(state);
 

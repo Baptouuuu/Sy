@@ -281,6 +281,7 @@ module.exports = function (grunt) {
     validator.unshift('src/functions.js');
     view.unshift('src/functions.js');
     translator.unshift('src/functions.js');
+    appState.unshift('src/functions.js');
 
     framework = framework
         .concat(generator)
@@ -333,7 +334,8 @@ module.exports = function (grunt) {
                     'dist/state-registry.min.js': stateRegistry,
                     'dist/service-container.min.js': serviceContainer,
                     'dist/translator.min.js': translator,
-                    'dist/property-accessor.min.js': propertyAccessor
+                    'dist/property-accessor.min.js': propertyAccessor,
+                    'dist/appstate.min.js': appState
                 }
             }
         },
@@ -396,6 +398,10 @@ module.exports = function (grunt) {
             propertyAccessor: {
                 src: propertyAccessor,
                 dest: 'dist/property-accessor.js'
+            },
+            appState: {
+                src: appState,
+                dest: 'dist/appstate.js'
             }
         },
         'bower-install': {
