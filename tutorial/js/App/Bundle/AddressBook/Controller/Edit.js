@@ -64,6 +64,24 @@ App.Bundle.AddressBook.Controller.Edit.prototype = Object.create(Sy.Controller.p
                     .displayErrorMessage();
             }
         }
+    },
+
+    /**
+     * Delete the profile
+     */
+
+    removeAction: {
+        value: function (event) {
+            this
+                .getStorage()
+                .getManager()
+                .remove(this.profile)
+                .flush();
+
+            setTimeout(function () {
+                this.redirect('home');
+            }.bind(this), 50);
+        }
     }
 
 });
