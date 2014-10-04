@@ -8,6 +8,7 @@
         <link rel="import" href="vendor/core-input/core-input.html">
         <link rel="import" href="vendor/paper-icon-button/paper-icon-button.html">
         <link rel="import" href="vendor/paper-shadow/paper-shadow.html">
+        <link rel="import" href="vendor/paper-toast/paper-toast.html">
         <link rel="stylesheet" href="vendor/bootstrap/dist/css/bootstrap.min.css">
     </head>
     <body>
@@ -19,7 +20,7 @@
                     <paper-icon-button icon="arrow-back"></paper-icon-button>
                 </a>
                 <span flex>New profile</span>
-                <paper-icon-button icon="check"></paper-icon-button>
+                <paper-icon-button icon="check" data-sy-action="create|click"></paper-icon-button>
                 <paper-shadow z="1"></paper-shadow>
             </core-toolbar>
             <section class="profile-edit" horizontal layout>
@@ -57,7 +58,7 @@
                     <div class="form-group">
                         <label for="zip" class="col-sm-2 control-label">Zipcode</label>
                         <div class="col-sm-2">
-                            <input id="zip" name="zip" class="form-control">
+                            <input id="zip" name="zipcode" class="form-control">
                         </div>
                         <label for="city" class="col-sm-1 control-label">City</label>
                         <div class="col-sm-5">
@@ -65,6 +66,7 @@
                         </div>
                     </div>
                 </form>
+                <paper-toast text="Some values are incorrect"></paper-toast>
             </section>
         </section>
         <section data-sy-view="edit" data-sy-controller="AddressBook::Edit">
@@ -112,7 +114,7 @@
                     <div class="form-group">
                         <label for="zip" class="col-sm-2 control-label">Zipcode</label>
                         <div class="col-sm-2">
-                            <input id="zip" name="zip" class="form-control">
+                            <input id="zip" name="zipcode" class="form-control">
                         </div>
                         <label for="city" class="col-sm-1 control-label">City</label>
                         <div class="col-sm-5">
@@ -159,7 +161,10 @@
         <script src="js/App/Bundle/AddressBook/Entity/Profile.js"></script>
         <script src="js/App/Bundle/AddressBook/Config/Configuration.js"></script>
         <script src="js/App/Bundle/AddressBook/Config/Service.js"></script>
+        <script src="js/App/Bundle/AddressBook/Config/Validation.js"></script>
         <script src="js/App/Bundle/AddressBook/Subscriber/AppStateSubscriber.js"></script>
+        <script src="js/App/Bundle/AddressBook/FormType/Profile.js"></script>
+        <script src="js/App/Bundle/AddressBook/ViewScreen/Create.js"></script>
         <script src="js/App/Kernel.js"></script>
         <script src="js/app.js"></script>
     </body>

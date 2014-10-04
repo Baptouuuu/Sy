@@ -15,6 +15,18 @@ App.Bundle.AddressBook.Config.Service.prototype = Object.create(Object.prototype
                     tags: [
                         {name: 'event.subscriber'}
                     ]
+                },
+                'addressbook::formtype::profile': {
+                    constructor: 'App.Bundle.AddressBook.FormType.Profile',
+                    tags: [
+                        {name: 'form.type'}
+                    ]
+                },
+                'addressbook::viewscreen::create': {
+                    constructor: 'App.Bundle.AddressBook.ViewScreen.Create',
+                    tags: [
+                        {name: 'view.viewscreen', alias: 'create'}
+                    ]
                 }
             });
         }
