@@ -18,6 +18,8 @@ App.Bundle.AddressBook.Controller.Create.prototype = Object.create(Sy.Controller
                         form.getObject()
                     )
                     .flush();
+
+                this.redirect('home');
             } else {
                 this.viewscreen
                     .displayErrorMessage();
