@@ -50,3 +50,10 @@ body > [data-sy-view] {
 .profile-edit {
     margin: 20px;
 }
+
+.toolbar .search {
+    background-color: transparent;
+    border: none;
+    outline: none;
+    padding: 15px 0;
+}
