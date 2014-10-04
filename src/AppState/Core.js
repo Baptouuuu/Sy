@@ -129,6 +129,10 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
             if (history.state) {
                 this.currentState = this.handler
                     .getState(history.state.uuid);
+
+                if (!this.currentState) {
+                    this.createState();
+                }
             } else {
                 this.createState();
             }
@@ -155,6 +159,10 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
             } else {
                 this.currentState = this.handler
                     .getState(event.state.uuid);
+
+                if (!this.currentState) {
+                    this.createState();
+                }
             }
 
             this.dispatchEvent();
