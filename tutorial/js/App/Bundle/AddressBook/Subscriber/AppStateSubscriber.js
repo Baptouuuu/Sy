@@ -53,12 +53,12 @@ App.Bundle.AddressBook.Subscriber.AppStateSubscriber.prototype = Object.create(S
 
     onChange: {
         value: function (event) {
-            if (event.getState().getRoute() === 'home') {
-                var vs = this.viewManager
+            var route = event.getState().getRoute(),
+                viewscreen = this.viewManager
                     .getViewScreen(
                         event.getRoute().getParameter('_viewscreen')
                     );
-
+            if (route === 'home') {
                 this.storage
                     .getManager()
                     .getDriver()
@@ -70,10 +70,16 @@ App.Bundle.AddressBook.Subscriber.AppStateSubscriber.prototype = Object.create(S
                             .findAll();
                     }.bind(this))
                     .then(function (profiles) {
-                        vs
+                        viewscreen
                             .getLayout('body')
                             .getList('contacts')
                             .render(profiles);
+                    });
+            } else if (route === 'create') {
+                viewscreen
+                    .getLayout('toolbar')
+                    .render({
+                        title: 'New profile'
                     });
             }
         }

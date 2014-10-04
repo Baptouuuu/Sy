@@ -11,9 +11,16 @@ App.Bundle.AddressBook.Config.Configuration.prototype = Object.create(Object.pro
                         path: '/',
                         parameters: {_viewscreen: 'home'}
                     },
+                    create: {
+                        path: '/profile/create',
+                        parameters: {_viewscreen: 'create'}
+                    },
                     edit: {
                         path: '/profile/{id}',
-                        parameters: {_viewscreen: 'edit'}
+                        parameters: {_viewscreen: 'edit'},
+                        requirements: {
+                            id: '\\w{8}-\\w{4}-\\w{4}-\\w{4}-\\w{12}'
+                        }
                     }
                 })
                 .set('storage.dbal', {
