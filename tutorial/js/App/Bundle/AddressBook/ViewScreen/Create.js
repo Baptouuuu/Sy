@@ -25,6 +25,29 @@ App.Bundle.AddressBook.ViewScreen.Create.prototype = Object.create(Sy.View.ViewS
         value: function () {
             this.findOne('paper-toast').show();
         }
+    },
+
+    /**
+     * Reset all the input of the form
+     */
+
+    resetForm: {
+        value: function () {
+            this.getForm().reset();
+        }
+    },
+
+    /**
+     * Extract the blob file from the form input
+     *
+     * @return {File}
+     */
+
+    getPictureFile: {
+        value: function () {
+            return this.findOne('#picture')
+                .files[0];
+        }
     }
 
 });

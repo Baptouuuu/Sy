@@ -12,12 +12,20 @@ App.Bundle.AddressBook.Controller.Create.prototype = Object.create(Sy.Controller
             )
 
             if (form.isValid()) {
+                var entity = form.getObject();
+
+                if (entity.hasPicture()) {
+                    entity.setPictureFile(
+                        this.viewscreen.getPictureFile()
+                    );
+                }
+
                 this.getStorage()
                     .getManager()
-                    .persist(
-                        form.getObject()
-                    )
+                    .persist(entity)
                     .flush();
+
+                this.viewscreen.resetForm();
 
                 this.redirect('home');
             } else {
