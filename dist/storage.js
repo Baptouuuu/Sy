@@ -5774,6 +5774,7 @@ Sy.Storage.Dbal.IndexedDB = function () {
     this.logger = null;
     this.opened = false;
     this.openingCheckInterval = null;
+    this.openingPromise = null;
 };
 Sy.Storage.Dbal.IndexedDB.prototype = Object.create(Sy.Storage.Dbal.DriverInterface.prototype, {
 
@@ -5945,9 +5946,17 @@ Sy.Storage.Dbal.IndexedDB.prototype = Object.create(Sy.Storage.Dbal.DriverInterf
 
     whenOpened: {
         value: function () {
-            return new Promise(function (resolve) {
+            if (this.openingPromise) {
+                return this.openingPromise;
+            }
+
+            this.openingPromise = new Promise(function (resolve) {
                 if (this.opened === true) {
                     resolve();
+                    return;
+                }
+
+                if (this.openingCheckInterval !== null) {
                     return;
                 }
 
@@ -5957,7 +5966,9 @@ Sy.Storage.Dbal.IndexedDB.prototype = Object.create(Sy.Storage.Dbal.DriverInterf
                         clearInterval(this.openingCheckInterval);
                     }
                 }.bind(this), 50);
-            }.bind(this))
+            }.bind(this));
+
+            return this.openingPromise;
         }
     },
 
