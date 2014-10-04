@@ -18,6 +18,18 @@ App.Bundle.AddressBook.Entity.Profile.prototype = Object.create(Sy.Entity.protot
     },
 
     /**
+     * Return the picture
+     *
+     * @return {File}
+     */
+
+    getPicture: {
+        value: function () {
+            return this.picture;
+        }
+    },
+
+    /**
      * Check if the picture is set
      *
      * @return {Boolean}
