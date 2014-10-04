@@ -138,12 +138,14 @@
             <section class="contacts" data-sy-layout="body">
                 <div data-sy-list="contacts" flex horizontal layout wrap>
                     <div class="contact-card" horizontal layout>
-                        <img src="{{pictureUrl}}" alt="" >
+                        <a href="#{{url}}">
+                            <img src="{{p.pictureUrl}}" alt="" >
+                        </a>
                         <div class="infos" flex self-center>
-                            <div class="line">{{firstname}} {{lastname}}</div>
-                            <div class="line">{{address}}</div>
-                            <div class="line">{{zipcode}} {{city}}</div>
-                            <div class="line">{{phone}}</div>
+                            <div class="line">{{p.firstname}} {{p.lastname}}</div>
+                            <div class="line">{{p.address}}</div>
+                            <div class="line">{{p.zipcode}} {{p.city}}</div>
+                            <div class="line">{{p.phone}}</div>
                         </div>
                         <paper-shadow z="1"></paper-shadow>
                     </div>
@@ -165,6 +167,7 @@
         <script src="js/App/Bundle/AddressBook/Subscriber/AppStateSubscriber.js"></script>
         <script src="js/App/Bundle/AddressBook/FormType/Profile.js"></script>
         <script src="js/App/Bundle/AddressBook/ViewScreen/Create.js"></script>
+        <script src="js/App/Bundle/AddressBook/HomeRenderer.js"></script>
         <script src="js/App/Kernel.js"></script>
         <script src="js/app.js"></script>
     </body>

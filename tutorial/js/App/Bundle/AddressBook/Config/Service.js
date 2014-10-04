@@ -10,7 +10,8 @@ App.Bundle.AddressBook.Config.Service.prototype = Object.create(Object.prototype
                     constructor: 'App.Bundle.AddressBook.Subscriber.AppStateSubscriber',
                     calls: [
                         ['setViewManager', ['@sy::core::view::manager']],
-                        ['setStorage', ['@storage']]
+                        ['setStorage', ['@storage']],
+                        ['setHomeRenderer', ['@addressbook::homerenderer']]
                     ],
                     tags: [
                         {name: 'event.subscriber'}
@@ -26,6 +27,13 @@ App.Bundle.AddressBook.Config.Service.prototype = Object.create(Object.prototype
                     constructor: 'App.Bundle.AddressBook.ViewScreen.Create',
                     tags: [
                         {name: 'view.viewscreen', alias: 'create'}
+                    ]
+                },
+                'addressbook::homerenderer': {
+                    constructor: 'App.Bundle.AddressBook.HomeRenderer',
+                    calls: [
+                        ['setViewManager', ['@sy::core::view::manager']],
+                        ['setRouter', ['@router']]
                     ]
                 }
             });

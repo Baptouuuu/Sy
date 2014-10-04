@@ -3,6 +3,7 @@ namespace('App.Bundle.AddressBook.Subscriber');
 App.Bundle.AddressBook.Subscriber.AppStateSubscriber = function () {
     this.viewManager = null;
     this.storage = null;
+    this.homeRenderer = null;
 };
 App.Bundle.AddressBook.Subscriber.AppStateSubscriber.prototype = Object.create(Sy.EventSubscriberInterface.prototype, {
 
@@ -46,6 +47,16 @@ App.Bundle.AddressBook.Subscriber.AppStateSubscriber.prototype = Object.create(S
     },
 
     /**
+     * Set the helper to render home profiles
+     */
+
+    setHomeRenderer: {
+        value: function (renderer) {
+            this.homeRenderer = renderer;
+        }
+    },
+
+    /**
      * Pre-render the viewscreen when accessing home page
      *
      * @param {Sy.AppState.AppStateEvent} event
@@ -70,11 +81,8 @@ App.Bundle.AddressBook.Subscriber.AppStateSubscriber.prototype = Object.create(S
                             .findAll();
                     }.bind(this))
                     .then(function (profiles) {
-                        viewscreen
-                            .getLayout('body')
-                            .getList('contacts')
-                            .render(profiles);
-                    });
+                        this.homeRenderer.renderProfiles(profiles);
+                    }.bind(this));
             } else if (route === 'create') {
                 viewscreen
                     .getLayout('toolbar')

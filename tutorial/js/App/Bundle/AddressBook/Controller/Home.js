@@ -2,6 +2,7 @@ namespace('App.Bundle.AddressBook.Controller');
 
 App.Bundle.AddressBook.Controller.Home = function () {
     this.repo = null;
+    this.renderer = null;
 };
 App.Bundle.AddressBook.Controller.Home.prototype = Object.create(Sy.Controller.prototype, {
 
@@ -10,6 +11,7 @@ App.Bundle.AddressBook.Controller.Home.prototype = Object.create(Sy.Controller.p
             this.repo = this.getStorage()
                 .getManager()
                 .getRepository('AddressBook::Profile');
+            this.renderer = this.container.get('addressbook::homerenderer');
         }
     },
 
@@ -18,10 +20,8 @@ App.Bundle.AddressBook.Controller.Home.prototype = Object.create(Sy.Controller.p
             this.repo
                 .findBy('fullname', event.target.value)
                 .then(function (profiles) {
-                    this.viewscreen
-                        .getLayout('body')
-                        .getList('contacts')
-                        .render(profiles);
+                    this.renderer
+                        .renderProfiles(profiles);
                 }.bind(this));
         }
     }
