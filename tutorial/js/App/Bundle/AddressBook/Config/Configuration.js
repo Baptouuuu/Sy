@@ -29,7 +29,7 @@ App.Bundle.AddressBook.Config.Configuration.prototype = Object.create(Object.pro
                         addressbook: {
                             driver: 'indexeddb',
                             dbname: 'addressbook',
-                            version: 1
+                            version: 2
                         }
                     }
                 })
