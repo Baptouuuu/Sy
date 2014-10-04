@@ -27,7 +27,9 @@ App.Bundle.AddressBook.Controller.Create.prototype = Object.create(Sy.Controller
 
                 this.viewscreen.resetForm();
 
-                this.redirect('home');
+                setTimeout(function () {
+                    this.redirect('home');
+                }.bind(this), 50);
             } else {
                 this.viewscreen
                     .displayErrorMessage();
