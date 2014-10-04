@@ -30,6 +30,21 @@ App.Bundle.AddressBook.Entity.Profile.prototype = Object.create(Sy.Entity.protot
     },
 
     /**
+     * Picture setter
+     * Used to prevent the form from setting empty value
+     */
+
+    setPicture: {
+        value: function (picture) {
+            if (picture) {
+                this.picture = picture;
+            }
+
+            return this;
+        }
+    },
+
+    /**
      * Check if the picture is set
      *
      * @return {Boolean}
@@ -37,7 +52,7 @@ App.Bundle.AddressBook.Entity.Profile.prototype = Object.create(Sy.Entity.protot
 
     hasPicture: {
         value: function () {
-            return !!this.picture;
+            return typeof this.picture === 'string';
         }
     },
 

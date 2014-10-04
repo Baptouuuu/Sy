@@ -23,7 +23,7 @@ App.Bundle.AddressBook.ViewScreen.Create.prototype = Object.create(Sy.View.ViewS
 
     displayErrorMessage: {
         value: function () {
-            this.findOne('paper-toast').show();
+            this.findOne('paper-toast.error').show();
         }
     },
 

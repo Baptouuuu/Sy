@@ -29,6 +29,12 @@ App.Bundle.AddressBook.Config.Service.prototype = Object.create(Object.prototype
                         {name: 'view.viewscreen', alias: 'create'}
                     ]
                 },
+                'addressbook::viewscreen::edit': {
+                    constructor: 'App.Bundle.AddressBook.ViewScreen.Edit',
+                    tags: [
+                        {name: 'view.viewscreen', alias: 'edit'}
+                    ]
+                },
                 'addressbook::homerenderer': {
                     constructor: 'App.Bundle.AddressBook.HomeRenderer',
                     calls: [

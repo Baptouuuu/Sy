@@ -66,7 +66,7 @@
                         </div>
                     </div>
                 </form>
-                <paper-toast text="Some values are incorrect"></paper-toast>
+                <paper-toast class="error" text="Some values are incorrect"></paper-toast>
             </section>
         </section>
         <section data-sy-view="edit" data-sy-controller="AddressBook::Edit">
@@ -75,7 +75,7 @@
                     <paper-icon-button icon="arrow-back"></paper-icon-button>
                 </a>
                 <span flex>{{profile.fullname}}</span>
-                <paper-icon-button icon="check"></paper-icon-button>
+                <paper-icon-button icon="check" data-sy-action="save|click"></paper-icon-button>
                 <paper-icon-button icon="delete"></paper-icon-button>
                 <paper-shadow z="1"></paper-shadow>
             </core-toolbar>
@@ -125,6 +125,8 @@
                 <div class="profile-picture" flex horizontal layout center-justified>
                     <img src="{{profile.pictureUrl}}" alt="" self-center>
                 </div>
+                <paper-toast class="error" text="Some values are incorrect"></paper-toast>
+                <paper-toast class="saved" text="Profile saved"></paper-toast>
             </section>
         </section>
         <section data-sy-view="home" data-sy-controller="AddressBook::Home">
@@ -167,6 +169,7 @@
         <script src="js/App/Bundle/AddressBook/Subscriber/AppStateSubscriber.js"></script>
         <script src="js/App/Bundle/AddressBook/FormType/Profile.js"></script>
         <script src="js/App/Bundle/AddressBook/ViewScreen/Create.js"></script>
+        <script src="js/App/Bundle/AddressBook/ViewScreen/Edit.js"></script>
         <script src="js/App/Bundle/AddressBook/HomeRenderer.js"></script>
         <script src="js/App/Kernel.js"></script>
         <script src="js/app.js"></script>
