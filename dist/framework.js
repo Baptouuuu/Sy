@@ -7699,8 +7699,11 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                 refl = new ReflectionObject(entity);
 
             refl.getProperties().forEach(function (refl) {
-                data[refl.getName()] = refl.getValue();
-            });
+                data[refl.getName()] = this.propertyAccessor.getValue(
+                    entity,
+                    refl.getName()
+                );
+            }.bind(this));
 
             return data;
         }
