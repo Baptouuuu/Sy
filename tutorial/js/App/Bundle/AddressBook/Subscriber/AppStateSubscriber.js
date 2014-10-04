@@ -83,11 +83,24 @@ App.Bundle.AddressBook.Subscriber.AppStateSubscriber.prototype = Object.create(S
                     .then(function (profiles) {
                         this.homeRenderer.renderProfiles(profiles);
                     }.bind(this));
-            } else if (route === 'create') {
-                viewscreen
-                    .getLayout('toolbar')
-                    .render({
-                        title: 'New profile'
+            } else if (route === 'edit') {
+                this.storage
+                    .getManager()
+                    .getDriver()
+                    .whenOpened()
+                    .then(function () {
+                        return this.storage
+                            .getManager()
+                            .find(
+                                'AddressBook::Profile',
+                                event
+                                    .getState()
+                                    .getVariables()
+                                    .id
+                            );
+                    }.bind(this))
+                    .then(function (profile) {
+                        viewscreen.render({profile: profile});
                     });
             }
         }

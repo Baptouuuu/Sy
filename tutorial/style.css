@@ -51,6 +51,11 @@ body > [data-sy-view] {
     margin: 20px;
 }
 
+.profile-picture img {
+    max-height: 125px;
+    max-width: 125px;
+}
+
 .toolbar .search {
     background-color: transparent;
     border: none;
