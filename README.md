@@ -7,11 +7,7 @@ Sy Javascript Framework
 
 ## Philosophy
 
-The aim of this framework is to help you build Single-Page Application (SPA). Sy is built around three principles:
-
-- **Fully asynchronous**
-- **Avoiding closures (as much as possible)**
-- **Building apps not websites**
+The aim of this framework is to help you build Single-Page Application (SPA). The goal is not, like all other frameworks, to quickly build an app but instead build a strong code architecture to build build strong, large scale, applications.
 
 ## Project state
 
