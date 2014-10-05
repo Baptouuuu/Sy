@@ -5,3 +5,4 @@ This section of the documentation is here to walk you through building an [addre
 Steps:
 
 * 1 - User Interface
+* 2 - Bootstrap the framework
