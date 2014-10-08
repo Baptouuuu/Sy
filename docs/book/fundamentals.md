@@ -88,7 +88,7 @@ The 2 variables in the kernel constructor are the environment name and a boolean
 
 ### Routing
 
-This framework is built with app in minds, ones that can be run outside a browser context, meaning one where there is no url bar. So it has been decided to not implement a feature that has no real meaning in certain contexts. (After all, did you see a route in your Photoshop to remember where you were last time you used it?)
+Well in fact the framework expose a routing mechanism, but like no other framework, it's optional. This is done because you may build an app working outside a browser, and so has no url bar. That way you have the choice to whether or not use routes.
 
 ### Two way data binding
 
