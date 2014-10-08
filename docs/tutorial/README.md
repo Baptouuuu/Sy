@@ -10,3 +10,4 @@ Steps:
 * 4 - Controller
 * 5 - Data
 * 6 - Rendering
+* 7 - Separation of concerns
