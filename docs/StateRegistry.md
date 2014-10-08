@@ -1,6 +1,6 @@
 # StateRegistry
 
-A StateRegistry is based on the [Registry](Registry), and is based around the notion of states. For example it can be used in the process of storing data, you could use it to store elements needed to be created, updated or removed.
+A StateRegistry is based on the [Registry](Registry.md), and is based around the notion of states. For example it can be used in the process of storing data, you could use it to store elements needed to be created, updated or removed.
 
 **Important**: by design a same key can be in different states, it's up to you to check if a key exist in a state before putting it in another state. You can automate this by calling `setStrict()` on the registry.
 
@@ -25,14 +25,14 @@ var bool = stateRegistry.has('stateName');
 ```
 **Note**: even if there's no more elements in it, it will return true if you setted an element before in this state.
 
-You can check if an key exist in a state like so:
+You can check if a key exist in a state like so:
 ```js
 var bool = stateRegistry.has('stateName', 'key');
 ```
 
 ## Getting element(s)
 
-You can retrieve a value in state by doing:
+You can retrieve a value in a state by doing:
 ```js
 var val = stateRegistry.get('stateName', 'key');
 ```

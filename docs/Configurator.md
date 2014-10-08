@@ -59,7 +59,7 @@ config
   .set('foo.bar.baz', 24)
   .set('foo.baz', 42);
 ```
-With this you will obtain an object like below:
+With this, you will obtain an object like below:
 ```js
 {
   foo: {

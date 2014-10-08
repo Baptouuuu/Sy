@@ -21,7 +21,7 @@ Not using the request object to directly send the request allows you to reuse th
 
 ## Request
 
-This object wraps the creation of a http request; it must implement [`Sy.HTTP.RequestInterface`](../src/HTTP/RequestInterface.js). It is a representation of a request, so by itself the object does nothing, got to the [`Manager`](#manager) to see how to use them.
+This object wraps the creation of a http request; it must implement [`Sy.HTTP.RequestInterface`](../src/HTTP/RequestInterface.js). It is a representation of a request, so by itself the object does nothing, go to the [`Manager`](#manager) to see how to use them.
 
 ### Creation
 
@@ -59,7 +59,7 @@ request.setData({
 
 In certain occasion you may want to add extra headers (like when accessing an API), you can do it by two manners:
 ```js
-request.setHeaders('key1', 'value1');
+request.setHeader('key1', 'value1');
 // or
 request.setHeader({
   key1: 'value1',
@@ -140,7 +140,7 @@ manager
   .setParser(new Sy.HTTP.HeaderParser())
   .setGenerator(new Sy.Lib.Generator.Interface());
 ```
-The manager depends on two other objects. The first allows to extract from the string return by `XMLHttpRequest.getAllResponseHeaders()` the list of key/value header pairs.
+The manager depends on two other objects. The first allows to extract from the string returned by `XMLHttpRequest.getAllResponseHeaders()` the list of key/value header pairs.
 
 The second dependency is a generator used when initiating a new request. At this step, the manager associate a unique identifier to the request, so it can access it more easily in the state change listener. The identifier is also used to abort a request.
 In the example above, we use an instance of the generator interface, obviously this won't work as the interface does not generate content. You will need to use an instance that return real content, you can use [`Sy.Lib.Generator.UUID`](../src/Lib/Generator/UUID.js) (the framework use this generator for the manager) but you can build your own if you want (though remember that it must implement the above interface).

@@ -49,7 +49,7 @@ The `createFormBuilder` method accepts 2 arguments. The first is the object that
 
 The data object can be either a POJO (`{}`) or your own custom object (say an entity object). The component use [reflection](https://github.com/Baptouuuu/Reflection.js) to inject the data in the object, and supports 3 ways to set the data. First it will look for a specific setter (ie: `set{InputName}`), then for a generic setter and will pass the input name and data (ie: `set(inputName, inputValue)`) and in last it will directly set the value in the object (ie: `object[inputName] = inputValue`).
 
-Here the option object is useful in the case you use the framework validator, in the object you can specify the validation groups used whan calling `form.isValid()`. To specify one, just pass an object like this `{validationGroups: ['group_name']}`.
+Here the option object is useful in the case you use the framework validator, in the object you can specify the validation groups used when calling `form.isValid()`. To specify one, just pass an object like this `{validationGroups: ['group_name']}`.
 
 Once you have called `createFormBuilder`, you have an instance of [`Sy.Form.FormBuilderInterface`](../src/Form/FormBuilderInterface.js). At this point, there's only 3 methods you need to care about: `add`, `setName` and `getForm`.
 
@@ -173,4 +173,4 @@ builder.registerFormType(new MyFormType());
 var form = builder.createForm('form name');
 ```
 
-The string used here is the one returned by `MyFormType.getName()`, so be careful in the naming to not overrideyour form types.
+The string used here is the one returned by `MyFormType.getName()`, so be careful in the naming to not override your form types.

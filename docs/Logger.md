@@ -2,7 +2,7 @@
 
 Sy comes with a simple logger with 4 levels of logs:
 
-* `debug`: to be used only to traces bugs during development
+* `debug`: to be used only to trace bugs during development
 * `log`: for various events, like the steps during app bootstrap
 * `info`: for more important events
 * `error`: for all errors that can occur in your app
@@ -34,7 +34,7 @@ var handler = new Sy.Lib.Logger.Handler.Console(logger.LOG);
 logger.setHandler(handler, logger.LOG);
 ```
 
-Like said before a handler handles only one log level, the one specified in the handler constructor. The `CoreLogger` provides the levels under the constants: `DEBUG`, `LOG`, `INFO` and `ERROR`.
+Like said before a handler handles only one log level, the one specified in the handler constructor. The `Sy.Lib.Logger.Interface` provides the levels under the constants: `DEBUG`, `LOG`, `INFO` and `ERROR`.
 
 When setting the handler into the logger, you specify once again the level so the logger knows the handler is specific to the specified level.
 
