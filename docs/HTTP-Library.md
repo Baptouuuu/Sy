@@ -34,7 +34,6 @@ var request = new Sy.HTTP.Request();
 ```js
 request.setURI('/path/to/resource');
 ```
-The term `uri` has been chosen as you can only access resources on the same domain, instead of `url` that may fool you thinking you can access resources everywhere.
 
 ### Method
 
