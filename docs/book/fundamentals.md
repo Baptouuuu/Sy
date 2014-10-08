@@ -49,7 +49,7 @@ To resume, by using namespaces you can avoid the problem of global variables **a
 
 In the other chapters you'll see how to define your classes inside your bundles, but it does not tell you how to initiate your application.
 
-Usually, it's done inside a small file added at the very end of your html page, this one will be responsible to define your [app configuration](config.md), boot the framework kernel and display the first viewscreen.
+Usually, it's done inside a small file added at the very end of your html page, this one will be responsible to define your [app configuration](config.md), boot the framework kernel and display the first viewscreen (you can also leave this job to [routes](routing.md)).
 
 Example:
 ```js
