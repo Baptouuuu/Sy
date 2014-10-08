@@ -28,7 +28,7 @@ rest.get({
 ```
 Associated http request:
 ```
-GET /path/to/resource HTTP/1.2
+GET /path/to/resource HTTP/1.1
 /*
   General headers
 */
@@ -60,7 +60,7 @@ rest.post({
 ```
 Associated http request:
 ```
-POST /path/to/resource HTTP/1.2
+POST /path/to/resource HTTP/1.1
 /*
   General headers
 */
@@ -92,7 +92,7 @@ rest.put({
 ```
 Associated http request:
 ```
-PUT /path/to/resource HTTP/1.2
+PUT /path/to/resource HTTP/1.1
 /*
   General headers
 */
@@ -121,7 +121,7 @@ rest.remove({
 ```
 Associated http request:
 ```
-DELETE /path/to/resource HTTP/1.2
+DELETE /path/to/resource HTTP/1.1
 /*
   General headers
 */

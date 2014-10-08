@@ -112,7 +112,7 @@ With this code, when the engine will retrieve a wrapper for a layout node, if th
 
 As its name indicates, it's a list wrapper for a node acting as list. To define one it must be declared inside a Layout node as follows:
 ```html
-<section data-sy-layout>
+<section data-sy-layout="your-layout-name">
   <ul data-sy-list="your-list-name">
     <li data-type="alpha">
       This a element of type "{{ _type }}" with the value: {{ alpha.value }}
@@ -125,7 +125,7 @@ As its name indicates, it's a list wrapper for a node acting as list. To define 
 ```
 In general a list is composed of only one type of element, but some times you want to display different types of content in the same list (ie: in a timeline you could display a video, then a news, and so on...).
 
-As you can see above, you can defined register typed childs. Each direct child of the list is a raw representation of a content, and is taken off the DOM when the List is loaded.
+As you can see above, you can register typed childs. Each direct child of the list is a raw representation of a content, and is taken off the DOM when the `List` is loaded.
 
 To use it:
 ```js
@@ -133,15 +133,15 @@ var list = layout.getList('your-list-name');
 list.render([
   {
     alpha: {
-      value: 'alpha',
-      _type: 'alpha'
-    }
+      value: 'alpha'
+    },
+    _type: 'alpha'
   },
   {
     beta: {
-      value: 'beta',
-      _type: 'beta'
-    }
+      value: 'beta'
+    },
+    _type: 'beta'
   }
 ]);
 ```
@@ -176,7 +176,7 @@ In both cases, the second argument is the type you want to choose and can be omi
 
 To access to all the lists of the layout:
 ```js
-layout.getLayouts();
+layout.getLists();
 ```
 
 ### Custom wrappers
@@ -193,7 +193,7 @@ factory.setListWrapper('viewscreen name', 'layout name', 'name', new Wrapper());
 ```
 The first parameter of `setListWrapper` is the viewscreen name where the layout is located, and the second one is for the layout it belongs to. It's needed so you can reuse the same list name in different viewscreens.
 
-With this code, when the engine will retrieve a wrapper for a layout node, if the defined name on the node matches the one you registered, the factory will return the instance of `Wrapper` instead of [`Sy.View.Layout`](../src/View/Layout.js). So you can add your custom methods to a wrapper.
+With this code, when the engine will retrieve a wrapper for a list node, if the defined name on the node matches the one you registered, the factory will return the instance of `Wrapper` instead of [`Sy.View.List`](../src/View/Layout.js). So you can add your custom methods to a wrapper.
 
 ## Rendering
 
@@ -264,7 +264,7 @@ For example the first placeholder below won't be replaced, but the last will:
   <span>too bad for you but {{ I.will }</span>
 </div>
 ```
-This restriction is due that `textContent` on the div will contains the span `textContent` and so replacing the textContent on the first one may mess up the text layout.
+This restriction is due that `textContent` on the div will contain the span `textContent` and so replacing the textContent on the first one may mess up the text layout.
 
 ### Sugar
 
@@ -275,7 +275,7 @@ If you want to re-render a node (so now without placeholder), you can still use 
 You want to inject dom nodes in a template, you can do it as follows:
 ```js
 renderer.render(node, {
-  value: HTMLElement  //It must a dom node, no html as text
+  value: HTMLElement  //It must be a dom node, no html as text
 });
 ```
 ```html
@@ -292,7 +292,7 @@ The engine can inform you when the viewport changes (meaning a viewscreen is dis
 * `view::on::pre::display`
 * `view::on::post::display`
 
-Those events are published with one argument which is the `ViewScreen` wrapper for the node being displayed.
+Those events are published with one argument which is the `ViewPortEvent` allowing you to access the viewscreen wrapper for the node being displayed via the method `getViewScreen`.
 
 ## Extra
 

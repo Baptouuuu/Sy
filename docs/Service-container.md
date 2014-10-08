@@ -9,6 +9,7 @@ This component is here to build your objects and automatically manage the creati
 The process is pretty simple:
 ```js
 var container = new Sy.ServiceContainer.Core();
+container.setCompiler(new Sy.ServiceContainer.Compiler());
 ```
 
 Done!
@@ -87,7 +88,7 @@ container.set({
 
 Above you have an example how to inject a set of parameters in the container. You then have an access to them as arguments of your setters by using the syntax `%param.name%`. The dotted notation means a nested object.
 
-You can event drop the reference to the `params` variable as you can retrieve the parameters from outside the container by calling `container.getParameter()` (you can even check if a parameter exist via `container.hasParameter()`).
+You can even drop the reference to the `params` variable as you can retrieve the parameters from outside the container by calling `container.getParameter()` (you can even check if a parameter exist via `container.hasParameter()`).
 
 ## Private services
 
@@ -114,7 +115,7 @@ Here your `serviceB` will be accessible as a dependency to `serviceA` but will n
 
 ## Factories
 
-Some times, you'll want to have a greater control on how to create an instance of a class. This is where factories come into place, instead of the container building directly the instance, it will call your factory to build the wished instance.
+Sometimes, you'll want to have a greater control on how to create an instance of a class. This is where factories come into place, instead of the container building directly the instance, it will call your factory to build the wished instance.
 
 ```js
 container.set({
@@ -270,11 +271,11 @@ Now, instead of calling your service with the very long name, you can go with `w
 
 This is the most advanced topic about the service container, but still very simple to understand. This step is necessary before you can properly use your container (and is done by calling `container.compile()`.
 
-**Note**: if you create your own instance of the container, you need to inject the compiler in the container: `container.setCompiler(new Sy.ServiceContainer.Compiler())`.
+**Note**: if you create your own instance of the container, you need to inject the compiler in the container: `container.setCompiler(new Sy.ServiceContainer.Compiler(new Sy.ServiceContainer.Compiler())`.
 
 As you saw above, you can use the shortcuts `%param%` and `@service` as references to a parameter or a service. This magic is handled by 2 compiler passes.
 
-The goal of a compiler pass is to alter the services definitions. For these 2, it will replace respectively the strings by instances of `Sy.ServiceContainer.Parameter` and `Sy.ServiceContainer.Reference`, this with these 2 that the container really understand to go pick a parameter or a service.
+The goal of a compiler pass is to alter the services definitions. For these 2, it will replace respectively the strings by instances of `Sy.ServiceContainer.Parameter` and `Sy.ServiceContainer.Reference`, this is with these 2 that the container really understand to go pick a parameter or a service.
 
 Usually you'll work with compiler passes when you work with tags.
 
@@ -302,7 +303,7 @@ StorageAdapterPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInt
 
 container.addPass(new StorageAdapterPass());
 ```
-The example above at compilation time look for every service tagged with `storage.adapter` and add a new call to the `myStorage` service. So when the latter will be called, it will automatically call `setStorageAdapter` with a instance of every adapter as argument.
+The example above at compilation time look for every services tagged with `storage.adapter` and add a new call to the `myStorage` service. So when the latter will be called, it will automatically call `setStorageAdapter` with a instance of every adapter as argument.
 
 This would allow to easily create a storage engine and share it with the rest of the world, and people could easily add their own adapters.
 

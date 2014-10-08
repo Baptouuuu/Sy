@@ -1,6 +1,6 @@
 # Validation
 
-An important part of applications is data validation, for simple cases you probably do it via a simple `if` statement. But, when it starts getting bigger, it's becoming harder to maintain all the tests in a maintanable way.
+An important part of applications is data validation, for simple cases you probably do it via a simple `if` statement. But, when it starts getting bigger, it's becoming harder to handle all the tests in a maintanable way.
 
 That's where this validation component comes into place, it helps you do data validation by simply declaring what are the constraints the data must comply with.
 
@@ -124,16 +124,16 @@ The structure to register rules for a class is like so:
 {
     'Path.String.To.Class': {
         getters: {
-            method: { //<- this is a method name used to get data that will afterward validated against constraint defined in the object
-                ConstraintName: { //<- this is the name of a constraint, you can defined as many as you want
-                    //this object will be passed as argument to the constraint
+            method: { //<- this is a method name used to get data that will afterward be validated against constraint defined in the object
+                ConstraintName: { //<- this is the name of a constraint, you can define as many as you want
+                    //this object will be passed as argument to the constraint constructor
                 }
             }
         },
         properties: {
             property: { //<- this is the name of a property to validate
-                ConstraintName: { //<- this is the name of a constraint, you can defined as many as you want
-                    //this object will be passed as argument to the constraint
+                ConstraintName: { //<- this is the name of a constraint, you can define as many as you want
+                    //this object will be passed as argument to the constraint constructor
                 }
             }
         }
@@ -182,7 +182,7 @@ barViolations = violations.getViolationsAt('bar');
 
 This method will return a raw representation of all the violations, meaning an array of POJO.
 
-For example, by calling `violations.toJSON()` may return an array like this:
+For example, calling `violations.toJSON()` may return an array like this:
 ```js
 [
     {message: 'some constraint message', path: 'bar'},
