@@ -78,7 +78,7 @@ saveAction: {
                 .persist(form.getObject())
                 .flush();
 
-            this.rediect('home');
+            this.redirect('home');
         } else {
             //display some errors
         }
