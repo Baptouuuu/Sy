@@ -9,3 +9,4 @@ Steps:
 * 3 - Routing
 * 4 - Controller
 * 5 - Data
+* 6 - Rendering
