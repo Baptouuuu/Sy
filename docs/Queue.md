@@ -2,7 +2,7 @@
 
 A StateRegistry is based on the [Registry](Registry), and is based around the notion of states. For example it can be used in the process of storing data, you could use it to store elements needed to be created, updated or removed.
 
-**Important**: by design a same key can be in different states, it's up to you to check if a key exist in a state before putting it in another state.
+**Important**: by design a same key can be in different states, it's up to you to check if a key exist in a state before putting it in another state. You can automate this by calling `setStrict()` on the registry.
 
 ## Creation
 
