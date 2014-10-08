@@ -83,9 +83,9 @@ You can set the type of data you want returned with:
 ```js
 request.setType('json');
 ```
-This method only accept `html` and `json`. The first will give you a DOM object as response's body; and the second one will parse the response as a JSON document so you don't have to use `JSON.parse` before you use your data.
+This method accept `html`, `json` and `blob`. The first will give you a DOM object as response's body; the second one will parse the response as a JSON document so you don't have to use `JSON.parse` before you use your data and the last one return a blob as a body (used for images).
 
-The library come with two typed requests: [`Sy.HTTP.HTMLRequest`](../src/HTTP/HTMLRequest.js) and [`Sy.HTTP.JSONRequest`](../src/HTTP/JSONRequest.js). Those two automatically set the appropriate type (with the method described above), and set the `Accept` header key with respectively `text/html,application/xhtml+xml` and `application/json`.
+The library come with 3 typed requests: [`Sy.HTTP.HTMLRequest`](../src/HTTP/HTMLRequest.js), [`Sy.HTTP.JSONRequest`](../src/HTTP/JSONRequest.js) and [`Sy.HTTP.ImageRequest`](../src/HTTP/ImageRequest.js). These automatically set the appropriate type (with the method described above), and set the `Accept` header key with respectively `text/html,application/xhtml+xml`, `application/json` and `image/*`.
 
 
 ## Response
@@ -119,7 +119,7 @@ The response body is accessible through:
 ```js
 response.getBody();
 ```
-By default this will return a string. However if you made a `HTMLRequest` or `JSONRequest` it will return a DOM node or a parsed JSON; those requests also mean that the response is also typed by being, respectively, an instance of [`Sy.HTTP.HTMLResponse`](../src/HTTP/HTMLResponse.js) and [`Sy.HTTP.JSONResponse`](../src/HTTP/JSONResponse.js).
+By default this will return a string. However if you made a `HTMLRequest`, `JSONRequest` or `ImageRequest` it will return a DOM node, a parsed JSON or a `Blob`; those requests also mean that the response is also typed by being, respectively, an instance of [`Sy.HTTP.HTMLResponse`](../src/HTTP/HTMLResponse.js), [`Sy.HTTP.JSONResponse`](../src/HTTP/JSONResponse.js) and [`Sy.HTTP.ImageResponse`](../src/HTTP/ImageResponse.js).
 
 
 ## Manager
