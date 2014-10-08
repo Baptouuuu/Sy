@@ -1,0 +1,64 @@
+body {
+    margin: 0;
+}
+
+body > [data-sy-view] {
+    display: none;
+}
+
+.toolbar {
+    background-color: #39f;
+    color: #f1f1f1;
+}
+
+.toolbar > a {
+    color: #f1f1f1;
+    display: block;
+    height: 40px;
+}
+
+.toolbar > a:hover {
+    color: #f1f1f1;
+}
+
+.contacts {
+    margin: 20px;
+}
+
+.contact-card {
+    display: inline-block;
+    height: 125px;
+    margin: 0 15px 15px 0;
+}
+
+.contact-card img {
+    height: 125px;
+}
+
+.contact-card .infos {
+    padding: 5px 15px;
+    max-width: 250px;
+}
+
+.infos .line {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-edit {
+    margin: 20px;
+}
+
+.profile-picture img {
+    max-height: 125px;
+    max-width: 125px;
+}
+
+.toolbar .search {
+    background-color: transparent;
+    border: none;
+    outline: none;
+    padding: 15px 0;
+}

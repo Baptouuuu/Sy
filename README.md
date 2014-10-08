@@ -19,6 +19,10 @@ Bear in mind that until the release 1.0 some methods of those libraries may chan
 
 Please read the framework [book](docs/book/), you should also take a look at the [components documentations](docs/README.md).
 
+## How to use
+
+Head to the [tutorial](docs/tutorial/README.md) to understand step by step how to build an app.
+
 ## Conventions
 
 ### Naming
