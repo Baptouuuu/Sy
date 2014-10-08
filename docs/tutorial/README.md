@@ -11,3 +11,4 @@ Steps:
 * 5 - Data
 * 6 - Rendering
 * 7 - Separation of concerns
+* 8 - Training wheels off
