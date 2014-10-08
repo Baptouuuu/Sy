@@ -8,8 +8,6 @@ This is a MVC framework built for large, offline first, application. It helps th
 
 A good practice in software development is to keep your code lossely coupled. That's why from the start this framework has been built around the principle each component could be used independently from the rest of the framework.
 
-The loosely coupled principle is taken a step further, by taking applying it to the separation of employees jobs. It's applicable to the storage and view components, and is more explained in their own documentation. But the goal is to help you do your work without affecting the one of designers and backend colleagues.
-
 ## Service/Event centric
 
 Almost every part of the framework is accessible through a service (see the [`ServiceContainer`](../Service-container.md) doc). It helps bootstrap complex mechanism by easily resolving dependencies, and by keeping an abtraction between each component. Think: "I want to use this, and don't want to care how to build it".
