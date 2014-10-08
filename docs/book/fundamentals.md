@@ -84,7 +84,7 @@ The first array element is the name you want to give to your bundle, and the sec
 
 The 2 variables in the kernel constructor are the environment name and a boolean to activate or not debug features. These can be retrieved as a service container parameter under the respective keys `app.environment` and `app.debug`. By default the framework don't rely on the environment name, but use the debug flag to modify a bit its behaviour.
 
-## What is does not
+## What it does not
 
 ### Routing
 
