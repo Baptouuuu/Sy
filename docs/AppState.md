@@ -2,13 +2,13 @@
 
 This component is here to help you bind an url (hashbang) to anything you want. It builds upon the history api (`replaceState` and `popstate`) and the changes made on the url hash.
 
-For example, say you've defined a route named `profile` corresponding to the path `/profile/{id}`, when you'll navigate to `/path/to/index.html#/profile/42` the component will fire an event with an reference to the state related to the route and a referenec to the route definitions. Via this event you'll know you are on the route named `profile` and the url placeholder `id` is set to `42`. From there, you can do whatever you want, but you'll most likely whant to change the user UI.
+For example, say you've defined a route named `profile` corresponding to the path `/profile/{id}`, when you'll navigate to `/path/to/index.html#/profile/42` the component will fire an event with an reference to the state related to the route and a reference to the route definitions. Via this event you'll know you are on the route named `profile` and the url placeholder `id` is set to `42`. From there, you can do whatever you want, but you'll most likely whant to change the UI.
 
 **Note**: this component relies on the [generator](../src/Lib/Generator/UUID.js) to uniquely identify a state and the [mediator](Mediator.md) to fire the event.
 
 Before jumping into how to use all this, let's start with a bit of naming conventions. The 2 main principles are the `Route` and the `State`.
 
-The first one is static representation of a url path. It says, for a given name I have a given url with (or without) placeholders. You can event specify what a placeholder must look like (this called a requirement and takes the form of regular expression).
+The first one is static representation of a url path. It says, for a given name I have a given url with (or without) placeholders. You can even specify what a placeholder must look like (this is called a requirement and takes the form of regular expression).
 
 The state is when you access a specific route, it means that a new `State` object is created to reference the route matched and also contains the placeholders values if any.
 
@@ -16,7 +16,7 @@ The state is when you access a specific route, it means that a new `State` objec
 
 The first interaction you'll have with the mechanism is via the engine [core](../src/AppState/Core.js) (in the framework it's accessible via the [service](Service-container.md) called `sy::core::appstate`).
 
-On this object you have access 2 methods: `getUrl` and `getCurrentState`.
+On this object you have access to 2 methods: `getUrl` and `getCurrentState`.
 
 The firt one return the app path contained in the url hash. Use this method so you don't have to parse it yourself.
 
@@ -60,7 +60,7 @@ Once a route is set you can retrieve it via the method `getRoute(routeName)` or 
 
 ## Listen for state change
 
-Instead of manually listen to the url change, you can listen to the mediator channel `appstate.change` and you will receive an instance of [`AppStateEvent`](../src/AppState/AppStateEvent.js).
+Instead of manually listening to the url change, you can listen to the mediator channel `appstate.change` and you will receive an instance of [`AppStateEvent`](../src/AppState/AppStateEvent.js).
 
 Example:
 ```js

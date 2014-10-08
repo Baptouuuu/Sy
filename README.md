@@ -40,7 +40,7 @@ Services name are `lowercase` and words are separated by a double colon (ie: `fo
 
 ### Structure
 
-For better scability, Sy uses a strong structure in the namespacing of your app. Your app folder should look something like this:
+For better scalability, Sy uses a strong structure in the namespacing of your app. Your app folder should look something like this:
 
 ```
 App
@@ -63,4 +63,4 @@ Sy framework uses [gitflow](http://nvie.com/posts/a-successful-git-branching-mod
 
 Before submitting new issues, make sure no one already opened a discussion in the [tracker](https://github.com/baptouuuu/sy/issues) related to yours.
 
-Please follow the coding style explained above (Most of the coding style via a grunt task, so any error will appear in travis).
+Please follow the coding style explained above (Most of the coding style is checked via a grunt task, so any error will appear in travis).
