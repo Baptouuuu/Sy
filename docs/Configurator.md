@@ -1,6 +1,6 @@
 # Configurator
 
-As its name indicates, it's used to hold configuration elements. A default instance is available in `Sy.config`.
+As its name indicates, it's used to hold configuration elements.
 
 ## Creation
 
