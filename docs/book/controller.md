@@ -76,10 +76,6 @@ The first one takes only two arguments: the channel name and the function callba
 
 The `broadcast` is nothing more than a shortcut as it only applies the arguments you pass to the `publish` method on the mediator.
 
-### Entity creation
-
-Writing the full namespace to create a new entity can quickly become annoying, that's why the controller come with a method called `new` to help you create new entities via their alias. For example, to create an instance of `App.Bundle.Foo.Entity.Bar` just call `this.new('Foo::Bar', {})` inside your controller. The object passed as second argument is the data object that will populate the entity.
-
 ### Storage
 
 To give a quicker access to the storage engine, a controller ships with a method called `getStorage`, pretty straightforward. Not that much magic behind it, it only retrieve the service called `sy::core::storage` (aliased with `storage`).
