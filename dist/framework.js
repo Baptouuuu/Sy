@@ -1,4 +1,4 @@
-/*! sy#0.9.1 - 2014-10-09 */
+/*! sy#1.0.0 - 2014-10-09 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -1296,11 +1296,11 @@ Sy.Kernel.FeatureTester.prototype = Object.create(Object.prototype, {
     testXHR: {
         value: function () {
 
-            if (typeof XMLHttpRequest !== 'function') {
+            if (typeof XMLHttpRequest === 'undefined') {
                 throw new ReferenceError('XMLHttpRequest is not defined');
             }
 
-            if (typeof FormData !== 'function') {
+            if (typeof FormData === 'undefined') {
                 throw new ReferenceError('FormData is not defined');
             }
 
@@ -1338,7 +1338,7 @@ Sy.Kernel.FeatureTester.prototype = Object.create(Object.prototype, {
                 throw new ReferenceError('Element dataset not supported');
             }
 
-            if (!(document.body.attributes instanceof NamedNodeMap)) {
+            if (typeof document.body.attributes !== 'object') {
                 throw new ReferenceError('Element.attributes not defined');
             }
 
@@ -18878,7 +18878,7 @@ Sy.AppState.StateHandler.prototype = Object.create(Object.prototype, {
         value: function () {
             this.storage.setItem(
                 this.key,
-                JSON.stringify(this.states.splice(0 - 10))
+                JSON.stringify(this.states.splice(0 - history.length))
             );
         }
     }

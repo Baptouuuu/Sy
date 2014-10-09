@@ -1,4 +1,4 @@
-/*! sy#0.9.1 - 2014-10-09 */
+/*! sy#1.0.0 - 2014-10-09 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -1197,7 +1197,7 @@ Sy.AppState.StateHandler.prototype = Object.create(Object.prototype, {
         value: function () {
             this.storage.setItem(
                 this.key,
-                JSON.stringify(this.states.splice(0 - 10))
+                JSON.stringify(this.states.splice(0 - history.length))
             );
         }
     }
