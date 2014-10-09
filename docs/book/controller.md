@@ -28,7 +28,7 @@ Now to link this controller to a viewscreen, you simply have to add a new attrib
 ```html
 <section data-sy-view="viewscreen name" data-sy-controller="YourBundleName::ControllerName"></section>
 ```
-When the controller listen to the viewport change, it reads this attribute and can easily determine the path to your controller.
+When the controller manager listen to the viewport change, it reads this attribute and can easily determine the path to your controller.
 
 ## Lifecycle
 
@@ -112,7 +112,7 @@ By using the feature offered by the framework, it gives you access to 2 new chan
 
 Each one is published with an instance of [`Sy.Event.ControllerEvent`](../../src/Event/ControllerEvent.js). It can help you listen to events on your controller from elsewhere in your app, without adding code inside the controller method.
 
-**Important**: there's a restriction with `data-sy-action` you can't place one on elements inside a list. This behaviour is intended to prevent creating to many listeners. Instead you should place one listener on the list container and then filter the element click (or something else) inside the controller action.
+**Important**: there's a restriction with `data-sy-action` you can't place one on elements inside a list. This behaviour is intended to prevent creating too many listeners. Instead you should place one listener on the list container and then filter the element click (or something else) inside the controller action.
 
 ## Cache
 

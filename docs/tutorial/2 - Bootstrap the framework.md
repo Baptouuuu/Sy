@@ -11,7 +11,7 @@ First include the js file and the dependencies. So put this at the end of the `b
 <script src="vendor/sy/dist/framework.js"></script>
 ```
 
-When you include the framework javascript, it only declares its clases under the global variable `Sy`. Meaning: it doesn't messup the `window` variable and it doesn't do anything by itself until you tell it to.
+When you include the framework javascript, it only declares its classes under the global variable `Sy`. Meaning: it doesn't messup the `window` variable and it doesn't do anything by itself until you tell it to.
 
 ## Kernel
 
@@ -19,7 +19,7 @@ The first javascript you need to write is called the kernel. This is where all t
 
 You can find the bare kernel needed as a [dist file](../../AppKernel.js.dist), copy it and put it in the file `js/App/Kernel.js`.
 
-This file is where you declare all the bundles will be using. Reminder, a bundle is where you put your code, in a structured manner, related to a feature of your app.
+This file is where you declare all the bundles used. Reminder, a bundle is where you put your code, in a structured manner, related to a feature of your app.
 
 For this app, we'll create a bundle called `AddressBook`. By convention a bundle is placed in the object `App.Bundle`.
 

@@ -81,4 +81,3 @@ saveAction: {
 Above when you call `form.handle` it will look for each declared field and inject the data from the form elemnts to the object passed as argument of `createFormBuilder`.
 
 You check if the form is valid via `form.isValid()`, if it's the case you can save the data, otherwise alert the user of the errors. Once the data saved you can redirect to the `home` viewscreen.
-

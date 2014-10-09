@@ -6,7 +6,7 @@ For the address book there's 3 pages to build. The home to display all the profi
 
 As the framework intends, we're building a SPA, so all of our html will be contained in a signle `index.html` file.
 
-**Note**: [Polymer](https://www.polymer-project.org) as been used to build faster the UI, but this tutorial won't explain how to use it.
+**Note**: [Polymer](https://www.polymer-project.org) has been used to build the UI faster, but this tutorial won't explain how to use it.
 
 ## Boilerplate
 

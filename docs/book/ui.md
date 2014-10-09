@@ -17,7 +17,7 @@ The `foo` text should never be displayed.
 
 But why should you do that? Simple, the framework don't handle any DOM outside of the viewport. So, except if it's just a canvas for the whole app, you should keep everything inside of your viewscreens.
 
-Now the viewscreens, each one is a representation of a "page" of your app (say the home of your app, a profile or login screen, etc...); and they can be layered in sub-sections (but we'll to come to it in a few minutes).
+Now the viewscreens, each one is a representation of a "page" of your app (say the home of your app, a profile or login screen, etc...); and they can be layered in sub-sections (but we'll come to it in a few minutes).
 
 Concerning the data, the framework use a simple mechanism that walk through the DOM tree and replace data placeholders. A thing that other frameworks do but that you won't find here, is to put logic inside your HTML. This format is not designed to handle complex behaviours inside it. Plus, it's kind of weird to put code inside what's supposed to only represent your data (it's like we're trying to re-introduce old `onclick` and others attributes).
 The advantage of keeping only data placeholders in the html is that the person building the html template can be different from the one writing the app code (aka you). The one in charge of html should be able to come back to the page and make modifications without wondering if he has broken something. It's up to you to check if those modifications have broken *your* code, it's not the way around. (I like to think of it as teammates loosely coupling)
@@ -34,12 +34,12 @@ app.getContainer()
     .get('sy::core::viewport')
     .display('viewscreen name');
 ```
-This code will inject the viewscreen node inside the viewport (or replace the previous one); it will throw an error if there's more tha none child. This service is also configured with the global mediator service and publish 2 channels each time you call `.display()`:
+This code will inject the viewscreen node inside the viewport (or replace the previous one); it will throw an error if there's more than one child. This service is also configured with the global mediator service and publish 2 channels each time you call `.display()`:
 
 * `view::on::pre::display`
 * `view::on::post::display`
 
-Those channels are published, like I'm sure you've understood, before the new viewscreen is injected or replacing the old one and after this operation. There're fired with an instance of [`Sy.View.Event.ViewPortEvent`](../../src/View/Event/ViewPortEvent.js) holding the viewscreen wrapper of the one being displayed (you don't have access to the old one).
+Those channels are published, like I'm sure you've understood, before the new viewscreen is injected or replacing the old one and after this operation. They're fired with an instance of [`Sy.View.Event.ViewPortEvent`](../../src/View/Event/ViewPortEvent.js) holding the viewscreen wrapper of the one being displayed (you don't have access to the old one).
 
 ## Viewscreen
 
@@ -55,7 +55,7 @@ Example:
 </body>
 ```
 
-When the framework boot, it looks for all the viewscreens and tkae them off the DOM tree. So what's really on your page is only what's being displayed to the user.
+When the framework boot, it looks for all the viewscreens and take them off the DOM tree. So what's really on your page is only what's being displayed to the user.
 
 To render your viewscreen with a set of data, you need to retrieve it's wrapper and then call `render` on it like so:
 ```js
@@ -186,7 +186,7 @@ First declare a new list:
 ```
 Here we declare a new list wrapper and two data representation we accept for this list.
 
-What's this *type* thing? Say you have a list that can contains articles, photos descriptions, videos and so on... For each of them you want a different markup as it represent different type of data. So, by adding the attribute `data-type` on a list child you can just do that, declared different markups for different type of data. Those childs are taken off the DOM when the viewscreen is loaded and is then used as prototype (meaning there're cloned) to create new list's elements.
+What's this *type* thing? Say you have a list that can contains articles, photos descriptions, videos and so on... For each of them you want a different markup as it represent different type of data. So, by adding the attribute `data-type` on a list child you can just do that, declared different markups for different type of data. Those childs are taken off the DOM when the viewscreen is loaded and is then used as prototype (meaning they're cloned) to create new list's elements.
 (If you want only one type of data representation, you can ommit the `data-type` attribute)
 
 Now, let's go back to the methods available. To prepend a new element of type `A` you do it like this:

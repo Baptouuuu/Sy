@@ -2,7 +2,7 @@
 
 So now that we can create, and save, profiles, we will look at displaying them back in the home page. As we want this list to always be fresh, we will render it each time the user go back to this page.
 
-The best place to do this is in an appstate subscriber, because it's the only place you know when the user reach the a specific route.
+The best place to do this is in an appstate subscriber, because it's the only place you know when the user reach a specific route.
 
 So create the file at `js/App/Bundle/AddressBook/Subscriber/AppStateSubscriber.js`:
 
@@ -165,6 +165,6 @@ getPictureUrl: {
     }
 }
 ```
-Now the engine detects the object has a getter for the attribute `pictureUrl` and use it to retrieve the value. Above we said that if the user has uploaded a picture we create a loal url to the blob (otherwise use a generic gravatar image).
+Now the engine detects the object has a getter for the attribute `pictureUrl` and use it to retrieve the value. Above we said that if the user has uploaded a picture we create a local url to the blob (otherwise use a generic gravatar image).
 
-Another attribute we didn't set ourselves is the `uuid` one, it's set by the storage enginewhen you persist your entity.
+Another attribute we didn't set ourselves is the `uuid` one, it's set by the storage engine when you persist your entity.

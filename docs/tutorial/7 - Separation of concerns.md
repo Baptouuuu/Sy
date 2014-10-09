@@ -82,7 +82,7 @@ saveAction: {
     }
 }
 ```
-Now the controller only knows we're handling a profile form, but doesn't know anymore about it's built. The advantage is now that you can reuse the same formula to build the edit form.
+Now the controller only knows we're handling a profile form, but doesn't know anymore about how it's built. The advantage is now that you can reuse the same formula to build the edit form.
 
 Even if the controller code is cleaner, there's still one thing we can improve. It's the `document.querySelector('form')` part. The controller shouldn't be aware of the DOM structure, this responsibility should be left to the viewscreen wrapper.
 

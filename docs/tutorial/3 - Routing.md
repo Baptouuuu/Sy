@@ -2,7 +2,7 @@
 
 Now that we have the framework launched, let's start playing a bit with it.
 
-The simplest thing to work with is the routing system. Here we'll simply wire up our viewscreens so we can easoly navigate between them.
+The simplest thing to work with is the routing system. Here we'll simply wire up our viewscreens so we can easily navigate between them.
 
 ## Configuration
 
@@ -37,7 +37,7 @@ App.Bundle.AddressBook.Config.Configuration.prototype = Object.create(Object.pro
 });
 ```
 
-Here we have defined our routes for our 3 viewscreens. Now the framework will automatically display the appropriate viewscreen when you visit one these url: `index.html`, 'index.html#/', `index.html#/profile/create` or `index.html#/profile/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`. It can do so because it detected the `_viewscreen` parameter on your route, if it doesn't find one, it won't do anything.
+Here we have defined our routes for our 3 viewscreens. Now the framework will automatically display the appropriate viewscreen when you visit one of these urls: `index.html`, 'index.html#/', `index.html#/profile/create` or `index.html#/profile/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`. It can do so because it detected the `_viewscreen` parameter on your route, if it doesn't find one, it won't do anything.
 
 **Important**: in case you don't use requirements on route placeholders, be careful on the order you declare your routes. ie: here if `edit` was declared before `create`, the url '/profile/create' would have matched `edit` with an id of `create`.
 

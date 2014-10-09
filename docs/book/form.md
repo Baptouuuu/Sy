@@ -31,7 +31,7 @@ MyController.prototype = Object.create(Sy.Controller.prototype, {
 
 ## Registering form types
 
-As you've seen in the [form](../Form.md) documentation, you need to register your form types to the builder to easily access them afterward. To ease this process, the framework gives you a handy way to do it via the service container, it use services tags to find you form types and automatically register them at boot time.
+As you've seen in the [form](../Form.md) documentation, you need to register your form types to the builder to easily access them afterward. To ease this process, the framework gives you a handy way to do it via the service container, it use services tags to find your form types and automatically register them at boot time.
 
 Example:
 ```js

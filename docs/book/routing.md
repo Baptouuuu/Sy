@@ -25,14 +25,14 @@ config.set('routes', {
     },
     article: {
         path: '/article/{id}',
-        parameters: {_viewscreen: 'viewscreen nale'},
+        parameters: {_viewscreen: 'viewscreen name'},
         requirements: {
             id: '\\d+'
         }
     }
 });
 ```
-Now when you'll go to `index.html` or `index.html#/`, it will map to the home route an the framework will automatically display the viewscreen specified as parameter via `_viewscreen`.
+Now when you'll go to `index.html` or `index.html#/`, it will map to the home route and the framework will automatically display the viewscreen specified as parameter via `_viewscreen`.
 
 The other 2 routes are accessible via `index.html#/about` and `index.html#/article/42`. Using the url hash allows you to keep standard html in your viewscreen. For example in your home page you can have this standard anchor to route to the about page:
 

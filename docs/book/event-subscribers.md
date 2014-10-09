@@ -38,7 +38,7 @@ App.Bundle.Foo.Subscriber.MySubscriber.prototype = Object.create(Sy.EventSubscri
 });
 ```
 
-And add register it in the service container in the file `App.Bundle.{BundleName}.Config.Service` like this:
+And register it in the service container in the file `App.Bundle.{BundleName}.Config.Service` like this:
 ```js
 App.Bundle.Foo.Config.Service = function () {};
 App.Bundle.Foo.Config.Service.prototype = Object.create(Object.prototype, {
