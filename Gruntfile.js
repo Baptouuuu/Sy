@@ -190,6 +190,7 @@ module.exports = function (grunt) {
             'src/AppState/State.js',
             'src/AppState/StateHandler.js',
             'src/AppState/AppStateEvent.js',
+            'src/AppState/RouteNotFoundEvent.js',
             'src/AppState/UrlMatcher.js',
         ],
         framework = [

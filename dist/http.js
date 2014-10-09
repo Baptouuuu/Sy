@@ -1,4 +1,4 @@
-/*! sy#0.9.1 - 2014-10-04 */
+/*! sy#0.9.1 - 2014-10-09 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -1103,7 +1103,7 @@ Sy.HTTP.Request.prototype = Object.create(Sy.HTTP.RequestInterface.prototype, {
     setType: {
         value: function (type) {
 
-            if (['html', 'json'].indexOf(type) !== -1) {
+            if (['html', 'json', 'blob'].indexOf(type) !== -1) {
                 this.type = type;
             }
 

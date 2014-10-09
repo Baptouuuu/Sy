@@ -1,4 +1,4 @@
-/*! sy#0.9.1 - 2014-10-04 */
+/*! sy#0.9.1 - 2014-10-09 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -4235,7 +4235,7 @@ Sy.HTTP.Request.prototype = Object.create(Sy.HTTP.RequestInterface.prototype, {
     setType: {
         value: function (type) {
 
-            if (['html', 'json'].indexOf(type) !== -1) {
+            if (['html', 'json', 'blob'].indexOf(type) !== -1) {
                 this.type = type;
             }
 
@@ -5818,6 +5818,26 @@ Sy.StateRegistry.prototype = Object.create(Sy.StateRegistryInterface.prototype, 
             this.strict = true;
 
             return this;
+        }
+    },
+
+    /**
+     * Return all the states having at least one value
+     *
+     * @return {Array}
+     */
+
+    getStates: {
+        value: function () {
+            var states = [];
+
+            for (var i = 0, l = this.states.length; i < l; i++) {
+                if (this.data.get(this.states[i]).get().length > 0) {
+                    states.push(this.states[i]);
+                }
+            }
+
+            return states;
         }
     }
 
@@ -18427,18 +18447,22 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
 
     boot: {
         value: function () {
-            if (history.state) {
-                this.currentState = this.handler
-                    .getState(history.state.uuid);
+            try {
+                if (history.state) {
+                    this.currentState = this.handler
+                        .getState(history.state.uuid);
 
-                if (!this.currentState) {
+                    if (!this.currentState) {
+                        this.createState();
+                    }
+                } else {
                     this.createState();
                 }
-            } else {
-                this.createState();
-            }
 
-            this.dispatchEvent();
+                this.dispatchEvent();
+            } catch (error) {
+                this.dispatchRouteNotFound();
+            }
 
             window.addEventListener('popstate', this.listenPop.bind(this), false);
 
@@ -18455,18 +18479,22 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
 
     listenPop: {
         value: function (event) {
-            if (!event.state) {
-                this.createState();
-            } else {
-                this.currentState = this.handler
-                    .getState(event.state.uuid);
-
-                if (!this.currentState) {
+            try {
+                if (!event.state) {
                     this.createState();
-                }
-            }
+                } else {
+                    this.currentState = this.handler
+                        .getState(event.state.uuid);
 
-            this.dispatchEvent();
+                    if (!this.currentState) {
+                        this.createState();
+                    }
+                }
+
+                this.dispatchEvent();
+            } catch (error) {
+                this.dispatchRouteNotFound();
+            }
         }
     },
 
@@ -18486,6 +18514,22 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
                     this.provider
                         .getRoute(this.currentState.getRoute())
                 );
+
+            this.mediator.publish(event.KEY, event);
+        }
+    },
+
+    /**
+     * Dispatch an event saying no route is found for the current url
+     *
+     * @private
+     */
+
+    dispatchRouteNotFound: {
+        value: function () {
+            var event = new Sy.AppState.RouteNotFoundEvent();
+
+            event.setUrl(this.getUrl());
 
             this.mediator.publish(event.KEY, event);
         }
@@ -18922,6 +18966,55 @@ Sy.AppState.AppStateEvent.prototype = Object.create(Object.prototype, {
     getRoute: {
         value: function () {
             return this.route;
+        }
+    }
+
+});
+namespace('Sy.AppState');
+
+/**
+ * Event fired the a new path is reached but no associated route found
+ *
+ * @package Sy
+ * @subpackage AppState
+ * @class
+ */
+
+Sy.AppState.RouteNotFoundEvent = function () {
+    this.url = null;
+};
+Sy.AppState.RouteNotFoundEvent.prototype = Object.create(Object.prototype, {
+
+    KEY: {
+        value: 'appstate.routenotfound',
+        writable: false
+    },
+
+    /**
+     * Set the url
+     *
+     * @param {String} url
+     *
+     * @return {Sy.AppState.RouteNotFoundEvent} self
+     */
+
+    setUrl: {
+        value: function (url) {
+            this.url = url;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the url
+     *
+     * @return {String}
+     */
+
+    getUrl: {
+        value: function () {
+            return this.url;
         }
     }
 
