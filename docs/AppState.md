@@ -73,6 +73,20 @@ mediator.subscribe({
 });
 ```
 
+## Listen for 404
+
+In some cases a user may end up on an unknown route if they type directly in the url bar for example. You can listen to an event in the case the url matcher can't determine any valid route corresponding to the url. You need to add a subscriber to the `appstate.routenotfound` channel, the [`RouteNotFoundEvent`](../src/AppState/RouteNotFoundEvent.js) is passed as argument.
+
+Example:
+```js
+mediator.subscribe({
+    channel: 'appstate.routenotfound',
+    fn: function (event) {
+        event.getUrl(); //return the current url
+    }
+});
+```
+
 ## Generate a url
 
 You do this via the router (accessible via the service `sy::core::appstate::router`).
