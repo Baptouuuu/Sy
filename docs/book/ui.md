@@ -234,14 +234,14 @@ container.set({
 });
 ```
 
-Now, when you'll access the listt named `Bar`, inside the layout `LayoutName` itself inside the viewscreen `ViewScreenName`, it will load your custom wrapper. And as it's a service you benefit from all the service container features, but do so wisely.
+Now, when you'll access the list named `Bar`, inside the layout `LayoutName` itself inside the viewscreen `ViewScreenName`, it will load your custom wrapper. And as it's a service you benefit from all the service container features, but do so wisely.
 
-**Note**: you can add many `view.layout` tags to a single service so it can be used for many nodes, but you need to flag your service as a [`prototype`](../Service-container.md#prototype-services) otherwise you'll encounter unexpected behaviours.
+**Note**: you can add many `view.list` tags to a single service so it can be used for many nodes, but you need to flag your service as a [`prototype`](../Service-container.md#prototype-services) otherwise you'll encounter unexpected behaviours.
 
 ## Rendering engine
 
-All the layers described above use the same engine instance accessible as a service under the same `sy::core::view::template::engine`. The only method you have to care about on this object is `render`. It accept 2 parameters: a node element and a data object.
+All the layers described above use the same engine instance accessible as a service under the name `sy::core::view::template::engine`. The only method you have to care about on this object is `render`. It accept 2 parameters: a node element and a data object.
 
-When called, it will walk other the the tree of your node and search for placeholders on every attribute and in the `textContent`. If it's the first a node is rendered, the engine will keep the original state of attributes where there's a placeholder and replace them in the node with the appropriate data. So any node can be re-rendered at any time and from anywhere in the DOM tree.
+When called, it will walk other the node tree and search for placeholders on every attribute and in the `textContent`. If it's the first time a node is rendered, the engine will keep the original state of attributes where there's a placeholder and replace them in the node with the appropriate data. So any node can be re-rendered at any time and from anywhere in the DOM tree.
 
-The engine also use [reflection](https://github.com/Baptouuuu/Reflection.js) to parse your data so you can pass complex data types to the engine and still extract appropriate data. For example, you want to render the attribute `foo` from an entity to a node, the engine will first look if there's a method call `getFoo`, if it fails to find it, it will look at a generic method called `get` on which it will pass `foo` as parameter; and finally it fallback to a direct access on the property `foo` if none of the methods are found. The underlying function used is named `reflectedObjectGetter` and is available in the global scope, so you can reuse it if you need to extract data from nested objects.
+The engine also use [reflection](https://github.com/Baptouuuu/Reflection.js) to parse your data so you can pass complex data types to the engine and still extract appropriate data. For example, you want to render the attribute `foo` from an entity to a node, the engine will first look if there's a method call `getFoo`, if it fails to find it, it will look at a generic method called `get` on which it will pass `foo` as parameter; and finally it fallback to a direct access on the property `foo` if none of the methods are found.
