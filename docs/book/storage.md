@@ -8,14 +8,14 @@ The third big part of your application is of course your data. The framework com
 * `IndexedDB`
 * `HTTP` (REST calls more specifically)
 
-Those have been chosen for a specific reason, as said in the description of the framework it's here to build offline applications and so you need browser storage. That's why for the `IndexedDB` part, now the `localStorage` is here just in case the browser running your app does not yet support this technology. Finally, `HTTP` because at some point you'll want to send your data back to your server.
+Those have been chosen for a specific reason, as said in the description of the framework it's here to build offline applications and so you need browser storage. That's why for the `IndexedDB` part, the `localStorage` is here just in case the browser running your app does not yet support this technology. Finally, `HTTP` because at some point you'll want to send your data back to your server.
 
 Even if your app is offline first or not, those 3 engines give another advantage: you don't rely on backend code before you can start coding the front. By that I mean, here again, loosely coupled jobs. Say, front and backend code developers are separated team and the api available for storing data is not yet ready, as user of this framework you could choose an offline storage first, then when the backend api is ready, just switch to use the http engine and your done.
 It really helps you *not* rely on another team to do your job.
 
 ## Entities
 
-First things first, before jumping to the part on how to define the storage and persist data, let's begin with how to represent your data in the app. The framework takes the notion of `entity` to represent a data object, it just a simple object with a bunch of method wrapping your raw data.
+First things first, before jumping to the part on how to define the storage and persist data, let's begin with how to represent your data in the app. The framework takes the notion of `entity` to represent a data object, it just a simple object with a bunch of methods wrapping your raw data.
 
 Here's how an entity looks like:
 ```js
@@ -32,7 +32,7 @@ In the example above you don't see any attribute declared for your entity. That'
 
 To add or retrieve data from your entity, you have access to 2 methods:
 
-* `entity.set('attr', 'value')` (if value is an object, it will loop over it to set data)
+* `entity.set('attr', 'value')` (if `attr` is an object, it will loop over it to set data)
 * `entity.get('attr')`
 
 Obviously you can define your own getters and setters in the prototype of your entity, but you should not override the default `get` and `set` methods.
@@ -122,7 +122,7 @@ Wherever.You.Want.MyFactory.prototype = Object.create(Sy.Storage.Dbal.DriverFact
 ```
 All the parameters can be declared inside the config object of the connection.
 
-Now that all the classes has been defined, let's tell the framework about our new driver.
+Now that all the classes have been defined, let's tell the framework about our new driver.
 ```js
 app.getContainer()
     .set({

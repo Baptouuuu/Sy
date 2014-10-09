@@ -98,7 +98,7 @@ Sy.AppState.StateHandler.prototype = Object.create(Object.prototype, {
         value: function () {
             this.storage.setItem(
                 this.key,
-                JSON.stringify(this.states)
+                JSON.stringify(this.states.splice(0 - history.length))
             );
         }
     }

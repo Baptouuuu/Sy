@@ -25,6 +25,10 @@ Sy.Validator.Constraint.EmailValidator.prototype = Object.create(Sy.Validator.Ab
                 throw new TypeError('Invalid constraint');
             }
 
+            if (['', null, undefined].indexOf(value) !== -1) {
+                return;
+            }
+
             var regex = new RegExp(/^[a-z\.\-\_]+@[a-z\.\-\_]+\.[a-z]{2,}$/i);
 
             if (!regex.test(value)) {

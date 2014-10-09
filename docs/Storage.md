@@ -6,7 +6,7 @@ The philosophy of this component is inspired by other libraries from other langu
 
 It's separated into 2 main layers, the database access layer (DBAL) and the object relationnal mapper (ORM). And of course, the DBAL can be used without the ORM.
 
-The DBAL ships with 3 databse drivers: `IndexedDB`, `localStorage` and `HTTP`. As the IndexedDB is the more restrictive one, it has imposed a structure for the other 2 so each one can be switched easily (but you'll learn more about it quickly).
+The DBAL ships with 3 database drivers: `IndexedDB`, `localStorage` and `HTTP`. As the IndexedDB is the more restrictive one, it has imposed a structure for the other 2 so each one can be switched easily (but you'll learn more about it quickly).
 
 From top to bottom you'll find these notions:
 
@@ -19,7 +19,7 @@ From top to bottom you'll find these notions:
 
 ## Entity
 
-An entity is the representation of your data (yes you don't deal with raw javascript objects). You create it just like any other 'class':
+An entity is the representation of your data (yes you don't deal with raw javascript objects). You create it just like any other *class*:
 
 ```js
 var MyEntity = function () {
@@ -78,7 +78,7 @@ var entity = new MyEntity();
 entityManager.persist(entity);
 entityManager.flush();
 ```
-At this point I'm sure you're ondering why the hell do we need to call 2 methods to actually save our entity. The answer is simple: for speed. Say you're creating multiple entities at once, instead of calling the database each time to save every entity, it keeps them in a 'cache' and then send the order to create them when you call `flush`. It's important in the case you manipulate the DOM when you create your entities, you surely don't want heavy code firing that could make you lose the 16ms timeframe and make your app appear slugish.
+At this point I'm sure you're wondering why the hell do we need to call 2 methods to actually save our entity. The answer is simple: for speed. Say you're creating multiple entities at once, instead of calling the database each time to save every entity, it keeps them in a *cache* and then send the order to create them when you call `flush`. It's important in the case you manipulate the DOM when you create your entities, you surely don't want heavy code firing that could make you lose the 16ms timeframe and make your app appear slugish.
 
 **Important**: so always remember to call flush only when you're done on your action, never in the middle of handling your view.
 
@@ -95,11 +95,11 @@ entityManager.find('EntityAlias', 'entity UUID')
     entityManager.flush();
   });
 ```
-The important thing here is that you don't need to call the persist method. When you retrieve an entity from the database, it's automatically 'managed', meaning the engine keep tracks of it and automatically observe if it changes.
+The important thing here is that you don't need to call the persist method. When you retrieve an entity from the database, it's automatically *managed*, meaning the engine keep tracks of it and automatically observe if it changes.
 
 In this case, the engine notices the property `updatedAt` is modified and flag the entity to be updated at the next `flush`.
 
-**Note**: to check if a entity is modified the engine use the Polymer library [observe-js](https://github.com/Polymer/observe-js), in the background it uses `Object.observe` if it's available, otherwise it will do dirty checking when the `flush` method is called (hence the need to carefully choose when you call this method).
+**Note**: to check if an entity is modified the engine use the Polymer library [observe-js](https://github.com/Polymer/observe-js), in the background it uses `Object.observe` if it's available, otherwise it will do dirty checking when the `flush` method is called (hence the need to carefully choose when you call this method).
 
 ### Remove
 
@@ -114,7 +114,7 @@ Same principle as before, you tell the engine what to do and then flush it. In t
 
 Each entity comes with a repository, it's your interface to retrieve the entities. A default one is used for each entity type (but you'll learn in the [book](book/storage.md) how to create a custom one), providing you a basic set of methods.
 
-This how you access a repository:
+This is how you access a repository:
 ```js
 entityManager.getRepository('EntityAlias');
 ```
@@ -122,20 +122,21 @@ This is self explanatory I suppose.
 
 ### Retrieving an entity by its identifier
 
-Each entity as a default property called `uuid`, it's used by the engine to referene each entity and is string formatted like this: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` (this identifier is generated the first time you persist an entity).
+Each entity as a default property called `uuid`, it's used by the engine to referene each entity and is a string formatted like this: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` (this identifier is generated the first time you persist an entity).
 
 Now to retrieve an entity by its uuid, you'll do:
 ```js
-entityManager.getRepository('entity uuid')
+entityManager.getRepository('entity alias')
+  .find('entity uuid')
   .then(function (entity) {
     //you can access your entity here
   });
 ```
-As every call to the databaseis done asynchrosnously, the method return a `Promise` so you can easily chain what you'll do as soon the entity is retrieved.
+As every call to the database is done asynchrosnously, the method return a `Promise` so you can easily chain what you'll do as soon the entity is retrieved.
 
 ### Retrieving all entities
 
-Is usual to retrieve all entities when you load your app (ie: all the todos). You can achieve this easily like so:
+It's usual to retrieve all entities when you load your app (ie: all the todos). You can achieve this easily like so:
 ```js
 repository.findAll()
   .then(function (entities) {
@@ -160,7 +161,7 @@ repository
 ```
 It has been decided to restrict the search functionnality to what the `IndexedDB` can do, so you don't have to learn complex search queries like in MongoDB or MySQL.
 
-If you use `IndexedDB` as driver, you'll need to declare the properties that can be searched (in order to build indexes); other drivers don't need it. To declare them you need to add a constant in your entoty prototype like so:
+If you use `IndexedDB` as driver, you'll need to declare the properties that can be searched (in order to build indexes); other drivers don't need it. To declare them you need to add a constant in your entity prototype like so:
 
 ```js
 MyEntity.prototype = Object.create(Sy.Entity.prototype, {
@@ -206,7 +207,7 @@ uow.isManaged(entity); //will return a boolean
 ```
 You can also do this directly via the manager: `entityManager.contains(entity)`.
 
-You can also check if an entity will be created/updated or removed the next you `flush` the manager via 3 methdods: `isScheduledForInsert`, `isScheduledForUpdate` and `isScheduledForRemove` (each one taking an entity as parameter).
+You can also check if an entity will be created/updated or removed the next time you `flush` the manager via 3 methdods: `isScheduledForInsert`, `isScheduledForUpdate` and `isScheduledForRemove` (each one taking an entity as parameter).
 
 In some cases you'll want the UOW to stop managing a specific entity, meaning no changes will be applied in the database. You can achieve this like so:
 ```js
@@ -226,9 +227,9 @@ Or via the manager:
 ```js
 entityManager.clear('EntityAlias');
 ```
-If you call `clear` without arguments, it will detach all entities currenttly managed by the UOW.
+If you call `clear` without arguments, it will detach all entities currently managed by the UOW.
 
-**Note**: a UOW is bound to only one manager, so if detach all entities on one it will not affect other managers or UOW.
+**Note**: a UOW is bound to only one manager, so if you detach all entities on one it will not affect other managers or UOW.
 **Note**: you can also call `clear` on a repository (no arguments needed), it will only detach entities for this specific alias.
 
 ### Data extraction
@@ -247,7 +248,7 @@ This way you have full control to what will be sent to the database.
 
 ## LifeCycleEvent
 
-Before and after an entity is created/updated or removed this [event](../src/Storage/LifeCycleEvent.js) is fired. It contains the entity alias and the actual entity. The event is fired via the [mediator](Mediator.md), in the end you have access to these 6 channels:
+Before and after an entity is created/updated or removed the [`LifeCycleEvent`](../src/Storage/LifeCycleEvent.js) is fired. It contains the entity alias and the actual entity. The event is fired via the [mediator](Mediator.md), in the end you have access to these 6 channels:
 
 * `storage.pre.create`: available via `LifeCycleEvent.PRE_CREATE`
 * `storage.post.create`: available via `LifeCycleEvent.POST_CREATE`
@@ -256,11 +257,11 @@ Before and after an entity is created/updated or removed this [event](../src/Sto
 * `storage.pre.remove`: available via `LifeCycleEvent.PRE_REMOVE`
 * `storage.post.remove`: available via `LifeCycleEvent.POST_REMOVE`
 
-The event also gives you access to a method called `abort`, if you call it it will prevent the action being done, meaning no insertion, update nor removal. But to work, your listener must be synchronous (by default it's async).
+The event also gives you access to a method called `abort`, if you call it, it will prevent the action being done, meaning no insertion, update nor removal. But to work, your listener must be synchronous (by default it's async).
 
 ## DBAL
 
-This is the lowest layer in the engine, the one handling the connection to the database. As said in the introduction, it's completely decoupled from the upper layers, hence you can create a driver instance yourself and whatever you want.
+This is the lowest layer in the engine, the one handling the connection to the database. As said in the introduction, it's completely decoupled from the upper layers, hence you can create a driver instance yourself and do whatever you want.
 
 Once again, the philosophy to how to store data has been taken from the native `IndexedDB` one. So to store a type of data you create a `store`, when working with the full stack, each entity has it's own store. And then you query for objects only for one store at a time (meaning you can't do joins like in SQL).
 
@@ -307,5 +308,5 @@ config.set('storage.dbal', {
   }
 });
 ```
-For each driver you can define the property `stores`, this used when working with the full stack. It restrict the creation of store for the specified aliases, all aliases are stored in the config under the key `app.meta.entities`. So for example, say you have an entity with the alias `FooBundle::MyEntity`, if you want only this kind of entity to be stored via your driver, you define for your connection: `stores: ['FooBundle::MyEntity']`.
+For each driver you can define the property `stores`, this is used when working with the full stack. It restrict the creation of store for the specified aliases, all aliases are stored in the config under the key `app.meta.entities`. So for example, say you have an entity with the alias `FooBundle::MyEntity`, if you want only this kind of entity to be stored via your driver, you define for your connection: `stores: ['FooBundle::MyEntity']`.
 

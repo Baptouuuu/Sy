@@ -22,7 +22,7 @@ translator.registerTranslations('language', [
 
 ## Usage
 
-You can then retrieve a translated string in 3 slightly different ways. The first one below specify globally the target language, so you don't to have to use throughout your app the current language when you translate a string.
+You can then retrieve a translated string in 3 slightly different ways. The first one below specify globally the target language, so you don't have to use throughout your app the current language when you translate a string.
 ```js
 translator.setLanguage('fr');
 var frenchSymphony = translator.translate('symphony');
@@ -52,4 +52,4 @@ translator.setRegistry(new Sy.Registry());
 translator.setStateRegistryFactory(app.getContainer().get('sy::core::stateregistry::factory'));
 ```
 
-The first dependency is used to hold translations at the language level; and the second is used to ease the process of storing actual translations by domains. (See the file `bootstrap.js` to understand how to create a state registry factory);
+The first dependency is used to hold translations at the language level; and the second is used to ease the process of storing actual translations by domains. (See the framework [services declarations](../src/FrameworkBundle/Config/Service.js) to understand how to create a state registry factory);

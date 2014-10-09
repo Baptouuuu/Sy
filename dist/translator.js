@@ -1,4 +1,4 @@
-/*! sy#0.9.1 - 2014-10-03 */
+/*! sy#1.0.0 - 2014-10-09 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -905,6 +905,26 @@ Sy.StateRegistry.prototype = Object.create(Sy.StateRegistryInterface.prototype, 
             this.strict = true;
 
             return this;
+        }
+    },
+
+    /**
+     * Return all the states having at least one value
+     *
+     * @return {Array}
+     */
+
+    getStates: {
+        value: function () {
+            var states = [];
+
+            for (var i = 0, l = this.states.length; i < l; i++) {
+                if (this.data.get(this.states[i]).get().length > 0) {
+                    states.push(this.states[i]);
+                }
+            }
+
+            return states;
         }
     }
 

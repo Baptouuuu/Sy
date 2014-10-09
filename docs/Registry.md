@@ -61,4 +61,4 @@ registry.remove([
 ]);
 ```
 
-If call the function without argument, it will remove all the elements of the registry.
+If function called without argument, it will remove all the elements of the registry.

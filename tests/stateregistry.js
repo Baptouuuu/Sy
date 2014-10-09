@@ -172,4 +172,22 @@ describe('state registry', function () {
         expect(q.state('foo')).toEqual('bar');
     });
 
+    it('should return the active states', function () {
+        var q = new Sy.StateRegistry();
+
+        q.setRegistryFactory(factory);
+
+        expect(q.getStates().length).toBe(0);
+
+        q.set('foo', 'foo', 'foo');
+        q.set('bar', 'bar', 'bar');
+
+        expect(q.getStates()).toEqual(['foo', 'bar']);
+
+        q.remove('foo', 'foo');
+        q.remove('bar', 'bar');
+
+        expect(q.getStates().length).toBe(0);
+    });
+
 });

@@ -8,8 +8,6 @@ This is a MVC framework built for large, offline first, application. It helps th
 
 A good practice in software development is to keep your code lossely coupled. That's why from the start this framework has been built around the principle each component could be used independently from the rest of the framework.
 
-The loosely coupled principle is taken a step further, by taking applying it to the separation of employees jobs. It's applicable to the storage and view components, and is more explained in their own documentation. But the goal is to help you do your work without affecting the one of designers and backend colleagues.
-
 ## Service/Event centric
 
 Almost every part of the framework is accessible through a service (see the [`ServiceContainer`](../Service-container.md) doc). It helps bootstrap complex mechanism by easily resolving dependencies, and by keeping an abtraction between each component. Think: "I want to use this, and don't want to care how to build it".
@@ -51,7 +49,7 @@ To resume, by using namespaces you can avoid the problem of global variables **a
 
 In the other chapters you'll see how to define your classes inside your bundles, but it does not tell you how to initiate your application.
 
-Usually, it's done inside a small file added at the very end of your html page, this one will be responsible to define your [app configuration](config.md), boot the framework kernel and display the first viewscreen.
+Usually, it's done inside a small file added at the very end of your html page, this one will be responsible to define your [app configuration](config.md), boot the framework kernel and display the first viewscreen (you can also leave this job to [routes](routing.md)).
 
 Example:
 ```js
@@ -86,11 +84,11 @@ The first array element is the name you want to give to your bundle, and the sec
 
 The 2 variables in the kernel constructor are the environment name and a boolean to activate or not debug features. These can be retrieved as a service container parameter under the respective keys `app.environment` and `app.debug`. By default the framework don't rely on the environment name, but use the debug flag to modify a bit its behaviour.
 
-## What is does not
+## What it does not
 
 ### Routing
 
-This framework is built with app in minds, ones that can be run outside a browser context, meaning one where there is no url bar. So it has been decided to not implement a feature that has no real meaning in certain contexts. (After all, did you see a route in your Photoshop to remember where you were last time you used it?)
+Well in fact the framework expose a routing mechanism, but like no other framework, it's optional. This is done because you may build an app working outside a browser, and so has no url bar. That way you have the choice to whether or not use routes.
 
 ### Two way data binding
 

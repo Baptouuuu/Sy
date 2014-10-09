@@ -10,7 +10,7 @@ Inside your application you can access the validator via the service named `vali
 
 If you looked at the validator documentation, you understood that you need to register a set of rules in order to validate an object.
 
-At boot time the framework will parse your bundles and look for a class named `Validation` inside the `Config` of your bundle. If one is defined, which is not necessary, must be defined like below.
+At boot time, the framework will parse your bundles and look for a class named `Validation` inside the `Config` of your bundle. If one is defined, which is not necessary, it must be defined like below.
 
 ```js
 namespace('App.Bundle.BundleName.Config');

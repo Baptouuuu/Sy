@@ -22,11 +22,11 @@ Sy.Kernel.FeatureTester.prototype = Object.create(Object.prototype, {
     testXHR: {
         value: function () {
 
-            if (typeof XMLHttpRequest !== 'function') {
+            if (typeof XMLHttpRequest === 'undefined') {
                 throw new ReferenceError('XMLHttpRequest is not defined');
             }
 
-            if (typeof FormData !== 'function') {
+            if (typeof FormData === 'undefined') {
                 throw new ReferenceError('FormData is not defined');
             }
 
@@ -64,7 +64,7 @@ Sy.Kernel.FeatureTester.prototype = Object.create(Object.prototype, {
                 throw new ReferenceError('Element dataset not supported');
             }
 
-            if (!(document.body.attributes instanceof NamedNodeMap)) {
+            if (typeof document.body.attributes !== 'object') {
                 throw new ReferenceError('Element.attributes not defined');
             }
 

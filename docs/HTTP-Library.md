@@ -21,7 +21,7 @@ Not using the request object to directly send the request allows you to reuse th
 
 ## Request
 
-This object wraps the creation of a http request; it must implement [`Sy.HTTP.RequestInterface`](../src/HTTP/RequestInterface.js). It is a representation of a request, so by itself the object does nothing, got to the [`Manager`](#manager) to see how to use them.
+This object wraps the creation of a http request; it must implement [`Sy.HTTP.RequestInterface`](../src/HTTP/RequestInterface.js). It is a representation of a request, so by itself the object does nothing, go to the [`Manager`](#manager) to see how to use them.
 
 ### Creation
 
@@ -34,7 +34,6 @@ var request = new Sy.HTTP.Request();
 ```js
 request.setURI('/path/to/resource');
 ```
-The term `uri` has been chosen as you can only access resources on the same domain, instead of `url` that may fool you thinking you can access resources everywhere.
 
 ### Method
 
@@ -60,7 +59,7 @@ request.setData({
 
 In certain occasion you may want to add extra headers (like when accessing an API), you can do it by two manners:
 ```js
-request.setHeaders('key1', 'value1');
+request.setHeader('key1', 'value1');
 // or
 request.setHeader({
   key1: 'value1',
@@ -84,9 +83,9 @@ You can set the type of data you want returned with:
 ```js
 request.setType('json');
 ```
-This method only accept `html` and `json`. The first will give you a DOM object as response's body; and the second one will parse the response as a JSON document so you don't have to use `JSON.parse` before you use your data.
+This method accept `html`, `json` and `blob`. The first will give you a DOM object as response's body; the second one will parse the response as a JSON document so you don't have to use `JSON.parse` before you use your data and the last one return a blob as a body (used for images).
 
-The library come with two typed requests: [`Sy.HTTP.HTMLRequest`](../src/HTTP/HTMLRequest.js) and [`Sy.HTTP.JSONRequest`](../src/HTTP/JSONRequest.js). Those two automatically set the appropriate type (with the method described above), and set the `Accept` header key with respectively `text/html,application/xhtml+xml` and `application/json`.
+The library come with 3 typed requests: [`Sy.HTTP.HTMLRequest`](../src/HTTP/HTMLRequest.js), [`Sy.HTTP.JSONRequest`](../src/HTTP/JSONRequest.js) and [`Sy.HTTP.ImageRequest`](../src/HTTP/ImageRequest.js). These automatically set the appropriate type (with the method described above), and set the `Accept` header key with respectively `text/html,application/xhtml+xml`, `application/json` and `image/*`.
 
 
 ## Response
@@ -120,7 +119,7 @@ The response body is accessible through:
 ```js
 response.getBody();
 ```
-By default this will return a string. However if you made a `HTMLRequest` or `JSONRequest` it will return a DOM node or a parsed JSON; those requests also mean that the response is also typed by being, respectively, an instance of [`Sy.HTTP.HTMLResponse`](../src/HTTP/HTMLResponse.js) and [`Sy.HTTP.JSONResponse`](../src/HTTP/JSONResponse.js).
+By default this will return a string. However if you made a `HTMLRequest`, `JSONRequest` or `ImageRequest` it will return a DOM node, a parsed JSON or a `Blob`; those requests also mean that the response is also typed by being, respectively, an instance of [`Sy.HTTP.HTMLResponse`](../src/HTTP/HTMLResponse.js), [`Sy.HTTP.JSONResponse`](../src/HTTP/JSONResponse.js) and [`Sy.HTTP.ImageResponse`](../src/HTTP/ImageResponse.js).
 
 
 ## Manager
@@ -141,7 +140,7 @@ manager
   .setParser(new Sy.HTTP.HeaderParser())
   .setGenerator(new Sy.Lib.Generator.Interface());
 ```
-The manager depends on two other objects. The first allows to extract from the string return by `XMLHttpRequest.getAllResponseHeaders()` the list of key/value header pairs.
+The manager depends on two other objects. The first allows to extract from the string returned by `XMLHttpRequest.getAllResponseHeaders()` the list of key/value header pairs.
 
 The second dependency is a generator used when initiating a new request. At this step, the manager associate a unique identifier to the request, so it can access it more easily in the state change listener. The identifier is also used to abort a request.
 In the example above, we use an instance of the generator interface, obviously this won't work as the interface does not generate content. You will need to use an instance that return real content, you can use [`Sy.Lib.Generator.UUID`](../src/Lib/Generator/UUID.js) (the framework use this generator for the manager) but you can build your own if you want (though remember that it must implement the above interface).

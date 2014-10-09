@@ -77,10 +77,10 @@ Sy.Form.Form.prototype = Object.create(Sy.Form.FormInterface.prototype, {
         value: function () {
 
             if (this.validator) {
-                return !!this.validator.validate(
+                return !this.validator.validate(
                     this.object,
                     this.config.get('validationGroups')
-                );
+                ).length;
             } else if (this.form) {
                 for (var i = 0, l = this.elements.length; i < l; i++) {
                     if (!this.form.hasOwnProperty(this.elements[i])) {

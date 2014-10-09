@@ -1,6 +1,6 @@
 # Configurator
 
-As its name indicates, it's used to hold configuration elements. A default instance is available in `Sy.config`.
+As its name indicates, it's used to hold configuration elements.
 
 ## Creation
 
@@ -59,7 +59,7 @@ config
   .set('foo.bar.baz', 24)
   .set('foo.baz', 42);
 ```
-With this you will obtain an object like below:
+With this, you will obtain an object like below:
 ```js
 {
   foo: {

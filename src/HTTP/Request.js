@@ -187,7 +187,7 @@ Sy.HTTP.Request.prototype = Object.create(Sy.HTTP.RequestInterface.prototype, {
     setType: {
         value: function (type) {
 
-            if (['html', 'json'].indexOf(type) !== -1) {
+            if (['html', 'json', 'blob'].indexOf(type) !== -1) {
                 this.type = type;
             }
 

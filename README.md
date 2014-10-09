@@ -7,11 +7,7 @@ Sy Javascript Framework
 
 ## Philosophy
 
-The aim of this framework is to help you build Single-Page Application (SPA). Sy is built around three principles:
-
-- **Fully asynchronous**
-- **Avoiding closures (as much as possible)**
-- **Building apps not websites**
+The aim of this framework is to help you build Single-Page Application (SPA). The goal is not, like all other frameworks, to quickly build an app but instead build a strong code architecture to build build strong, large scale, applications.
 
 ## Project state
 
@@ -22,6 +18,10 @@ Bear in mind that until the release 1.0 some methods of those libraries may chan
 ## Documentation
 
 Please read the framework [book](docs/book/), you should also take a look at the [components documentations](docs/README.md).
+
+## How to use
+
+Head to the [tutorial](docs/tutorial/README.md) to understand step by step how to build an app.
 
 ## Conventions
 
@@ -40,7 +40,7 @@ Services name are `lowercase` and words are separated by a double colon (ie: `fo
 
 ### Structure
 
-For better scability, Sy uses a strong structure in the namespacing of your app. Your app folder should look something like this:
+For better scalability, Sy uses a strong structure in the namespacing of your app. Your app folder should look something like this:
 
 ```
 App
@@ -63,4 +63,4 @@ Sy framework uses [gitflow](http://nvie.com/posts/a-successful-git-branching-mod
 
 Before submitting new issues, make sure no one already opened a discussion in the [tracker](https://github.com/baptouuuu/sy/issues) related to yours.
 
-Please follow the coding style explained above (Most of the coding style via a grunt task, so any error will appear in travis).
+Please follow the coding style explained above (Most of the coding style is checked via a grunt task, so any error will appear in travis).

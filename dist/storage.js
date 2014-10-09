@@ -1,4 +1,4 @@
-/*! sy#0.9.1 - 2014-10-03 */
+/*! sy#1.0.0 - 2014-10-09 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -1458,7 +1458,7 @@ Sy.HTTP.Request.prototype = Object.create(Sy.HTTP.RequestInterface.prototype, {
     setType: {
         value: function (type) {
 
-            if (['html', 'json'].indexOf(type) !== -1) {
+            if (['html', 'json', 'blob'].indexOf(type) !== -1) {
                 this.type = type;
             }
 
@@ -3421,6 +3421,26 @@ Sy.StateRegistry.prototype = Object.create(Sy.StateRegistryInterface.prototype, 
 
             return this;
         }
+    },
+
+    /**
+     * Return all the states having at least one value
+     *
+     * @return {Array}
+     */
+
+    getStates: {
+        value: function () {
+            var states = [];
+
+            for (var i = 0, l = this.states.length; i < l; i++) {
+                if (this.data.get(this.states[i]).get().length > 0) {
+                    states.push(this.states[i]);
+                }
+            }
+
+            return states;
+        }
     }
 
 });
@@ -5301,8 +5321,11 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                 refl = new ReflectionObject(entity);
 
             refl.getProperties().forEach(function (refl) {
-                data[refl.getName()] = refl.getValue();
-            });
+                data[refl.getName()] = this.propertyAccessor.getValue(
+                    entity,
+                    refl.getName()
+                );
+            }.bind(this));
 
             return data;
         }
@@ -5771,6 +5794,7 @@ Sy.Storage.Dbal.IndexedDB = function () {
     this.logger = null;
     this.opened = false;
     this.openingCheckInterval = null;
+    this.openingPromise = null;
 };
 Sy.Storage.Dbal.IndexedDB.prototype = Object.create(Sy.Storage.Dbal.DriverInterface.prototype, {
 
@@ -5942,9 +5966,17 @@ Sy.Storage.Dbal.IndexedDB.prototype = Object.create(Sy.Storage.Dbal.DriverInterf
 
     whenOpened: {
         value: function () {
-            return new Promise(function (resolve) {
+            if (this.openingPromise) {
+                return this.openingPromise;
+            }
+
+            this.openingPromise = new Promise(function (resolve) {
                 if (this.opened === true) {
                     resolve();
+                    return;
+                }
+
+                if (this.openingCheckInterval !== null) {
                     return;
                 }
 
@@ -5954,7 +5986,9 @@ Sy.Storage.Dbal.IndexedDB.prototype = Object.create(Sy.Storage.Dbal.DriverInterf
                         clearInterval(this.openingCheckInterval);
                     }
                 }.bind(this), 50);
-            }.bind(this))
+            }.bind(this));
+
+            return this.openingPromise;
         }
     },
 

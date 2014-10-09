@@ -1,4 +1,4 @@
-/*! sy#0.9.1 - 2014-10-03 */
+/*! sy#1.0.0 - 2014-10-09 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -1456,6 +1456,10 @@ Sy.Validator.Constraint.DateValidator.prototype = Object.create(Sy.Validator.Abs
                 throw new TypeError('Invalid constraint');
             }
 
+            if (['', null, undefined].indexOf(value) !== -1) {
+                return;
+            }
+
             if (typeof value === 'string') {
                 if ((new Date(value)).toDateString() === 'Invalid Date') {
                     this.context.addViolation(constraint.getMessage());
@@ -1538,6 +1542,10 @@ Sy.Validator.Constraint.EmailValidator.prototype = Object.create(Sy.Validator.Ab
 
             if (!(constraint instanceof Sy.Validator.Constraint.Email)) {
                 throw new TypeError('Invalid constraint');
+            }
+
+            if (['', null, undefined].indexOf(value) !== -1) {
+                return;
             }
 
             var regex = new RegExp(/^[a-z\.\-\_]+@[a-z\.\-\_]+\.[a-z]{2,}$/i);
@@ -2151,6 +2159,10 @@ Sy.Validator.Constraint.LengthValidator.prototype = Object.create(Sy.Validator.A
 
             if (!(constraint instanceof Sy.Validator.Constraint.Length)) {
                 throw new TypeError('Invalid constraint');
+            }
+
+            if (['', null, undefined].indexOf(value) !== -1) {
+                return;
             }
 
             if (value.length === undefined) {
@@ -3361,6 +3373,10 @@ Sy.Validator.Constraint.UrlValidator.prototype = Object.create(Sy.Validator.Abst
 
             if (!(constraint instanceof Sy.Validator.Constraint.Url)) {
                 throw new TypeError('Invalid constraint');
+            }
+
+            if (['', null, undefined].indexOf(value) !== -1) {
+                return;
             }
 
             var protocols = constraint.getProtocols().join('|'),

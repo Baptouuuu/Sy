@@ -1,4 +1,4 @@
-/*! sy#0.9.1 - 2014-10-03 */
+/*! sy#1.0.0 - 2014-10-09 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -1296,11 +1296,11 @@ Sy.Kernel.FeatureTester.prototype = Object.create(Object.prototype, {
     testXHR: {
         value: function () {
 
-            if (typeof XMLHttpRequest !== 'function') {
+            if (typeof XMLHttpRequest === 'undefined') {
                 throw new ReferenceError('XMLHttpRequest is not defined');
             }
 
-            if (typeof FormData !== 'function') {
+            if (typeof FormData === 'undefined') {
                 throw new ReferenceError('FormData is not defined');
             }
 
@@ -1338,7 +1338,7 @@ Sy.Kernel.FeatureTester.prototype = Object.create(Object.prototype, {
                 throw new ReferenceError('Element dataset not supported');
             }
 
-            if (!(document.body.attributes instanceof NamedNodeMap)) {
+            if (typeof document.body.attributes !== 'object') {
                 throw new ReferenceError('Element.attributes not defined');
             }
 
@@ -1699,6 +1699,25 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
     getStorage: {
         value: function () {
             return this.container.get('sy::core::storage');
+        }
+    },
+
+    /**
+     * Redirect to the specified route name
+     *
+     * @param {String} route
+     * @param {Object} params
+     *
+     * @return {Sy.Controller} self
+     */
+
+    redirect: {
+        value: function (route, params) {
+            location.hash = this.container
+                .get('sy::core::appstate::router')
+                .generate(route, params);
+
+            return this;
         }
     }
 
@@ -2323,6 +2342,7 @@ Sy.AppStateBundle.Config.Service.prototype = Object.create(Object.prototype, {
                         ['setRegistry', ['@sy::core::registry']]
                     ]
                 },
+                router: '@sy::core::appstate::router',
                 'sy::core::appstate::router': {
                     constructor: 'Sy.AppState.Router',
                     calls: [
@@ -2335,6 +2355,7 @@ Sy.AppStateBundle.Config.Service.prototype = Object.create(Object.prototype, {
                         ['setRouteProvider', ['@sy::core::appstate::routeprovider']]
                     ]
                 },
+                appstate: '@sy::core::appstate',
                 'sy::core::appstate': {
                     constructor: 'Sy.AppState.Core',
                     calls: [
@@ -4214,7 +4235,7 @@ Sy.HTTP.Request.prototype = Object.create(Sy.HTTP.RequestInterface.prototype, {
     setType: {
         value: function (type) {
 
-            if (['html', 'json'].indexOf(type) !== -1) {
+            if (['html', 'json', 'blob'].indexOf(type) !== -1) {
                 this.type = type;
             }
 
@@ -5797,6 +5818,26 @@ Sy.StateRegistry.prototype = Object.create(Sy.StateRegistryInterface.prototype, 
             this.strict = true;
 
             return this;
+        }
+    },
+
+    /**
+     * Return all the states having at least one value
+     *
+     * @return {Array}
+     */
+
+    getStates: {
+        value: function () {
+            var states = [];
+
+            for (var i = 0, l = this.states.length; i < l; i++) {
+                if (this.data.get(this.states[i]).get().length > 0) {
+                    states.push(this.states[i]);
+                }
+            }
+
+            return states;
         }
     }
 
@@ -7678,8 +7719,11 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                 refl = new ReflectionObject(entity);
 
             refl.getProperties().forEach(function (refl) {
-                data[refl.getName()] = refl.getValue();
-            });
+                data[refl.getName()] = this.propertyAccessor.getValue(
+                    entity,
+                    refl.getName()
+                );
+            }.bind(this));
 
             return data;
         }
@@ -8148,6 +8192,7 @@ Sy.Storage.Dbal.IndexedDB = function () {
     this.logger = null;
     this.opened = false;
     this.openingCheckInterval = null;
+    this.openingPromise = null;
 };
 Sy.Storage.Dbal.IndexedDB.prototype = Object.create(Sy.Storage.Dbal.DriverInterface.prototype, {
 
@@ -8319,9 +8364,17 @@ Sy.Storage.Dbal.IndexedDB.prototype = Object.create(Sy.Storage.Dbal.DriverInterf
 
     whenOpened: {
         value: function () {
-            return new Promise(function (resolve) {
+            if (this.openingPromise) {
+                return this.openingPromise;
+            }
+
+            this.openingPromise = new Promise(function (resolve) {
                 if (this.opened === true) {
                     resolve();
+                    return;
+                }
+
+                if (this.openingCheckInterval !== null) {
                     return;
                 }
 
@@ -8331,7 +8384,9 @@ Sy.Storage.Dbal.IndexedDB.prototype = Object.create(Sy.Storage.Dbal.DriverInterf
                         clearInterval(this.openingCheckInterval);
                     }
                 }.bind(this), 50);
-            }.bind(this))
+            }.bind(this));
+
+            return this.openingPromise;
         }
     },
 
@@ -10572,6 +10627,10 @@ Sy.Validator.Constraint.DateValidator.prototype = Object.create(Sy.Validator.Abs
                 throw new TypeError('Invalid constraint');
             }
 
+            if (['', null, undefined].indexOf(value) !== -1) {
+                return;
+            }
+
             if (typeof value === 'string') {
                 if ((new Date(value)).toDateString() === 'Invalid Date') {
                     this.context.addViolation(constraint.getMessage());
@@ -10654,6 +10713,10 @@ Sy.Validator.Constraint.EmailValidator.prototype = Object.create(Sy.Validator.Ab
 
             if (!(constraint instanceof Sy.Validator.Constraint.Email)) {
                 throw new TypeError('Invalid constraint');
+            }
+
+            if (['', null, undefined].indexOf(value) !== -1) {
+                return;
             }
 
             var regex = new RegExp(/^[a-z\.\-\_]+@[a-z\.\-\_]+\.[a-z]{2,}$/i);
@@ -11267,6 +11330,10 @@ Sy.Validator.Constraint.LengthValidator.prototype = Object.create(Sy.Validator.A
 
             if (!(constraint instanceof Sy.Validator.Constraint.Length)) {
                 throw new TypeError('Invalid constraint');
+            }
+
+            if (['', null, undefined].indexOf(value) !== -1) {
+                return;
             }
 
             if (value.length === undefined) {
@@ -12479,6 +12546,10 @@ Sy.Validator.Constraint.UrlValidator.prototype = Object.create(Sy.Validator.Abst
                 throw new TypeError('Invalid constraint');
             }
 
+            if (['', null, undefined].indexOf(value) !== -1) {
+                return;
+            }
+
             var protocols = constraint.getProtocols().join('|'),
                 regex = new RegExp('^(' + protocols + ')://[a-z\-\_\.]+(?:\.[a-z]{2,})?.*$', 'i');
 
@@ -13306,10 +13377,10 @@ Sy.Form.Form.prototype = Object.create(Sy.Form.FormInterface.prototype, {
         value: function () {
 
             if (this.validator) {
-                return !!this.validator.validate(
+                return !this.validator.validate(
                     this.object,
                     this.config.get('validationGroups')
-                );
+                ).length;
             } else if (this.form) {
                 for (var i = 0, l = this.elements.length; i < l; i++) {
                     if (!this.form.hasOwnProperty(this.elements[i])) {
@@ -18376,11 +18447,21 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
 
     boot: {
         value: function () {
-            if (history.state) {
-                this.currentState = this.handler
-                    .getState(history.state.uuid);
-            } else {
-                this.createState();
+            try {
+                if (history.state) {
+                    this.currentState = this.handler
+                        .getState(history.state.uuid);
+
+                    if (!this.currentState) {
+                        this.createState();
+                    }
+                } else {
+                    this.createState();
+                }
+
+                this.dispatchEvent();
+            } catch (error) {
+                this.dispatchRouteNotFound();
             }
 
             window.addEventListener('popstate', this.listenPop.bind(this), false);
@@ -18398,13 +18479,33 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
 
     listenPop: {
         value: function (event) {
-            if (!event.state) {
-                this.createState();
-            } else {
-                this.currentState = this.handler
-                    .getState(event.state.uuid);
-            }
+            try {
+                if (!event.state) {
+                    this.createState();
+                } else {
+                    this.currentState = this.handler
+                        .getState(event.state.uuid);
 
+                    if (!this.currentState) {
+                        this.createState();
+                    }
+                }
+
+                this.dispatchEvent();
+            } catch (error) {
+                this.dispatchRouteNotFound();
+            }
+        }
+    },
+
+    /**
+     * Dispatch the appstate event
+     *
+     * @private
+     */
+
+    dispatchEvent: {
+        value: function () {
             var event = new Sy.AppState.AppStateEvent();
 
             event
@@ -18413,6 +18514,22 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
                     this.provider
                         .getRoute(this.currentState.getRoute())
                 );
+
+            this.mediator.publish(event.KEY, event);
+        }
+    },
+
+    /**
+     * Dispatch an event saying no route is found for the current url
+     *
+     * @private
+     */
+
+    dispatchRouteNotFound: {
+        value: function () {
+            var event = new Sy.AppState.RouteNotFoundEvent();
+
+            event.setUrl(this.getUrl());
 
             this.mediator.publish(event.KEY, event);
         }
@@ -18761,7 +18878,7 @@ Sy.AppState.StateHandler.prototype = Object.create(Object.prototype, {
         value: function () {
             this.storage.setItem(
                 this.key,
-                JSON.stringify(this.states)
+                JSON.stringify(this.states.splice(0 - history.length))
             );
         }
     }
@@ -18849,6 +18966,55 @@ Sy.AppState.AppStateEvent.prototype = Object.create(Object.prototype, {
     getRoute: {
         value: function () {
             return this.route;
+        }
+    }
+
+});
+namespace('Sy.AppState');
+
+/**
+ * Event fired the a new path is reached but no associated route found
+ *
+ * @package Sy
+ * @subpackage AppState
+ * @class
+ */
+
+Sy.AppState.RouteNotFoundEvent = function () {
+    this.url = null;
+};
+Sy.AppState.RouteNotFoundEvent.prototype = Object.create(Object.prototype, {
+
+    KEY: {
+        value: 'appstate.routenotfound',
+        writable: false
+    },
+
+    /**
+     * Set the url
+     *
+     * @param {String} url
+     *
+     * @return {Sy.AppState.RouteNotFoundEvent} self
+     */
+
+    setUrl: {
+        value: function (url) {
+            this.url = url;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return the url
+     *
+     * @return {String}
+     */
+
+    getUrl: {
+        value: function () {
+            return this.url;
         }
     }
 
