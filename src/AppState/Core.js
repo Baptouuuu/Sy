@@ -126,18 +126,22 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
 
     boot: {
         value: function () {
-            if (history.state) {
-                this.currentState = this.handler
-                    .getState(history.state.uuid);
+            try {
+                if (history.state) {
+                    this.currentState = this.handler
+                        .getState(history.state.uuid);
 
-                if (!this.currentState) {
+                    if (!this.currentState) {
+                        this.createState();
+                    }
+                } else {
                     this.createState();
                 }
-            } else {
-                this.createState();
-            }
 
-            this.dispatchEvent();
+                this.dispatchEvent();
+            } catch (error) {
+                this.dispatchRouteNotFound();
+            }
 
             window.addEventListener('popstate', this.listenPop.bind(this), false);
 
@@ -154,18 +158,22 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
 
     listenPop: {
         value: function (event) {
-            if (!event.state) {
-                this.createState();
-            } else {
-                this.currentState = this.handler
-                    .getState(event.state.uuid);
-
-                if (!this.currentState) {
+            try {
+                if (!event.state) {
                     this.createState();
-                }
-            }
+                } else {
+                    this.currentState = this.handler
+                        .getState(event.state.uuid);
 
-            this.dispatchEvent();
+                    if (!this.currentState) {
+                        this.createState();
+                    }
+                }
+
+                this.dispatchEvent();
+            } catch (error) {
+                this.dispatchRouteNotFound();
+            }
         }
     },
 
@@ -185,6 +193,22 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
                     this.provider
                         .getRoute(this.currentState.getRoute())
                 );
+
+            this.mediator.publish(event.KEY, event);
+        }
+    },
+
+    /**
+     * Dispatch an event saying no route is found for the current url
+     *
+     * @private
+     */
+
+    dispatchRouteNotFound: {
+        value: function () {
+            var event = new Sy.AppState.RouteNotFoundEvent();
+
+            event.setUrl(this.getUrl());
 
             this.mediator.publish(event.KEY, event);
         }
