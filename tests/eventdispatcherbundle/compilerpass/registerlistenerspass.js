@@ -12,8 +12,8 @@
  * @venus-include ../../../src/ServiceContainer/Compiler.js
  * @venus-include ../../../src/ServiceContainer/CompilerPass/ApplyParentDefinition.js
  * @venus-include ../../../src/ServiceContainer/CompilerPass/RemoveAbstractDefinitions.js
- * @venus-include ../../../src/ServiceContainer/CompilerPass/resolveParameterPlaceholder.js
- * @venus-include ../../../src/ServiceContainer/CompilerPass/resolveReferencePlaceholder.js
+ * @venus-include ../../../src/ServiceContainer/CompilerPass/ResolveParameterPlaceholder.js
+ * @venus-include ../../../src/ServiceContainer/CompilerPass/ResolveReferencePlaceholder.js
  * @venus-include ../../../src/EventDispatcher/EventDispatcherInterface.js
  * @venus-include ../../../src/EventDispatcher/EventDispatcher.js
  * @venus-include ../../../src/EventDispatcher/EventSubscriberInterface.js
