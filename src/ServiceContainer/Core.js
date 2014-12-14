@@ -9,7 +9,9 @@ namespace('Sy.ServiceContainer');
  */
 
 Sy.ServiceContainer.Core = function () {
-    this.initialized = {};
+    this.initialized = {
+        container: this
+    };
     this.services = {};
     this.loading = [];
     this.config = null;

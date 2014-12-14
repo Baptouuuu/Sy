@@ -12,15 +12,27 @@ namespace('Sy.EventDispatcherBundle');
 Sy.EventDispatcherBundle.ContainerAwareEventDispatcher = function (container) {
     Sy.EventDispatcher.EventDispatcher.call(this);
 
-    if (!(container instanceof Sy.ServiceContainer.Core)) {
-        throw new TypeError('Invalid service container');
-    }
-
-    this.container = container;
+    this.container = null;
     this.listenersIds = {};
     this.loaded = [];
 };
 Sy.EventDispatcherBundle.ContainerAwareEventDispatcher.prototype = Object.create(Sy.EventDispatcher.EventDispatcher.prototype, {
+
+    /**
+     * Set the service container
+     *
+     * @param {Sy.ServiceContainer.Core} container
+     */
+
+    setServiceContainer: {
+        value: function (container) {
+            if (!(container instanceof Sy.ServiceContainer.Core)) {
+                throw new TypeError('Invalid service container');
+            }
+
+            this.container = container;
+        }
+    },
 
     /**
      * Add a service as event listener

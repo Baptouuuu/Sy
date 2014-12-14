@@ -23,7 +23,7 @@ Sy.EventDispatcherBundle.CompilerPass.RegisterListenersPass.prototype = Object.c
 
     process: {
         value: function (container) {
-            var dispatcher = container.get(this.service);
+            var dispatcher = container.getDefinition(this.service);
 
             container
                 .findTaggedServiceIds(this.listenerTag)
@@ -43,12 +43,20 @@ Sy.EventDispatcherBundle.CompilerPass.RegisterListenersPass.prototype = Object.c
                     }
 
                     for (var i = 0, l = el.tags.length; i < l; i++) {
+                        if (!el.tags[i][1].event) {
+                            throw new SyntaxError('Event name must be set in tag');
+                        }
+
+                        if (!el.tags[i][1].method) {
+                            throw new SyntaxError('Listener method must be set in tag');
+                        }
+
                         dispatcher.addCall(
                             'addListenerService',
                             [
-                                el.tags[i][1].event || throw new SyntaxError('Event name must be set in tag'),
+                                el.tags[i][1].event,
                                 el.id,
-                                el.tags[i][1].method || throw new SyntaxError('Listener method must be set in tag'),
+                                el.tags[i][1].method,
                                 el.tags[i][1].priority
                             ]
                         );
@@ -67,6 +75,12 @@ Sy.EventDispatcherBundle.CompilerPass.RegisterListenersPass.prototype = Object.c
                         );
                     }
 
+                    if (def.isAbstract()) {
+                        throw new ReferenceError(
+                            'The service "' + el.id + '" must not be abstract as event listeners are lazy-loaded'
+                        );
+                    }
+
                     constructor = this.accessor.getValue(window, constructor);
 
                     if (!constructor || !(constructor.prototype instanceof Sy.EventDispatcher.EventSubscriberInterface)) {
@@ -75,7 +89,7 @@ Sy.EventDispatcherBundle.CompilerPass.RegisterListenersPass.prototype = Object.c
                         );
                     }
 
-                    def.addCall(
+                    dispatcher.addCall(
                         'addSubscriberService',
                         [
                             el.id,
