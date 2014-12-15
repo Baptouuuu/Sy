@@ -99,7 +99,7 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
         value: function (dispatcher) {
 
             if (!(dispatcher instanceof Sy.EventDispatcher.EventDispatcherInterface)) {
-                throw new TypeError('Invalid dispatcher');
+                throw new TypeError('Invalid event dispatcher');
             }
 
             this.dispatcher = dispatcher;
