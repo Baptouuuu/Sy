@@ -4,7 +4,7 @@ App.Bundle.Todo.Service.TaskRepoListener = function () {
     this.rest = null;
     this.basePath = null;
 };
-App.Bundle.Todo.Service.TaskRepoListener.prototype = Object.create(Sy.EventSubscriberInterface.prototype, {
+App.Bundle.Todo.Service.TaskRepoListener.prototype = Object.create(Sy.EventDispatcher.EventSubscriberInterface.prototype, {
 
     setRest: {
         value: function (rest) {

@@ -6,14 +6,14 @@ namespace('Sy.ViewBundle.Subscriber');
  * @package Sy
  * @subpackage ViewBundle
  * @class
- * @implements {Sy.EventSubscriberInterface}
+ * @implements {Sy.EventDispatcher.EventSubscriberInterface}
  */
 
 Sy.ViewBundle.Subscriber.AppStateSubscriber = function () {
     this.viewport = null;
     this.logger = null;
 };
-Sy.ViewBundle.Subscriber.AppStateSubscriber.prototype = Object.create(Sy.EventSubscriberInterface.prototype, {
+Sy.ViewBundle.Subscriber.AppStateSubscriber.prototype = Object.create(Sy.EventDispatcher.EventSubscriberInterface.prototype, {
 
     /**
      * Set the viewport manager

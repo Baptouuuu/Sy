@@ -5,7 +5,7 @@ App.Bundle.AddressBook.Subscriber.AppStateSubscriber = function () {
     this.storage = null;
     this.homeRenderer = null;
 };
-App.Bundle.AddressBook.Subscriber.AppStateSubscriber.prototype = Object.create(Sy.EventSubscriberInterface.prototype, {
+App.Bundle.AddressBook.Subscriber.AppStateSubscriber.prototype = Object.create(Sy.EventDispatcher.EventSubscriberInterface.prototype, {
 
     /**
      * @inheritDoc
