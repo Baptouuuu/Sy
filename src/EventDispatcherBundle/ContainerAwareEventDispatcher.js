@@ -181,7 +181,7 @@ Sy.EventDispatcherBundle.ContainerAwareEventDispatcher.prototype = Object.create
                 return;
             }
 
-            if (!this.hasListeners(name)) {
+            if (!this.listenersIds[name]) {
                 return;
             }
 
