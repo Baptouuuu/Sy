@@ -222,7 +222,8 @@ module.exports = function (grunt) {
             'src/ViewBundle/Config/Service.js',
             'src/ViewBundle/Subscriber/AppStateSubscriber.js',
             'src/AppStateBundle/Config/Service.js',
-            'src/ContainerAwareEventDispatcher.js'
+            'src/EventDispatcherBundle/ContainerAwareEventDispatcher.js',
+            'src/EventDispatcherBundle/Config/Service.js',
         ],
         frameworkPasses = [
             'src/FrameworkBundle/CompilerPass/EventSubscriberPass.js',
@@ -249,6 +250,7 @@ module.exports = function (grunt) {
     eventDispatcher.unshift('src/functions.js');
     serviceContainer = serviceContainer.concat(propertyAccessor);
     registry = factory.concat(registry);
+    appstate = eventDispatcher.concat(appstate);
     mediator = mediator
         .concat(generator)
         .concat(logger);
@@ -261,7 +263,7 @@ module.exports = function (grunt) {
     storage = factory  //need the observe-js vendor
         .concat(logger)
         .concat(http)
-        .concat(mediator)
+        .concat(eventDispatcher)
         .concat(registry)
         .concat(stateRegistry)
         .concat(generator)
@@ -276,7 +278,7 @@ module.exports = function (grunt) {
     view = factory
         .concat(registry)
         .concat(generator)
-        .concat(mediator)
+        .concat(eventDispatcher)
         .concat(dom)
         .concat(view);
     translator = translator
@@ -294,7 +296,8 @@ module.exports = function (grunt) {
     translator.unshift('src/functions.js');
     appState.unshift('src/functions.js');
 
-    framework = framework
+    framework = eventDispatcher
+        .concat(framework)
         .concat(generator)
         .concat(logger)
         .concat(factory)
@@ -312,8 +315,7 @@ module.exports = function (grunt) {
         .concat(frameworkPasses)
         .concat(translator)
         .concat(dom)
-        .concat(appState)
-        .concat(eventDispatcher);
+        .concat(appState);
 
     serviceContainer = serviceContainer.filter(unique);
     registry = registry.filter(unique);
@@ -323,6 +325,7 @@ module.exports = function (grunt) {
     validator = validator.filter(unique);
     view = view.filter(unique);
     translator = translator.filter(unique);
+    appState = appState.filter(unique);
     framework = framework.filter(unique);
 
     grunt.initConfig({
