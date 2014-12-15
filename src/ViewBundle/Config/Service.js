@@ -58,7 +58,7 @@ Sy.ViewBundle.Config.Service.prototype = Object.create(Object.prototype, {
                     calls: [
                         ['setNode', [document.querySelector('.viewport')]],
                         ['setViewManager', ['@sy::core::view::manager']],
-                        ['setMediator', ['@sy::core::mediator']]
+                        ['setDispatcher', ['@sy::core::event_dispatcher']]
                     ]
                 },
                 'sy::core::view::manager': {

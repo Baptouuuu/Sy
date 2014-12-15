@@ -118,7 +118,7 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
         value: function (controllers) {
 
             var registryFactory = this.container.get('sy::core::registry::factory'),
-                mediator = this.container.get('sy::core::mediator'),
+                dispatcher = this.container.get('sy::core::event_dispatcher'),
                 viewport = this.container.get('sy::core::viewport'),
                 logger = this.container.get('sy::core::logger'),
                 viewscreensManager = this.container.get('sy::core::view::manager');
@@ -126,7 +126,7 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
             this.controllerManager
                 .setMetaRegistry(registryFactory.make())
                 .setLoadedControllersRegistry(registryFactory.make())
-                .setMediator(mediator)
+                .setDispatcher(dispatcher)
                 .setServiceContainer(this.container)
                 .setCache(this.config.get('controllers.cache'))
                 .setCacheLength(this.config.get('controllers.cacheLength'));
@@ -134,7 +134,7 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
             this.actionDispatcher
                 .setViewPort(viewport)
                 .setControllerManager(this.controllerManager)
-                .setMediator(mediator)
+                .setDispatcher(dispatcher)
                 .setLogger(logger);
 
             for (var i = 0, l = controllers.length; i < l; i++) {
@@ -198,7 +198,7 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                 try {
                     var evt = new Sy.Event.AppShutdownEvent(event);
 
-                    this.container.get('sy::core::mediator').publish(
+                    this.container.get('sy::core::event_dispatcher').dispatch(
                         evt.KEY,
                         evt
                     );

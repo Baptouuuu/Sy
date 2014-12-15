@@ -7,7 +7,8 @@
  * @venus-include ../../src/Registry.js
  * @venus-include ../../src/ControllerInterface.js
  * @venus-include ../../src/Controller.js
- * @venus-include ../../src/Lib/Mediator.js
+ * @venus-include ../../src/EventDispatcher/EventDispatcherInterface.js
+ * @venus-include ../../src/EventDispatcher/EventDispatcher.js
  * @venus-include ../../src/ParamProxy.js
  * @venus-include ../../src/ServiceContainer/Core.js
  * @venus-include ../../src/View/NodeWrapper.js
@@ -62,7 +63,7 @@ describe('kernel controller manager', function () {
     });
     mockController.prototype = Object.create(Sy.Controller.prototype, {
         setBundle: {value: function () {return this;}},
-        setMediator: {value: function () {return this;}},
+        setDispatcher: {value: function () {return this;}},
         destroy: {
             value: function () {
                 destroyed = true;
@@ -94,14 +95,14 @@ describe('kernel controller manager', function () {
         expect(manager.registerController('base', Sy.Controller)).toEqual(manager);
     });
 
-    it('should throw if trying to set invalid mediator', function () {
+    it('should throw if trying to set invalid event dispatcher', function () {
         expect(function () {
-            manager.setMediator({});
-        }).toThrow('Invalid mediator');
+            manager.setDispatcher({});
+        }).toThrow('Invalid event dispatcher');
     });
 
-    it('should set the mediator', function () {
-        expect(manager.setMediator(new Sy.Lib.Mediator())).toEqual(manager);
+    it('should set the event dispatcher', function () {
+        expect(manager.setDispatcher(new Sy.EventDispatcher.EventDispatcher())).toEqual(manager);
     });
 
     it('should throw if trying to set invalid service container', function () {

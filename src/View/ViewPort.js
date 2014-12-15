@@ -11,27 +11,27 @@ namespace('Sy.View');
 Sy.View.ViewPort = function () {
     this.node = null;
     this.manager = null;
-    this.mediator = null;
+    this.dispatcher = null;
     this.current = null;
 };
 Sy.View.ViewPort.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
     /**
-     * Set the mediator to dispatch event when viewscreen is changed
+     * Set the event dispatcher to dispatch event when viewscreen is changed
      *
-     * @param {Sy.Lib.Mediator} mediator
+     * @param {Sy.EventDispatcher.EventDispatcherInterface} dispatcher
      *
      * @return {Sy.View.ViewPort}
      */
 
-    setMediator: {
-        value: function (mediator) {
+    setDispatcher: {
+        value: function (dispatcher) {
 
-            if (!(mediator instanceof Sy.Lib.Mediator)) {
-                throw new TypeError('Invalid mediator');
+            if (!(dispatcher instanceof Sy.EventDispatcher.EventDispatcherInterface)) {
+                throw new TypeError('Invalid event dispatcher');
             }
 
-            this.mediator = mediator;
+            this.dispatcher = dispatcher;
 
             return this;
 
@@ -129,8 +129,8 @@ Sy.View.ViewPort.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
                 node = viewscreen.getNode(),
                 event = new Sy.View.Event.ViewPortEvent(viewscreen);
 
-            if (this.mediator) {
-                this.mediator.publish(event.PRE_DISPLAY, event);
+            if (this.dispatcher) {
+                this.dispatcher.dispatch(event.PRE_DISPLAY, event);
             }
 
             switch (this.node.childElementCount) {
@@ -146,8 +146,9 @@ Sy.View.ViewPort.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
             this.current = viewscreen;
 
-            if (this.mediator) {
-                this.mediator.publish(event.POST_DISPLAY, event);
+            if (this.dispatcher) {
+                event = new Sy.View.Event.ViewPortEvent(viewscreen);
+                this.dispatcher.dispatch(event.POST_DISPLAY, event);
             }
 
             return this;

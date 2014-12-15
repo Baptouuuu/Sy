@@ -11,7 +11,7 @@ namespace('Sy.Kernel');
 Sy.Kernel.ControllerManager = function () {
     this.meta = null;
     this.loaded = null;
-    this.mediator = null;
+    this.dispatcher = null;
     this.container = null;
     this.current = null;
     this.cache = null;
@@ -88,21 +88,21 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Sets the mediator to subscribe to viewport events
+     * Sets the event dispatcher to subscribe to viewport events
      *
-     * @param {Sy.Lib.Mediator} mediator
+     * @param {Sy.EventDispatcher.EventDispatcherInterface} dispatcher
      *
      * @return {Sy.Kernel.ControllerManager}
      */
 
-    setMediator: {
-        value: function (mediator) {
+    setDispatcher: {
+        value: function (dispatcher) {
 
-            if (!(mediator instanceof Sy.Lib.Mediator)) {
-                throw new TypeError('Invalid mediator');
+            if (!(dispatcher instanceof Sy.EventDispatcher.EventDispatcherInterface)) {
+                throw new TypeError('Invalid dispatcher');
             }
 
-            this.mediator = mediator;
+            this.dispatcher = dispatcher;
 
             return this;
 
@@ -255,7 +255,7 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
 
             instance = new (this.meta.get(alias))();
             instance
-                .setMediator(this.mediator)
+                .setDispatcher(this.dispatcher)
                 .setServiceContainer(this.container)
                 .setViewScreen(viewscreen)
                 .init();
@@ -309,11 +309,10 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
     boot: {
         value: function () {
 
-            this.mediator.subscribe({
-                channel: Sy.View.Event.ViewPortEvent.prototype.PRE_DISPLAY,
-                fn: this.onDisplayListener,
-                context: this
-            });
+            this.dispatcher.addListener(
+                Sy.View.Event.ViewPortEvent.prototype.PRE_DISPLAY,
+                this.onDisplayListener.bind(this)
+            );
 
         }
     }

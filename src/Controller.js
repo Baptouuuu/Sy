@@ -11,8 +11,8 @@ namespace('Sy');
 Sy.Controller = function () {
 
     this.container = null;
-    this.mediator = null;
-    this.mediatorListeners = {};
+    this.dispatcher = null;
+    this.dispatcherListeners = {};
     this.viewscreen = null;
 
 };
@@ -26,17 +26,18 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
     listen: {
         value: function (channel, fn) {
 
-            var uuid = this.mediator.subscribe({
-                channel: channel,
-                fn: fn,
-                context: this
-            });
+            var fn = fn.bind(this);
 
-            if (!this.mediatorListeners[channel]) {
-                this.mediatorListeners[channel] = [];
+            this.dispatcher.addListener(
+                channel,
+                fn
+            );
+
+            if (!this.dispatcherListeners[channel]) {
+                this.dispatcherListeners[channel] = [];
             }
 
-            this.mediatorListeners[channel].push(uuid);
+            this.dispatcherListeners[channel].push(fn);
 
             return this;
 
@@ -48,9 +49,9 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
      */
 
     broadcast: {
-        value: function () {
+        value: function (name, event) {
 
-            this.mediator.publish.apply(this.mediator, arguments);
+            this.dispatcher.dispatch(name, event);
 
             return this;
 
@@ -61,14 +62,14 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
      * @inheritDoc
      */
 
-    setMediator: {
-        value: function (mediator) {
+    setDispatcher: {
+        value: function (dispatcher) {
 
-            if (!(mediator instanceof Sy.Lib.Mediator)) {
-                throw new TypeError('Invalid mediator');
+            if (!(dispatcher instanceof Sy.EventDispatcher.EventDispatcherInterface)) {
+                throw new TypeError('Invalid event dispatcher');
             }
 
-            this.mediator = mediator;
+            this.dispatcher = dispatcher;
 
             return this;
 
@@ -100,10 +101,10 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
     sleep: {
         value: function () {
 
-            for (var channel in this.mediatorListeners) {
-                if (this.mediatorListeners.hasOwnProperty(channel)) {
-                    for (var i = 0, l = this.mediatorListeners[channel].length; i < l; i++) {
-                        this.mediator.pause(channel, this.mediatorListeners[channel][i]);
+            for (var channel in this.dispatcherListeners) {
+                if (this.dispatcherListeners.hasOwnProperty(channel)) {
+                    for (var i = 0, l = this.dispatcherListeners[channel].length; i < l; i++) {
+                        this.dispatcher.removeListener(channel, this.dispatcherListeners[channel][i]);
                     }
                 }
             }
@@ -118,10 +119,10 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
     wakeup: {
         value: function () {
 
-            for (var channel in this.mediatorListeners) {
-                if (this.mediatorListeners.hasOwnProperty(channel)) {
-                    for (var i = 0, l = this.mediatorListeners[channel].length; i < l; i++) {
-                        this.mediator.unpause(channel, this.mediatorListeners[channel][i]);
+            for (var channel in this.dispatcherListeners) {
+                if (this.dispatcherListeners.hasOwnProperty(channel)) {
+                    for (var i = 0, l = this.dispatcherListeners[channel].length; i < l; i++) {
+                        this.dispatcher.addListener(channel, this.dispatcherListeners[channel][i]);
                     }
                 }
             }
@@ -135,10 +136,10 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
     destroy: {
         value: function () {
 
-            for (var channel in this.mediatorListeners) {
-                if (this.mediatorListeners.hasOwnProperty(channel)) {
-                    for (var i = 0, l = this.mediatorListeners[channel].length; i < l; i++) {
-                        this.mediator.remove(channel, this.mediatorListeners[channel][i]);
+            for (var channel in this.dispatcherListeners) {
+                if (this.dispatcherListeners.hasOwnProperty(channel)) {
+                    for (var i = 0, l = this.dispatcherListeners[channel].length; i < l; i++) {
+                        this.dispatcher.removeListener(channel, this.dispatcherListeners[channel][i]);
                     }
                 }
             }

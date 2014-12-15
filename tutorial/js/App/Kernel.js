@@ -15,6 +15,7 @@ App.Kernel.prototype = Object.create(Sy.Kernel.Core.prototype, {
                 ['SyValidatorBundle', Sy.ValidatorBundle],
                 ['SyViewBundle', Sy.ViewBundle],
                 ['SyAppStateBundle', Sy.AppStateBundle],
+                ['SyEventDispatcherBundle', Sy.EventDispatcherBundle],
                 ['AddressBook', App.Bundle.AddressBook]
             ];
         }

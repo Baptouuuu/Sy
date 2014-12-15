@@ -17,7 +17,9 @@
  * @venus-include ../../src/Lib/Logger/Interface.js
  * @venus-include ../../src/Lib/Generator/Interface.js
  * @venus-include ../../src/Lib/Generator/UUID.js
- * @venus-include ../../src/Lib/Mediator.js
+ * @venus-include ../../src/EventDispatcher/EventDispatcherInterface.js
+ * @venus-include ../../src/EventDispatcher/EventDispatcher.js
+ * @venus-include ../../src/EventDispatcher/Event.js
  * @venus-include ../../src/Storage/Dbal/DriverInterface.js
  * @venus-include ../../src/Storage/IdentityMap.js
  * @venus-include ../../src/Storage/LifeCycleEvent.js
@@ -152,14 +154,14 @@ describe('storage unit of work', function () {
         expect(uow.setGenerator(new Sy.Lib.Generator.UUID())).toEqual(uow);
     });
 
-    it('should throw if trying to set invalid mediator', function () {
+    it('should throw if trying to set invalid event dispatcher', function () {
         expect(function () {
-            uow.setMediator({});
-        }).toThrow('Invalid mediator');
+            uow.setDispatcher({});
+        }).toThrow('Invalid event dispatcher');
     });
 
-    it('should set the mediator', function () {
-        expect(uow.setMediator(new Sy.Lib.Mediator())).toBe(uow);
+    it('should set the event dispatcher', function () {
+        expect(uow.setDispatcher(new Sy.EventDispatcher.EventDispatcher())).toBe(uow);
     });
 
     it('should find an entity', function () {
@@ -340,7 +342,7 @@ describe('storage unit of work', function () {
             .setIdentityMap(map)
             .setPropertyAccessor(new Sy.PropertyAccessor())
             .setGenerator(new Sy.Lib.Generator.UUID())
-            .setMediator(new Sy.Lib.Mediator());
+            .setDispatcher(new Sy.EventDispatcher.EventDispatcher());
 
         uow
             .find('simpletest', 'foo')
