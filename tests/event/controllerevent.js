@@ -2,6 +2,7 @@
  * @venus-library jasmine
  * @venus-include ../../src/functions.js
  * @venus-include ../../src/ControllerInterface.js
+ * @venus-include ../../src/EventDispatcher/Event.js
  * @venus-code ../../src/Event/ControllerEvent.js
  */
 

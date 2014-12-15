@@ -6,6 +6,7 @@ namespace('Sy.Storage');
  * @package Sy
  * @subpackage Storage
  * @class
+ * @extends {Sy.EventDispatcher.Event}
  */
 
 Sy.Storage.LifeCycleEvent = function (alias, entity) {
@@ -13,7 +14,7 @@ Sy.Storage.LifeCycleEvent = function (alias, entity) {
     this.entity = entity;
     this.aborted = false;
 };
-Sy.Storage.LifeCycleEvent.prototype = Object.create(Object.prototype, {
+Sy.Storage.LifeCycleEvent.prototype = Object.create(Sy.EventDispatcher.Event.prototype, {
 
     PRE_CREATE: {
         value: 'storage.pre.create',
