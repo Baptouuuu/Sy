@@ -8,6 +8,7 @@
  * @venus-include ../../src/Kernel/ControllerManager.js
  * @venus-include ../../src/EventDispatcher/EventDispatcherInterface.js
  * @venus-include ../../src/EventDispatcher/EventDispatcher.js
+ * @venus-include ../../src/EventDispatcher/Event.js
  * @venus-include ../../src/Lib/Logger/Interface.js
  * @venus-include ../../src/ControllerInterface.js
  * @venus-include ../../src/Controller.js

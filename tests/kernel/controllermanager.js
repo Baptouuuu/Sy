@@ -9,6 +9,7 @@
  * @venus-include ../../src/Controller.js
  * @venus-include ../../src/EventDispatcher/EventDispatcherInterface.js
  * @venus-include ../../src/EventDispatcher/EventDispatcher.js
+ * @venus-include ../../src/EventDispatcher/Event.js
  * @venus-include ../../src/ParamProxy.js
  * @venus-include ../../src/ServiceContainer/Core.js
  * @venus-include ../../src/View/NodeWrapper.js
