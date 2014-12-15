@@ -116,8 +116,11 @@ Sy.EventDispatcherBundle.ContainerAwareEventDispatcher.prototype = Object.create
 
     hasListeners: {
         value: function (name) {
-            return (!!this.listenersIds[name] && !!this.listenersIds[name].length) ||
-                (!!this.listeners[name] && !!this.listeners[name].length);
+            if (!!this.listenersIds[name]) {
+                return !!this.listenersIds[name].length;
+            }
+
+            return Sy.EventDispatcher.EventDispatcher.prototype.hasListeners.call(this, name);
         }
     },
 
