@@ -16,7 +16,7 @@ Sy.EventDispatcherBundle.Config.Service.prototype = Object.create(Object.prototy
 
             container.set({
                 'sy::core::event_dispatcher': {
-                    constructor: 'Sy.EventDispatcherBundle.ContainerAwareEventDispather',
+                    constructor: 'Sy.EventDispatcherBundle.ContainerAwareEventDispatcher',
                     calls: [
                         ['setServiceContainer', ['@container']]
                     ]

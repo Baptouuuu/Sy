@@ -250,7 +250,7 @@ module.exports = function (grunt) {
     eventDispatcher.unshift('src/functions.js');
     serviceContainer = serviceContainer.concat(propertyAccessor);
     registry = factory.concat(registry);
-    appstate = eventDispatcher.concat(appstate);
+    appState = eventDispatcher.concat(appState);
     mediator = mediator
         .concat(generator)
         .concat(logger);
