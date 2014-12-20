@@ -70,7 +70,7 @@ Sy.ViewBundle.Subscriber.AppStateSubscriber.prototype = Object.create(Sy.EventDi
     },
 
     /**
-     * Called when the appstate.change channel is published
+     * Called when the appstate.change event is fired
      *
      * @param {Sy.AppState.AppStateEvent} event
      */

@@ -14,18 +14,18 @@ Sy.ControllerInterface.prototype = Object.create(Object.prototype, {
      * Shortcut to the event dispatcher subscribe method
      * It automatically register the listener with the controller as context
      *
-     * @param {string} channel
+     * @param {string} event
      * @param {function} fn
      *
      * @return {Sy.ControllerInterface}
      */
 
     listen: {
-        value: function (channel, fn) {}
+        value: function (event, fn) {}
     },
 
     /**
-     * Shortcut to the event dispatcher publish method.
+     * Shortcut to the event dispatcher dispatch method.
      * See the event dispatcher documentation to understand how to pass arguments
      *
      * @return {Sy.ControllerInterface}

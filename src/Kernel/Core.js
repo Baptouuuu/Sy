@@ -186,7 +186,7 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Add a `beforeunload` on the window to fire a channel to notify the app
+     * Add a `beforeunload` on the window to fire an event to notify the app
      * it's being closed, so it can be properly shutdown
      *
      * @return {Sy.Kernel.Core}

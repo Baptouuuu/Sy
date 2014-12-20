@@ -24,20 +24,20 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
      */
 
     listen: {
-        value: function (channel, fn) {
+        value: function (event, fn) {
 
             var fn = [this, fn];
 
             this.dispatcher.addListener(
-                channel,
+                event,
                 fn
             );
 
-            if (!this.dispatcherListeners[channel]) {
-                this.dispatcherListeners[channel] = [];
+            if (!this.dispatcherListeners[event]) {
+                this.dispatcherListeners[event] = [];
             }
 
-            this.dispatcherListeners[channel].push(fn);
+            this.dispatcherListeners[event].push(fn);
 
             return this;
 
@@ -101,10 +101,10 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
     sleep: {
         value: function () {
 
-            for (var channel in this.dispatcherListeners) {
-                if (this.dispatcherListeners.hasOwnProperty(channel)) {
-                    for (var i = 0, l = this.dispatcherListeners[channel].length; i < l; i++) {
-                        this.dispatcher.removeListener(channel, this.dispatcherListeners[channel][i]);
+            for (var event in this.dispatcherListeners) {
+                if (this.dispatcherListeners.hasOwnProperty(event)) {
+                    for (var i = 0, l = this.dispatcherListeners[event].length; i < l; i++) {
+                        this.dispatcher.removeListener(event, this.dispatcherListeners[event][i]);
                     }
                 }
             }
@@ -119,10 +119,10 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
     wakeup: {
         value: function () {
 
-            for (var channel in this.dispatcherListeners) {
-                if (this.dispatcherListeners.hasOwnProperty(channel)) {
-                    for (var i = 0, l = this.dispatcherListeners[channel].length; i < l; i++) {
-                        this.dispatcher.addListener(channel, this.dispatcherListeners[channel][i]);
+            for (var event in this.dispatcherListeners) {
+                if (this.dispatcherListeners.hasOwnProperty(event)) {
+                    for (var i = 0, l = this.dispatcherListeners[event].length; i < l; i++) {
+                        this.dispatcher.addListener(event, this.dispatcherListeners[event][i]);
                     }
                 }
             }
@@ -136,10 +136,10 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
     destroy: {
         value: function () {
 
-            for (var channel in this.dispatcherListeners) {
-                if (this.dispatcherListeners.hasOwnProperty(channel)) {
-                    for (var i = 0, l = this.dispatcherListeners[channel].length; i < l; i++) {
-                        this.dispatcher.removeListener(channel, this.dispatcherListeners[channel][i]);
+            for (var event in this.dispatcherListeners) {
+                if (this.dispatcherListeners.hasOwnProperty(event)) {
+                    for (var i = 0, l = this.dispatcherListeners[event].length; i < l; i++) {
+                        this.dispatcher.removeListener(event, this.dispatcherListeners[event][i]);
                     }
                 }
             }
