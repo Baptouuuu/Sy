@@ -12,7 +12,7 @@ A good practice in software development is to keep your code lossely coupled. Th
 
 Almost every part of the framework is accessible through a service (see the [`ServiceContainer`](../Service-container.md) doc). It helps bootstrap complex mechanism by easily resolving dependencies, and by keeping an abtraction between each component. Think: "I want to use this, and don't want to care how to build it".
 
-Javascript is an event based, asynchronous, language and so is this framework. Events is a good way to keep your code loosely coupled, that's why Sy comes with a component called [`Mediator`](../Mediator.md) to help you create/subscribe to channels (aka *events*).
+Javascript is an event based, asynchronous, language and so is this framework. Events is a good way to keep your code loosely coupled, that's why Sy comes with a component called [`EventDispatcher`](../EventDispatcher.md) to help you dispatch/listen to events.
 
 ## MVC
 
