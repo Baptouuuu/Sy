@@ -95,7 +95,7 @@ Sy.StorageBundle.Config.Service.prototype = Object.create(Object.prototype, {
                         ['setStateRegistryFactory', ['@sy::core::stateregistry::factory']],
                         ['setGenerator', ['@sy::core::generator::uuid']],
                         ['setLogger', ['@sy::core::logger']],
-                        ['setMediator', ['@sy::core::mediator']],
+                        ['setDispatcher', ['@sy::core::event_dispatcher']],
                         ['setPropertyAccessor', ['@sy::core::propertyaccessor']],
                         ['setEntitiesMetadata', ['%app.meta.entities%']]
                     ]

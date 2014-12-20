@@ -5,7 +5,7 @@ before_script:
     - npm install -g yo
     - npm install -g bower
     - npm install -g grunt-cli
-    - npm install -g venus
+    - npm install -g venus@2.3.1
     - bower install
 script:
     - grunt jscs

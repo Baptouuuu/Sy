@@ -6,6 +6,7 @@ namespace('Sy.Event');
  * @package Sy
  * @subpackage Event
  * @class
+ * @extends {Sy.EventDispatcher.Event}
  */
 Sy.Event.ControllerEvent = function (controller, action, event) {
     if (!(controller instanceof Sy.ControllerInterface)) {
@@ -20,7 +21,7 @@ Sy.Event.ControllerEvent = function (controller, action, event) {
     this.action = action;
     this.event = event;
 };
-Sy.Event.ControllerEvent.prototype = Object.create(Object.prototype, {
+Sy.Event.ControllerEvent.prototype = Object.create(Sy.EventDispatcher.Event.prototype, {
 
     PRE_ACTION: {
         value: 'controller::on::pre::action',

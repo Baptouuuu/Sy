@@ -6,7 +6,9 @@
  * @venus-include ../../src/View/ViewPort.js
  * @venus-include ../../src/View/ViewScreen.js
  * @venus-include ../../src/Kernel/ControllerManager.js
- * @venus-include ../../src/Lib/Mediator.js
+ * @venus-include ../../src/EventDispatcher/EventDispatcherInterface.js
+ * @venus-include ../../src/EventDispatcher/EventDispatcher.js
+ * @venus-include ../../src/EventDispatcher/Event.js
  * @venus-include ../../src/Lib/Logger/Interface.js
  * @venus-include ../../src/ControllerInterface.js
  * @venus-include ../../src/Controller.js
@@ -74,7 +76,7 @@ describe('action dispatcher', function () {
         .setMetaRegistry(new Sy.Registry())
         .setLoadedControllersRegistry(new Sy.Registry())
         .setServiceContainer(new Sy.ServiceContainer.Core())
-        .setMediator(new Sy.Lib.Mediator())
+        .setDispatcher(new Sy.EventDispatcher.EventDispatcher())
         .registerController('foo::bar', mockController);
 
     it('should throw if trying to set invalid viewport', function () {
@@ -97,14 +99,14 @@ describe('action dispatcher', function () {
         expect(dispatcher.setControllerManager(controllerManager)).toEqual(dispatcher);
     });
 
-    it('should throw if trying to set invalid mediator', function () {
+    it('should throw if trying to set invalid event dispatcher', function () {
         expect(function () {
-            dispatcher.setMediator({});
-        }).toThrow('Invalid mediator');
+            dispatcher.setDispatcher({});
+        }).toThrow('Invalid event dispatcher');
     });
 
-    it('should set the mediator', function () {
-        expect(dispatcher.setMediator(new Sy.Lib.Mediator())).toEqual(dispatcher);
+    it('should set the event dispatcher', function () {
+        expect(dispatcher.setDispatcher(new Sy.EventDispatcher.EventDispatcher())).toEqual(dispatcher);
     });
 
     it('should throw if trying to set invalid logger', function () {

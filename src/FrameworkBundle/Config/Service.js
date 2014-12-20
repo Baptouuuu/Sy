@@ -12,8 +12,6 @@ Sy.FrameworkBundle.Config.Service = function () {};
 Sy.FrameworkBundle.Config.Service.prototype = Object.create(Object.prototype, {
     define: {
         value: function (container) {
-            var pass = new Sy.FrameworkBundle.CompilerPass.EventSubscriberPass();
-
             container.set({
                 'sy::core::generator::uuid': {
                     constructor: 'Sy.Lib.Generator.UUID'
@@ -91,11 +89,6 @@ Sy.FrameworkBundle.Config.Service.prototype = Object.create(Object.prototype, {
                     prototype: true
                 }
             });
-
-            container.addPass(
-                pass,
-                pass.AFTER_REMOVING
-            );
         }
     }
 });

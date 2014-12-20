@@ -5,7 +5,9 @@
  * @venus-include ../../src/Registry.js
  * @venus-include ../../src/Lib/Generator/Interface.js
  * @venus-include ../../src/Lib/Generator/UUID.js
- * @venus-include ../../src/Lib/Mediator.js
+ * @venus-include ../../src/EventDispatcher/EventDispatcherInterface.js
+ * @venus-include ../../src/EventDispatcher/EventDispatcher.js
+ * @venus-include ../../src/EventDispatcher/Event.js
  * @venus-include ../../src/AppState/UrlMatcher.js
  * @venus-include ../../src/AppState/RouteProvider.js
  * @venus-include ../../src/AppState/AppStateEvent.js
@@ -29,7 +31,7 @@ describe('appstate core', function () {
     beforeEach(function () {
         c = new Sy.AppState.Core();
         p = new Sy.AppState.RouteProvider();
-        m = new Sy.Lib.Mediator();
+        d = new Sy.EventDispatcher.EventDispatcher();
         um = new Sy.AppState.UrlMatcher();
         sh = new Sy.AppState.StateHandler();
         g = new Sy.Lib.Generator.UUID();
@@ -39,7 +41,7 @@ describe('appstate core', function () {
         um.setRouteProvider(p);
 
         c.setRouteProvider(p);
-        c.setMediator(m);
+        c.setDispatcher(d);
         c.setUrlMatcher(um);
         c.setStateHandler(sh);
         c.setGenerator(g);
@@ -75,14 +77,14 @@ describe('appstate core', function () {
         expect(c.setGenerator(g)).toBe(c);
     });
 
-    it('should throw if trying to set invalid mediator', function () {
+    it('should throw if trying to set invalid dispatcher', function () {
         expect(function () {
-            c.setMediator({});
-        }).toThrow('Invalid mediator');
+            c.setDispatcher({});
+        }).toThrow('Invalid event dispatcher');
     });
 
-    it('should set the mediator', function () {
-        expect(c.setMediator(m)).toBe(c);
+    it('should set the event dispatcher', function () {
+        expect(c.setDispatcher(d)).toBe(c);
     });
 
     it('should throw if trying to set invalid state handler', function () {

@@ -3,6 +3,7 @@
  * @venus-include ../../src/functions.js
  * @venus-include ../../src/AppState/State.js
  * @venus-include ../../src/AppState/Route.js
+ * @venus-include ../../src/EventDispatcher/Event.js
  * @venus-code ../../src/AppState/AppStateEvent.js
  */
 

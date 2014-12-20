@@ -1,4 +1,4 @@
-/*! sy#1.0.0 - 2014-10-09 */
+/*! sy#1.1.0 - 2014-12-20 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -164,6 +164,703 @@ function getReflectedValue (property) {
         return undefined;
     }
 };
+namespace('Sy.EventDispatcher');
+
+/**
+ * Base class to hold event data
+ *
+ * @package Sy
+ * @subpackage EventDispatcher
+ * @class
+ */
+
+Sy.EventDispatcher.Event = function () {
+    this.propagationStopped = false;
+    this.dispatcher = null;
+    this.name = null;
+};
+Sy.EventDispatcher.Event.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Check if the propagation is stopped
+     *
+     * @return {Boolean}
+     */
+
+    isPropagationStopped: {
+        value: function () {
+            return this.propagationStopped;
+        }
+    },
+
+    /**
+     * Stop the event propagation
+     */
+
+    stopPropagation: {
+        value: function () {
+            this.propagationStopped = true;
+        }
+    },
+
+    /**
+     * Set the event dipatcher handling this event
+     *
+     * @param {EventDispatcherInterface} dispatcher
+     */
+
+    setDispatcher: {
+        value: function (dispatcher) {
+            if (!(dispatcher instanceof Sy.EventDispatcher.EventDispatcherInterface)) {
+                throw new TypeError('Invalid event dispatcher');
+            }
+
+            this.dispatcher = dispatcher;
+        }
+    },
+
+    /**
+     * Return the event dispacther handling this event
+     *
+     * @return {EventDispatcherInterface}
+     */
+
+    getDispatcher: {
+        value: function () {
+            return this.dispatcher;
+        }
+    },
+
+    /**
+     * Set the event name
+     *
+     * @param {String} name
+     */
+
+    setName: {
+        value: function (name) {
+            this.name = name;
+        }
+    },
+
+    /**
+     * Return the event name
+     *
+     * @return {String}
+     */
+
+    getName: {
+        value: function () {
+            return this.name;
+        }
+    }
+});
+
+namespace('Sy.EventDispatcher');
+
+/**
+ * Interface for any event dispatcher
+ *
+ * @package Sy
+ * @subpackage EventDispatcher
+ * @class
+ */
+
+Sy.EventDispatcher.EventDispatcherInterface = function () {};
+Sy.EventDispatcher.EventDispatcherInterface.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Dispatch en event
+     *
+     * @param {String} name
+     * @param {Event} event
+     *
+     * @return {Event}
+     */
+
+    dispatch: {
+        value: function (name, event) {}
+    },
+
+    /**
+     * Add a listener
+     *
+     * @param {String} name Event name
+     * @param {Function} listener
+     * @param {Integer} priority
+     *
+     * @return {EventDispatcherInterface} self
+     */
+
+    addListener: {
+        value: function (name, listener, priority) {}
+    },
+
+    /**
+     * Adds an event subsriber
+     *
+     * @param {EventSubscriberInterface} subscriber
+     *
+     * @return {EventDispatcherInterface} self
+     */
+
+    addSubscriber: {
+        value: function (subscriber) {}
+    },
+
+    /**
+     * Remove the given listener
+     *
+     * @param {String} name Event name
+     * @param {Function} listener
+     *
+     * @return {EventDispatcherInterface} self
+     */
+
+    removeListener: {
+        value: function (name, listener) {}
+    },
+
+    /**
+     * Remove a subscriber
+     *
+     * @param {EventSubscriberInterface} subscriber
+     *
+     * @return {EventDispatcherInterface} self
+     */
+
+    removeSubsriber: {
+        value: function (subscriber) {}
+    },
+
+    /**
+     * Return all the listeners for the given event name
+     *
+     * @param {String} name
+     *
+     * @return {Array}
+     */
+
+    getListeners: {
+        value: function (name) {}
+    },
+
+    /**
+     * Check if an event name has listeners
+     *
+     * @param {String} name
+     *
+     * @return {Boolean}
+     */
+
+    hasListeners: {
+        value: function (name) {}
+    }
+
+});
+
+namespace('Sy.EventDispatcher');
+
+/**
+ * Default implementation of the dispatcher interface
+ *
+ * @package Sy
+ * @subpackage EventDispatcher
+ * @class
+ * @implements {Sy.EventDispatcher.EventDispatcherInterface}
+ */
+
+Sy.EventDispatcher.EventDispatcher = function () {
+    this.listeners = {};
+    this.sorted = {};
+};
+Sy.EventDispatcher.EventDispatcher.prototype = Object.create(Sy.EventDispatcher.EventDispatcherInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
+
+    dispatch: {
+        value: function (name, event) {
+            if (!event) {
+                event = new Sy.EventDispatcher.Event();
+            }
+
+            if (!(event instanceof Sy.EventDispatcher.Event)) {
+                throw new TypeError('Invalid event object');
+            }
+
+            event.setDispatcher(this);
+            event.setName(name);
+
+            if (!this.hasListeners(name)) {
+                return event;
+            }
+
+            this.doDispatch(this.getListeners(name), name, event);
+
+            return event;
+        }
+    },
+
+    /**
+     * Call all the listeners with the given event
+     *
+     * @private
+     * @param {Array} listeners
+     * @param {String} name Event name
+     * @param {Event} event
+     */
+
+    doDispatch: {
+        value: function (listeners, name, event) {
+            for (var i = 0, l = listeners.length; i < l; i++) {
+                listeners[i](event, name, this);
+
+                if (event.isPropagationStopped()) {
+                    break;
+                }
+            }
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    addListener: {
+        value: function (name, listener, priority) {
+            if (
+                !(listener instanceof Function) &&
+                (
+                    !(listener instanceof Array) &&
+                    !(listener[0] instanceof Object) &&
+                    !(listener[1] instanceof Function)
+                )
+            ) {
+                throw new TypeError('A listener must be a function');
+            }
+
+            if (!(this.listeners[name] instanceof Array)) {
+                this.listeners[name] = [];
+            }
+
+            if (this.sorted[name]) {
+                this.sorted[name] = undefined;
+            }
+
+            this.listeners[name].push({
+                listener: listener,
+                priority: priority || 0
+            });
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    addSubscriber: {
+        value: function (subscriber) {
+            if (!(subscriber instanceof Sy.EventDispatcher.EventSubscriberInterface)) {
+                throw new TypeError('Invalid event subscriber');
+            }
+
+            var subscribed = subscriber.getSubscribedEvents();
+
+            for (var name in subscribed) {
+                if (subscribed.hasOwnProperty(name)) {
+                    if (subscribed[name] instanceof Array) {
+                        for (var i = 0, l = subscribed[name].length; i < l; i++) {
+                            this.addListener(
+                                name,
+                                [subscriber, subscriber[subscribed[name][i].method]],
+                                subscribed[name][i].priority
+                            );
+                        }
+                    } else if (subscribed[name] instanceof Object) {
+                        this.addListener(
+                            name,
+                            [subscriber, subscriber[subscribed[name].method]],
+                            subscribed[name].priority
+                        );
+                    } else {
+                        this.addListener(
+                            name,
+                            subscriber[subscribed[name]]
+                        );
+                    }
+                }
+            }
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    removeListener: {
+        value: function (name, listener) {
+            if (
+                !(listener instanceof Function) &&
+                (
+                    !(listener instanceof Array) &&
+                    !(listener[0] instanceof Object) &&
+                    !(listener[1] instanceof Function)
+                )
+            ) {
+                throw new TypeError('Invalid event listener');
+            }
+
+            if (!this.listeners.hasOwnProperty(name)) {
+                return this;
+            }
+
+            if (this.sorted[name]) {
+                this.sorted[name] = undefined;
+            }
+
+            for (var i = 0, l = this.listeners[name].length; i < l; i++) {
+                if (
+                    (
+                        listener instanceof Array &&
+                        this.listeners[name][i].listener[0] === listener[0] &&
+                        this.listeners[name][i].listener[1] === listener[1]
+                    ) ||
+                    this.listeners[name][i].listener === listener
+                ) {
+                    this.listeners[name].splice(i, 1);
+                    break;
+                }
+            }
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    removeSubscriber: {
+        value: function (subscriber) {
+            if (!(subscriber instanceof Sy.EventDispatcher.EventSubscriberInterface)) {
+                throw new TypeError('Invalid event subscriber');
+            }
+
+            var subscribed = subscriber.getSubscribedEvents();
+
+            for (var name in subscribed) {
+                if (subscribed.hasOwnProperty(name)) {
+                    if (subscribed[name] instanceof Array) {
+                        for (var i = 0, l = subscribed[name].length; i < l; i++) {
+                            this.removeListener(
+                                name,
+                                [subscriber, subscriber[subscribed[name][i].method]]
+                            );
+                        }
+                    } else if (subscribed[name] instanceof Object) {
+                        this.removeListener(
+                            name,
+                            [subscriber, subscriber[subscribed[name].method]]
+                        );
+                    } else {
+                        this.removeListener(
+                            name,
+                            subscriber[subscribed[name]]
+                        );
+                    }
+                }
+            }
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    getListeners: {
+        value: function (name) {
+            if (!this.hasListeners(name)) {
+                return [];
+            }
+
+            if (!this.sorted[name]) {
+                this.sortListeners(name);
+            }
+
+            return this.sorted[name];
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    hasListeners: {
+        value: function (name) {
+            return !!this.listeners[name] && !!this.listeners[name].length;
+        }
+    },
+
+    /**
+     * Reorder listeners by their priority
+     *
+     * @private
+     * @param {String} name Event name
+     */
+
+    sortListeners: {
+        value: function (name) {
+            this.listeners[name].sort(function (a, b) {
+                return a.priority < b.priority;
+            });
+            this.sorted[name] = this.listeners[name].map(function (element) {
+                if (element.listener instanceof Array) {
+                    return element.listener[1].bind(element.listener[0]);
+                }
+
+                return element.listener;
+            });
+        }
+    }
+
+});
+
+namespace('Sy.EventDispatcher');
+
+/**
+ * Disptacher fixed throughout the runtime
+ *
+ * @package Sy
+ * @subpackage EventDispatcher
+ * @class
+ * @implements {Sy.EventDispatcher.EventDispatcherInterface}
+ */
+
+Sy.EventDispatcher.ImmutableEventDispatcher = function (dispatcher) {
+    if (!(dispatcher instanceof Sy.EventDispatcher.EventDispatcherInterface)) {
+        throw new TypeError('Invalid event dispatcher');
+    }
+
+    this.dispatcher = dispatcher;
+}
+Sy.EventDispatcher.ImmutableEventDispatcher.prototype = Object.create(Sy.EventDispatcher.EventDispatcherInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
+
+    dispatch: {
+        value: function (name, event) {
+            return this.dispatcher.dispatch(name, event);
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    addListener: {
+        value: function (name, listener, priority) {
+            throw new Error('Unmodifiable event dispatchers must not be modified');
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    addSubscriber: {
+        value: function (subscriber) {
+            throw new Error('Unmodifiable event dispatchers must not be modified');
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    removeListener: {
+        value: function (name, listener) {
+            throw new Error('Unmodifiable event dispatchers must not be modified');
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    removeSubscriber: {
+        value: function (subscriber) {
+            throw new Error('Unmodifiable event dispatchers must not be modified');
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    getListeners: {
+        value: function (name) {
+            return this.dispatcher.getListeners(name);
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    hasListeners: {
+        value: function (name) {
+            return this.dispatcher.hasListeners(name);
+        }
+    }
+
+});
+
+namespace('Sy.EventDispatcher');
+
+/**
+ * Interface to define required method for event subscribers
+ *
+ * @package Sy
+ * @interface
+ */
+
+Sy.EventDispatcher.EventSubscriberInterface = function () {};
+Sy.EventDispatcher.EventSubscriberInterface.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Return an object of events that the object subscribed to
+     * <code>
+     * {
+     *     'event name': 'method name',
+     *     'event name': {
+     *         method: 'function name in the object', //required
+     *         priority: 'integer' //optional
+     *     },
+     *     'event name': [
+     *         {method: 'method', priority: 'integer'},
+     *         {method: 'method', priority: 'integer'},
+     *     ]
+     * }
+     * </code>
+     *
+     * @return {Object}
+     */
+
+    getSubscribedEvents: {
+        value: function () {}
+    }
+
+});
+
+namespace('Sy.EventDispatcher');
+
+/**
+ * Generic event that an hold any data
+ *
+ * @package Sy
+ * @subpackage EventDispatcher
+ * @class
+ * @extends {Sy.EventDispatcher.Event}
+ */
+
+Sy.EventDispatcher.GenericEvent = function (subject, args) {
+    Sy.EventDispatcher.Event.call(this);
+
+    if (args !== undefined && !(args instanceof Object)) {
+        throw new TypeError('Event arguments must be an object');
+    }
+
+    this.subject = subject;
+    this.args = args || {};
+};
+Sy.EventDispatcher.GenericEvent.prototype = Object.create(Sy.EventDispatcher.Event.prototype, {
+
+    /**
+     * Return the event subject
+     *
+     * @return {String}
+     */
+
+    getSubject: {
+        value: function () {
+            return this.subject;
+        }
+    },
+
+    /**
+     * Return an argument
+     *
+     * @param {String} key
+     *
+     * @return {mixed}
+     */
+
+    getArgument: {
+        value: function (key) {
+            return this.args[key];
+        }
+    },
+
+    /**
+     * Set an argument
+     *
+     * @param {String} key
+     * @param {mixed} data
+     *
+     * @return {GenericEvent} self
+     */
+
+    setArgument: {
+        value: function (key, data) {
+            this.args[key] = data;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return all the arguments
+     *
+     * @return {Object}
+     */
+
+    getArguments: {
+        value: function () {
+            return this.args;
+        }
+    },
+
+    /**
+     * Set all arguments at once
+     *
+     * @param {Object} args
+     *
+     * @return {GenericEvent} self
+     */
+
+    setArguments: {
+        value: function (args) {
+            if (!(args instanceof Object)) {
+                throw new TypeError('Event arguments must be an object');
+            }
+
+            this.args = args;
+
+            return this;
+        }
+    }
+});
+
 namespace('Sy');
 
 /**
@@ -173,38 +870,32 @@ namespace('Sy');
  * @interface
  */
 
-Sy.ControllerInterface = function () {
-
-    this.container = {};
-    this.mediator = {};
-
-};
-
+Sy.ControllerInterface = function () {};
 Sy.ControllerInterface.prototype = Object.create(Object.prototype, {
 
     /**
-     * Shortcut to the mediator subscribe method
+     * Shortcut to the event dispatcher subscribe method
      * It automatically register the listener with the controller as context
      *
-     * @param {string} channel
+     * @param {string} event
      * @param {function} fn
      *
      * @return {Sy.ControllerInterface}
      */
 
     listen: {
-        value: function (channel, fn) {}
+        value: function (event, fn) {}
     },
 
     /**
-     * Shortcut to the mediator publish method.
-     * See the mediator documentation to understand how to pass arguments
+     * Shortcut to the event dispatcher dispatch method.
+     * See the event dispatcher documentation to understand how to pass arguments
      *
      * @return {Sy.ControllerInterface}
      */
 
     broadcast: {
-        value: function () {}
+        value: function (name, event) {}
     },
 
     /**
@@ -239,15 +930,15 @@ Sy.ControllerInterface.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Set the mediator
+     * Set the event dispatcher
      *
-     * @param {Sy.Lib.Mediator} mediator
+     * @param {Sy.EventDispatcher.EventDispatcherInterface} dispatcher
      *
      * @return {Sy.ControllerInterface}
      */
 
-    setMediator: {
-        value: function (mediator) {}
+    setDispatcher: {
+        value: function (dispatcher) {}
     },
 
     /**
@@ -286,6 +977,7 @@ Sy.ControllerInterface.prototype = Object.create(Object.prototype, {
     }
 
 });
+
 namespace('Sy.Kernel');
 
 /**
@@ -300,7 +992,7 @@ namespace('Sy.Kernel');
 Sy.Kernel.ActionDispatcher = function () {
     this.viewport = null;
     this.controllerManager = null;
-    this.mediator = null;
+    this.dispatcher = null;
     this.logger = null;
 };
 Sy.Kernel.ActionDispatcher.prototype = Object.create(Object.prototype, {
@@ -350,21 +1042,21 @@ Sy.Kernel.ActionDispatcher.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Set the mediator
+     * Set the event dispatcher
      *
-     * @param {Sy.Lib.Mediator} mediator
+     * @param {Sy.EventDispatcher.EventDispatcherInterface} dispatcher
      *
      * @return {Sy.Kernel.ActionDispatcher}
      */
 
-    setMediator: {
-        value: function (mediator) {
+    setDispatcher: {
+        value: function (dispatcher) {
 
-            if (!(mediator instanceof Sy.Lib.Mediator)) {
-                throw new TypeError('Invalid mediator');
+            if (!(dispatcher instanceof Sy.EventDispatcher.EventDispatcherInterface)) {
+                throw new TypeError('Invalid event dispatcher');
             }
 
-            this.mediator = mediator;
+            this.dispatcher = dispatcher;
 
             return this;
 
@@ -483,11 +1175,12 @@ Sy.Kernel.ActionDispatcher.prototype = Object.create(Object.prototype, {
                 this.logger.info('Firing a controller\'s method...', [controller, action]);
             }
 
-            this.mediator.publish(evt.PRE_ACTION, evt);
+            this.dispatcher.dispatch(evt.PRE_ACTION, evt);
 
             controller[action].call(controller, event);
 
-            this.mediator.publish(evt.POST_ACTION, evt);
+            evt = new Sy.Event.ControllerEvent(controller, action, event);
+            this.dispatcher.dispatch(evt.POST_ACTION, evt);
 
         }
     }
@@ -748,7 +1441,7 @@ namespace('Sy.Kernel');
 Sy.Kernel.ControllerManager = function () {
     this.meta = null;
     this.loaded = null;
-    this.mediator = null;
+    this.dispatcher = null;
     this.container = null;
     this.current = null;
     this.cache = null;
@@ -825,21 +1518,21 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Sets the mediator to subscribe to viewport events
+     * Sets the event dispatcher to subscribe to viewport events
      *
-     * @param {Sy.Lib.Mediator} mediator
+     * @param {Sy.EventDispatcher.EventDispatcherInterface} dispatcher
      *
      * @return {Sy.Kernel.ControllerManager}
      */
 
-    setMediator: {
-        value: function (mediator) {
+    setDispatcher: {
+        value: function (dispatcher) {
 
-            if (!(mediator instanceof Sy.Lib.Mediator)) {
-                throw new TypeError('Invalid mediator');
+            if (!(dispatcher instanceof Sy.EventDispatcher.EventDispatcherInterface)) {
+                throw new TypeError('Invalid event dispatcher');
             }
 
-            this.mediator = mediator;
+            this.dispatcher = dispatcher;
 
             return this;
 
@@ -992,7 +1685,7 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
 
             instance = new (this.meta.get(alias))();
             instance
-                .setMediator(this.mediator)
+                .setDispatcher(this.dispatcher)
                 .setServiceContainer(this.container)
                 .setViewScreen(viewscreen)
                 .init();
@@ -1046,11 +1739,10 @@ Sy.Kernel.ControllerManager.prototype = Object.create(Object.prototype, {
     boot: {
         value: function () {
 
-            this.mediator.subscribe({
-                channel: Sy.View.Event.ViewPortEvent.prototype.PRE_DISPLAY,
-                fn: this.onDisplayListener,
-                context: this
-            });
+            this.dispatcher.addListener(
+                Sy.View.Event.ViewPortEvent.prototype.PRE_DISPLAY,
+                this.onDisplayListener.bind(this)
+            );
 
         }
     }
@@ -1177,7 +1869,7 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
         value: function (controllers) {
 
             var registryFactory = this.container.get('sy::core::registry::factory'),
-                mediator = this.container.get('sy::core::mediator'),
+                dispatcher = this.container.get('sy::core::event_dispatcher'),
                 viewport = this.container.get('sy::core::viewport'),
                 logger = this.container.get('sy::core::logger'),
                 viewscreensManager = this.container.get('sy::core::view::manager');
@@ -1185,7 +1877,7 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
             this.controllerManager
                 .setMetaRegistry(registryFactory.make())
                 .setLoadedControllersRegistry(registryFactory.make())
-                .setMediator(mediator)
+                .setDispatcher(dispatcher)
                 .setServiceContainer(this.container)
                 .setCache(this.config.get('controllers.cache'))
                 .setCacheLength(this.config.get('controllers.cacheLength'));
@@ -1193,7 +1885,7 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
             this.actionDispatcher
                 .setViewPort(viewport)
                 .setControllerManager(this.controllerManager)
-                .setMediator(mediator)
+                .setDispatcher(dispatcher)
                 .setLogger(logger);
 
             for (var i = 0, l = controllers.length; i < l; i++) {
@@ -1245,7 +1937,7 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Add a `beforeunload` on the window to fire a channel to notify the app
+     * Add a `beforeunload` on the window to fire an event to notify the app
      * it's being closed, so it can be properly shutdown
      *
      * @return {Sy.Kernel.Core}
@@ -1257,7 +1949,7 @@ Sy.Kernel.Core.prototype = Object.create(Object.prototype, {
                 try {
                     var evt = new Sy.Event.AppShutdownEvent(event);
 
-                    this.container.get('sy::core::mediator').publish(
+                    this.container.get('sy::core::event_dispatcher').dispatch(
                         evt.KEY,
                         evt
                     );
@@ -1388,6 +2080,7 @@ namespace('Sy.Event');
  * @package Sy
  * @subpackage Event
  * @class
+ * @extends {Sy.EventDispatcher.Event}
  */
 Sy.Event.AppShutdownEvent = function (originalEvent) {
     if (!(originalEvent instanceof BeforeUnloadEvent)) {
@@ -1396,7 +2089,7 @@ Sy.Event.AppShutdownEvent = function (originalEvent) {
 
     this.originalEvent = originalEvent;
 };
-Sy.Event.AppShutdownEvent.prototype = Object.create(Object.prototype, {
+Sy.Event.AppShutdownEvent.prototype = Object.create(Sy.EventDispatcher.Event.prototype, {
 
     KEY: {
         value: 'app::shutdown',
@@ -1425,6 +2118,7 @@ namespace('Sy.Event');
  * @package Sy
  * @subpackage Event
  * @class
+ * @extends {Sy.EventDispatcher.Event}
  */
 Sy.Event.ControllerEvent = function (controller, action, event) {
     if (!(controller instanceof Sy.ControllerInterface)) {
@@ -1439,7 +2133,7 @@ Sy.Event.ControllerEvent = function (controller, action, event) {
     this.action = action;
     this.event = event;
 };
-Sy.Event.ControllerEvent.prototype = Object.create(Object.prototype, {
+Sy.Event.ControllerEvent.prototype = Object.create(Sy.EventDispatcher.Event.prototype, {
 
     PRE_ACTION: {
         value: 'controller::on::pre::action',
@@ -1502,8 +2196,8 @@ namespace('Sy');
 Sy.Controller = function () {
 
     this.container = null;
-    this.mediator = null;
-    this.mediatorListeners = {};
+    this.dispatcher = null;
+    this.dispatcherListeners = {};
     this.viewscreen = null;
 
 };
@@ -1515,19 +2209,20 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
      */
 
     listen: {
-        value: function (channel, fn) {
+        value: function (event, fn) {
 
-            var uuid = this.mediator.subscribe({
-                channel: channel,
-                fn: fn,
-                context: this
-            });
+            var fn = [this, fn];
 
-            if (!this.mediatorListeners[channel]) {
-                this.mediatorListeners[channel] = [];
+            this.dispatcher.addListener(
+                event,
+                fn
+            );
+
+            if (!this.dispatcherListeners[event]) {
+                this.dispatcherListeners[event] = [];
             }
 
-            this.mediatorListeners[channel].push(uuid);
+            this.dispatcherListeners[event].push(fn);
 
             return this;
 
@@ -1539,9 +2234,9 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
      */
 
     broadcast: {
-        value: function () {
+        value: function (name, event) {
 
-            this.mediator.publish.apply(this.mediator, arguments);
+            this.dispatcher.dispatch(name, event);
 
             return this;
 
@@ -1552,14 +2247,14 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
      * @inheritDoc
      */
 
-    setMediator: {
-        value: function (mediator) {
+    setDispatcher: {
+        value: function (dispatcher) {
 
-            if (!(mediator instanceof Sy.Lib.Mediator)) {
-                throw new TypeError('Invalid mediator');
+            if (!(dispatcher instanceof Sy.EventDispatcher.EventDispatcherInterface)) {
+                throw new TypeError('Invalid event dispatcher');
             }
 
-            this.mediator = mediator;
+            this.dispatcher = dispatcher;
 
             return this;
 
@@ -1591,10 +2286,10 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
     sleep: {
         value: function () {
 
-            for (var channel in this.mediatorListeners) {
-                if (this.mediatorListeners.hasOwnProperty(channel)) {
-                    for (var i = 0, l = this.mediatorListeners[channel].length; i < l; i++) {
-                        this.mediator.pause(channel, this.mediatorListeners[channel][i]);
+            for (var event in this.dispatcherListeners) {
+                if (this.dispatcherListeners.hasOwnProperty(event)) {
+                    for (var i = 0, l = this.dispatcherListeners[event].length; i < l; i++) {
+                        this.dispatcher.removeListener(event, this.dispatcherListeners[event][i]);
                     }
                 }
             }
@@ -1609,10 +2304,10 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
     wakeup: {
         value: function () {
 
-            for (var channel in this.mediatorListeners) {
-                if (this.mediatorListeners.hasOwnProperty(channel)) {
-                    for (var i = 0, l = this.mediatorListeners[channel].length; i < l; i++) {
-                        this.mediator.unpause(channel, this.mediatorListeners[channel][i]);
+            for (var event in this.dispatcherListeners) {
+                if (this.dispatcherListeners.hasOwnProperty(event)) {
+                    for (var i = 0, l = this.dispatcherListeners[event].length; i < l; i++) {
+                        this.dispatcher.addListener(event, this.dispatcherListeners[event][i]);
                     }
                 }
             }
@@ -1626,10 +2321,10 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
     destroy: {
         value: function () {
 
-            for (var channel in this.mediatorListeners) {
-                if (this.mediatorListeners.hasOwnProperty(channel)) {
-                    for (var i = 0, l = this.mediatorListeners[channel].length; i < l; i++) {
-                        this.mediator.remove(channel, this.mediatorListeners[channel][i]);
+            for (var event in this.dispatcherListeners) {
+                if (this.dispatcherListeners.hasOwnProperty(event)) {
+                    for (var i = 0, l = this.dispatcherListeners[event].length; i < l; i++) {
+                        this.dispatcher.removeListener(event, this.dispatcherListeners[event][i]);
                     }
                 }
             }
@@ -1722,38 +2417,6 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
     }
 
 });
-namespace('Sy');
-
-/**
- * Interface to define required method for event subscribers
- *
- * @package Sy
- * @interface
- */
-
-Sy.EventSubscriberInterface = function () {};
-Sy.EventSubscriberInterface.prototype = Object.create(Object.prototype, {
-
-    /**
-     * Return an object of events that the object subscribed to
-     * <code>
-     * {
-     *     'channel name': {
-     *         method: 'function name in the object', //required
-     *         priority: 'integer', //optional
-     *         async: 'boolean' //optional
-     *     }
-     * }
-     * </code>
-     *
-     * @return {Object}
-     */
-
-    getSubscribedEvents: {
-        value: function () {}
-    }
-
-});
 
 namespace('Sy.FrameworkBundle.Config');
 
@@ -1799,8 +2462,6 @@ Sy.FrameworkBundle.Config.Service = function () {};
 Sy.FrameworkBundle.Config.Service.prototype = Object.create(Object.prototype, {
     define: {
         value: function (container) {
-            var pass = new Sy.FrameworkBundle.CompilerPass.EventSubscriberPass();
-
             container.set({
                 'sy::core::generator::uuid': {
                     constructor: 'Sy.Lib.Generator.UUID'
@@ -1878,14 +2539,10 @@ Sy.FrameworkBundle.Config.Service.prototype = Object.create(Object.prototype, {
                     prototype: true
                 }
             });
-
-            container.addPass(
-                pass,
-                pass.AFTER_REMOVING
-            );
         }
     }
 });
+
 namespace('Sy.FormBundle.Config');
 
 /**
@@ -2052,7 +2709,7 @@ Sy.StorageBundle.Config.Service.prototype = Object.create(Object.prototype, {
                         ['setStateRegistryFactory', ['@sy::core::stateregistry::factory']],
                         ['setGenerator', ['@sy::core::generator::uuid']],
                         ['setLogger', ['@sy::core::logger']],
-                        ['setMediator', ['@sy::core::mediator']],
+                        ['setDispatcher', ['@sy::core::event_dispatcher']],
                         ['setPropertyAccessor', ['@sy::core::propertyaccessor']],
                         ['setEntitiesMetadata', ['%app.meta.entities%']]
                     ]
@@ -2065,6 +2722,7 @@ Sy.StorageBundle.Config.Service.prototype = Object.create(Object.prototype, {
         }
     }
 });
+
 namespace('Sy.TranslatorBundle.Config');
 
 /**
@@ -2195,7 +2853,7 @@ Sy.ViewBundle.Config.Service.prototype = Object.create(Object.prototype, {
                     calls: [
                         ['setNode', [document.querySelector('.viewport')]],
                         ['setViewManager', ['@sy::core::view::manager']],
-                        ['setMediator', ['@sy::core::mediator']]
+                        ['setDispatcher', ['@sy::core::event_dispatcher']]
                     ]
                 },
                 'sy::core::view::manager': {
@@ -2229,6 +2887,7 @@ Sy.ViewBundle.Config.Service.prototype = Object.create(Object.prototype, {
         }
     }
 });
+
 namespace('Sy.ViewBundle.Subscriber');
 
 /**
@@ -2237,14 +2896,14 @@ namespace('Sy.ViewBundle.Subscriber');
  * @package Sy
  * @subpackage ViewBundle
  * @class
- * @implements {Sy.EventSubscriberInterface}
+ * @implements {Sy.EventDispatcher.EventSubscriberInterface}
  */
 
 Sy.ViewBundle.Subscriber.AppStateSubscriber = function () {
     this.viewport = null;
     this.logger = null;
 };
-Sy.ViewBundle.Subscriber.AppStateSubscriber.prototype = Object.create(Sy.EventSubscriberInterface.prototype, {
+Sy.ViewBundle.Subscriber.AppStateSubscriber.prototype = Object.create(Sy.EventDispatcher.EventSubscriberInterface.prototype, {
 
     /**
      * Set the viewport manager
@@ -2301,7 +2960,7 @@ Sy.ViewBundle.Subscriber.AppStateSubscriber.prototype = Object.create(Sy.EventSu
     },
 
     /**
-     * Called when the appstate.change channel is published
+     * Called when the appstate.change event is fired
      *
      * @param {Sy.AppState.AppStateEvent} event
      */
@@ -2321,6 +2980,7 @@ Sy.ViewBundle.Subscriber.AppStateSubscriber.prototype = Object.create(Sy.EventSu
     }
 
 });
+
 namespace('Sy.AppStateBundle.Config');
 
 /**
@@ -2362,7 +3022,7 @@ Sy.AppStateBundle.Config.Service.prototype = Object.create(Object.prototype, {
                         ['setUrlMatcher', ['@sy::core::appstate::urlmatcher']],
                         ['setRouteProvider', ['@sy::core::appstate::routeprovider']],
                         ['setGenerator', ['@sy::core::generator::uuid']],
-                        ['setMediator', ['@sy::core::mediator']],
+                        ['setDispatcher', ['@sy::core::event_dispatcher']],
                         ['setStateHandler', ['@sy::core::appstate::statehandler']]
                     ]
                 },
@@ -2377,6 +3037,247 @@ Sy.AppStateBundle.Config.Service.prototype = Object.create(Object.prototype, {
         }
     }
 });
+
+namespace('Sy.EventDispatcherBundle');
+
+/**
+ * Dispatcher that leverage service container to lazy load listeners
+ *
+ * @package Sy
+ * @subpackage EventDispatcherBundle
+ * @class
+ * @extends {Sy.EventDispatcher.EventDispatcher}
+ */
+
+Sy.EventDispatcherBundle.ContainerAwareEventDispatcher = function (container) {
+    Sy.EventDispatcher.EventDispatcher.call(this);
+
+    this.container = null;
+    this.listenersIds = {};
+    this.loaded = [];
+};
+Sy.EventDispatcherBundle.ContainerAwareEventDispatcher.prototype = Object.create(Sy.EventDispatcher.EventDispatcher.prototype, {
+
+    /**
+     * Set the service container
+     *
+     * @param {Sy.ServiceContainer.Core} container
+     */
+
+    setServiceContainer: {
+        value: function (container) {
+            if (!(container instanceof Sy.ServiceContainer.Core)) {
+                throw new TypeError('Invalid service container');
+            }
+
+            this.container = container;
+        }
+    },
+
+    /**
+     * Add a service as event listener
+     *
+     * @param {String} name Event name
+     * @param {String} service Service id
+     * @param {String} method Method name
+     * @param {Integer} priority
+     *
+     * @return {ContainerAwareEventDispatcher} self
+     */
+
+    addListenerService: {
+        value: function (name, service, method, priority) {
+            if (!this.listenersIds[name]) {
+                this.listenersIds[name] = [];
+            }
+
+            this.listenersIds[name].push({
+                service: service,
+                method: method,
+                priority: priority
+            });
+
+            return this;
+        }
+    },
+
+    /**
+     * Add a service as event subscriber
+     *
+     * @param {String} service Service id
+     * @param {Function} constructor
+     *
+     * @return {ContainerAwareEventDispatcher} self
+     */
+
+    addSubscriberService: {
+        value: function (service, constructor) {
+            if (!(constructor instanceof Function)) {
+                throw new TypeError('Invalid subscriber service constructor');
+            }
+
+            var subscribed = constructor.prototype.getSubscribedEvents();
+
+            for (var name in subscribed) {
+                if (subscribed.hasOwnProperty(name)) {
+                    if (subscribed[name] instanceof Array) {
+                        for (var i = 0, l = subscribed[name].length; i < l; i++) {
+                            this.addListenerService(
+                                name,
+                                service,
+                                subscribed[name][i].method,
+                                subscribed[name][i].priority
+                            );
+                        }
+                    } else if (subscribed[name] instanceof Object) {
+                        this.addListenerService(
+                            name,
+                            service,
+                            subscribed[name].method,
+                            subscribed[name].priority
+                        );
+                    } else {
+                        this.addListenerService(
+                            name,
+                            service,
+                            subscribed[name]
+                        );
+                    }
+                }
+            }
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    hasListeners: {
+        value: function (name) {
+            if (!!this.listenersIds[name]) {
+                return !!this.listenersIds[name].length;
+            }
+
+            return Sy.EventDispatcher.EventDispatcher.prototype.hasListeners.call(this, name);
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    getListeners: {
+        value: function (name) {
+            this.lazyLoad(name);
+
+            return Sy.EventDispatcher
+                .EventDispatcher
+                .prototype
+                .getListeners
+                .call(this, name);
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    dispatch: {
+        value: function (name, event) {
+            this.lazyLoad(name);
+
+            return Sy.EventDispatcher
+                .EventDispatcher
+                .prototype
+                .dispatch
+                .call(this, name, event);
+        }
+    },
+
+    /**
+     * Return the container attached to this event dispatcher
+     *
+     * @return {Sy.ServiceContainer.Core}
+     */
+
+    getContainer: {
+        value: function () {
+            return this.container;
+        }
+    },
+
+    /**
+     * Load all the services listening to the event
+     *
+     * @private
+     * @param {String} name Event name
+     */
+
+    lazyLoad: {
+        value: function (name) {
+            if (this.loaded.indexOf(name) !== -1) {
+                return;
+            }
+
+            if (!this.listenersIds[name]) {
+                return;
+            }
+
+            var service;
+
+            for (var i = 0, l = this.listenersIds[name].length; i < l; i++) {
+                service = this.container.get(
+                    this.listenersIds[name][i].service
+                );
+
+                this.addListener(
+                    name,
+                    [service, service[this.listenersIds[name][i].method]],
+                    this.listenersIds[name][i].priority
+                );
+            }
+
+            this.loaded.push(name);
+        }
+    }
+
+});
+
+namespace('Sy.EventDispatcherBundle.Config');
+
+/**
+ * Register the compiler pass to register listeners
+ *
+ * @package Sy
+ * @subpackage EventDispatcherBundle
+ * @class
+ */
+
+Sy.EventDispatcherBundle.Config.Service = function () {};
+Sy.EventDispatcherBundle.Config.Service.prototype = Object.create(Object.prototype, {
+    define: {
+        value: function (container) {
+            var pass = new Sy.EventDispatcherBundle.CompilerPass.RegisterListenersPass();
+
+            container.set({
+                'sy::core::event_dispatcher': {
+                    constructor: 'Sy.EventDispatcherBundle.ContainerAwareEventDispatcher',
+                    calls: [
+                        ['setServiceContainer', ['@container']]
+                    ]
+                }
+            });
+
+            container.addPass(
+                pass,
+                pass.AFTER_REMOVING
+            );
+        }
+    }
+});
+
 namespace('Sy.Lib.Generator');
 
 /**
@@ -6241,6 +7142,7 @@ namespace('Sy.Storage');
  * @package Sy
  * @subpackage Storage
  * @class
+ * @extends {Sy.EventDispatcher.Event}
  */
 
 Sy.Storage.LifeCycleEvent = function (alias, entity) {
@@ -6248,7 +7150,7 @@ Sy.Storage.LifeCycleEvent = function (alias, entity) {
     this.entity = entity;
     this.aborted = false;
 };
-Sy.Storage.LifeCycleEvent.prototype = Object.create(Object.prototype, {
+Sy.Storage.LifeCycleEvent.prototype = Object.create(Sy.EventDispatcher.Event.prototype, {
 
     PRE_CREATE: {
         value: 'storage.pre.create',
@@ -7030,7 +7932,7 @@ Sy.Storage.UnitOfWork = function () {
     this.scheduledForDelete = [];
     this.logger = null;
     this.generator = null;
-    this.mediator = null;
+    this.dispatcher = null;
 };
 Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
 
@@ -7207,20 +8109,20 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Set the mediator
+     * Set the event dispatcher
      *
-     * @param {Sy.Lib.Mediator} mediator
+     * @param {Sy.EventDispatcher.EventDispatcherInterface} dispatcher
      *
      * @return {Sy.Storage.UnitOfWork} self
      */
 
-    setMediator: {
-        value: function (mediator) {
-            if (!(mediator instanceof Sy.Lib.Mediator)) {
-                throw new TypeError('Invalid mediator');
+    setDispatcher: {
+        value: function (dispatcher) {
+            if (!(dispatcher instanceof Sy.EventDispatcher.EventDispatcherInterface)) {
+                throw new TypeError('Invalid event dispatcher');
             }
 
-            this.mediator = mediator;
+            this.dispatcher = dispatcher;
 
             return this;
         }
@@ -7397,7 +8299,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                     id = this.propertyAccessor.getValue(entity, key),
                     event = new Sy.Storage.LifeCycleEvent(alias, entity);
 
-                this.mediator && this.mediator.publish(
+                this.dispatcher && this.dispatcher.dispatch(
                     event.PRE_CREATE,
                     event
                 );
@@ -7415,7 +8317,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                             id
                         );
 
-                        this.mediator && this.mediator.publish(
+                        this.dispatcher && this.dispatcher.dispatch(
                             event.POST_CREATE,
                             event
                         );
@@ -7432,7 +8334,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                     id = this.propertyAccessor.getValue(entity, key),
                     event = new Sy.Storage.LifeCycleEvent(alias, entity);
 
-                this.mediator && this.mediator.publish(
+                this.dispatcher && this.dispatcher.dispatch(
                     event.PRE_UPDATE,
                     event
                 );
@@ -7448,7 +8350,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                         this.getEntityData(entity)
                     )
                     .then(function () {
-                        this.mediator && this.mediator.publish(
+                        this.dispatcher && this.dispatcher.dispatch(
                             event.POST_UPDATE,
                             event
                         );
@@ -7465,7 +8367,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                     id = this.propertyAccessor.getValue(entity, key),
                     event = new Sy.Storage.LifeCycleEvent(alias, entity);
 
-                this.mediator && this.mediator.publish(
+                this.dispatcher && this.dispatcher.dispatch(
                     event.PRE_REMOVE,
                     event
                 );
@@ -7483,7 +8385,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                             id
                         );
 
-                        this.mediator && this.mediator.publish(
+                        this.dispatcher && this.dispatcher.dispatch(
                             event.POST_REMOVE,
                             event
                         );
@@ -7748,7 +8650,7 @@ Sy.Storage.UnitOfWorkFactory = function () {
     this.propertyAccessor = null;
     this.logger = null;
     this.generator = null;
-    this.mediator = null;
+    this.dispatcher = null;
 };
 Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
 
@@ -7861,20 +8763,20 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
     },
 
     /**
-     * Set the mediator
+     * Set the event dispatcher
      *
-     * @param {Sy.Lib.Mediator} mediator
+     * @param {Sy.EventDispatcher.EventDispatcherInterface} dispatcher
      *
      * @return {Sy.Storage.UnitOfWorkFactory} self
      */
 
-    setMediator: {
-        value: function (mediator) {
-            if (!(mediator instanceof Sy.Lib.Mediator)) {
-                throw new TypeError('Invalid mediator');
+    setDispatcher: {
+        value: function (dispatcher) {
+            if (!(dispatcher instanceof Sy.EventDispatcher.EventDispatcherInterface)) {
+                throw new TypeError('Invalid event dispatcher');
             }
 
-            this.mediator = mediator;
+            this.dispatcher = dispatcher;
 
             return this;
         }
@@ -7899,7 +8801,7 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
                 .setPropertyAccessor(this.propertyAccessor)
                 .setLogger(this.logger)
                 .setGenerator(this.generator)
-                .setMediator(this.mediator);
+                .setDispatcher(this.dispatcher);
         }
     }
 
@@ -14247,6 +15149,7 @@ namespace('Sy.View.Event');
  * @package Sy
  * @subpackage View.Event
  * @class
+ * @extends {Sy.EventDispatcher.Event}
  */
 
 Sy.View.Event.ViewPortEvent = function (viewscreen) {
@@ -14256,7 +15159,7 @@ Sy.View.Event.ViewPortEvent = function (viewscreen) {
 
 	this.viewscreen = viewscreen;
 };
-Sy.View.Event.ViewPortEvent.prototype = Object.create(Object.prototype, {
+Sy.View.Event.ViewPortEvent.prototype = Object.create(Sy.EventDispatcher.Event.prototype, {
 
 	PRE_DISPLAY: {
 		value: 'view::on::pre::display',
@@ -15559,27 +16462,27 @@ namespace('Sy.View');
 Sy.View.ViewPort = function () {
     this.node = null;
     this.manager = null;
-    this.mediator = null;
+    this.dispatcher = null;
     this.current = null;
 };
 Sy.View.ViewPort.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
     /**
-     * Set the mediator to dispatch event when viewscreen is changed
+     * Set the event dispatcher to dispatch event when viewscreen is changed
      *
-     * @param {Sy.Lib.Mediator} mediator
+     * @param {Sy.EventDispatcher.EventDispatcherInterface} dispatcher
      *
      * @return {Sy.View.ViewPort}
      */
 
-    setMediator: {
-        value: function (mediator) {
+    setDispatcher: {
+        value: function (dispatcher) {
 
-            if (!(mediator instanceof Sy.Lib.Mediator)) {
-                throw new TypeError('Invalid mediator');
+            if (!(dispatcher instanceof Sy.EventDispatcher.EventDispatcherInterface)) {
+                throw new TypeError('Invalid event dispatcher');
             }
 
-            this.mediator = mediator;
+            this.dispatcher = dispatcher;
 
             return this;
 
@@ -15677,8 +16580,8 @@ Sy.View.ViewPort.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
                 node = viewscreen.getNode(),
                 event = new Sy.View.Event.ViewPortEvent(viewscreen);
 
-            if (this.mediator) {
-                this.mediator.publish(event.PRE_DISPLAY, event);
+            if (this.dispatcher) {
+                this.dispatcher.dispatch(event.PRE_DISPLAY, event);
             }
 
             switch (this.node.childElementCount) {
@@ -15694,8 +16597,9 @@ Sy.View.ViewPort.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
 
             this.current = viewscreen;
 
-            if (this.mediator) {
-                this.mediator.publish(event.POST_DISPLAY, event);
+            if (this.dispatcher) {
+                event = new Sy.View.Event.ViewPortEvent(viewscreen);
+                this.dispatcher.dispatch(event.POST_DISPLAY, event);
             }
 
             return this;
@@ -16026,7 +16930,9 @@ namespace('Sy.ServiceContainer');
  */
 
 Sy.ServiceContainer.Core = function () {
-    this.initialized = {};
+    this.initialized = {
+        container: this
+    };
     this.services = {};
     this.loading = [];
     this.config = null;
@@ -16055,7 +16961,10 @@ Sy.ServiceContainer.Core.prototype = Object.create(Object.prototype, {
                 alias = /^@.+$/;
 
                 if (services.hasOwnProperty(name)) {
-                    if (this.services[name] instanceof Sy.ServiceContainer.Definition) {
+                    if (
+                        this.services[name] &&
+                        this.services[name] instanceof Sy.ServiceContainer.Definition
+                    ) {
                         throw new TypeError('Service name already used');
                     }
 
@@ -17316,58 +18225,6 @@ Sy.ServiceContainer.CompilerPass.ResolveReferencePlaceholder.prototype = Object.
 
 });
 
-namespace('Sy.FrameworkBundle.CompilerPass');
-
-/**
- * Pass that subscribe to registered event subscribers
- *
- * @package Sy
- * @subpackage FrameworkBundle
- * @class
- * @implements {Sy.ServiceContainer.CompilerPassInterface}
- */
-
-Sy.FrameworkBundle.CompilerPass.EventSubscriberPass = function () {};
-Sy.FrameworkBundle.CompilerPass.EventSubscriberPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
-
-    /**
-     * @inheritDoc
-     */
-
-    process: {
-        value: function (container) {
-            var mediator = container.get('sy::core::mediator');
-
-            container
-                .findTaggedServiceIds('event.subscriber')
-                .forEach(function (el) {
-                    var subscriber = container.get(el.id),
-                        events;
-
-                    if (!(subscriber instanceof Sy.EventSubscriberInterface)) {
-                        throw new TypeError('Invalid event subscriber');
-                    }
-
-                    events = subscriber.getSubscribedEvents();
-
-                    for (var evt in events) {
-                        if (events.hasOwnProperty(evt)) {
-                            mediator.subscribe({
-                                channel: evt,
-                                fn: subscriber[events[evt].method],
-                                context: subscriber,
-                                priority: subscriber[events[evt].priority],
-                                async: subscriber[events[evt].async]
-                            });
-                        }
-                    }
-
-                }, this);
-        }
-    }
-
-});
-
 namespace('Sy.FormBundle.CompilerPass');
 
 /**
@@ -17671,6 +18528,110 @@ Sy.AppStateBundle.CompilerPass.RegisterRoutesPass.prototype = Object.create(Sy.S
     }
 
 });
+namespace('Sy.EventDispatcherBundle.CompilerPass');
+
+/**
+ * Pass that subscribe to registered event subscribers/listeners
+ *
+ * @package Sy
+ * @subpackage EventDispatcherBundle
+ * @class
+ * @implements {Sy.ServiceContainer.CompilerPassInterface}
+ */
+
+Sy.EventDispatcherBundle.CompilerPass.RegisterListenersPass = function (service, listenerTag, subscriberTag) {
+    this.service = service || 'sy::core::event_dispatcher';
+    this.listenerTag = listenerTag || 'event.listener';
+    this.subscriberTag = subscriberTag || 'event.subscriber';
+    this.accessor = new Sy.PropertyAccessor(true);
+};
+Sy.EventDispatcherBundle.CompilerPass.RegisterListenersPass.prototype = Object.create(Sy.ServiceContainer.CompilerPassInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
+
+    process: {
+        value: function (container) {
+            var dispatcher = container.getDefinition(this.service);
+
+            container
+                .findTaggedServiceIds(this.listenerTag)
+                .forEach(function (el) {
+                    def = container.getDefinition(el.id);
+
+                    if (!def.isPublic()) {
+                        throw new ReferenceError(
+                            'The service "' + el.id + '" must be public as event listeners are lazy-loaded'
+                        );
+                    }
+
+                    if (def.isAbstract()) {
+                        throw new ReferenceError(
+                            'The service "' + el.id + '" must not be abstract as event listeners are lazy-loaded'
+                        );
+                    }
+
+                    for (var i = 0, l = el.tags.length; i < l; i++) {
+                        if (!el.tags[i][1].event) {
+                            throw new SyntaxError('Event name must be set in tag');
+                        }
+
+                        if (!el.tags[i][1].method) {
+                            throw new SyntaxError('Listener method must be set in tag');
+                        }
+
+                        dispatcher.addCall(
+                            'addListenerService',
+                            [
+                                el.tags[i][1].event,
+                                el.id,
+                                el.tags[i][1].method,
+                                el.tags[i][1].priority
+                            ]
+                        );
+                    }
+                }, this);
+
+            container
+                .findTaggedServiceIds(this.subscriberTag)
+                .forEach(function (el) {
+                    var def = container.getDefinition(el.id),
+                        constructor = def.getConstructor();
+
+                    if (!def.isPublic()) {
+                        throw new ReferenceError(
+                            'The service "' + el.id + '" must be public as event listeners are lazy-loaded'
+                        );
+                    }
+
+                    if (def.isAbstract()) {
+                        throw new ReferenceError(
+                            'The service "' + el.id + '" must not be abstract as event listeners are lazy-loaded'
+                        );
+                    }
+
+                    constructor = this.accessor.getValue(window, constructor);
+
+                    if (!constructor || !(constructor.prototype instanceof Sy.EventDispatcher.EventSubscriberInterface)) {
+                        throw new TypeError(
+                            'The service "' + el.id + '" must implement the interface "Sy.EventDispatcher.EventSubscriberInterface"'
+                        );
+                    }
+
+                    dispatcher.addCall(
+                        'addSubscriberService',
+                        [
+                            el.id,
+                            constructor
+                        ]
+                    );
+                }, this);
+        }
+    }
+
+});
+
 namespace('Sy');
 
 /**
@@ -18333,7 +19294,7 @@ Sy.AppState.Core = function () {
     this.matcher = null;
     this.provider = null;
     this.generator = null;
-    this.mediator = null;
+    this.dispatcher = null;
     this.handler = null;
     this.currentState = null;
 };
@@ -18400,20 +19361,20 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Set te mediator
+     * Set the event dispatcher
      *
-     * @param {Sy.Lib.Mediator} mediator
+     * @param {Sy.EventDispatcher.EventDispatcherInterface} dispatcher
      *
      * @return {Sy.AppState.Core} self
      */
 
-    setMediator: {
-        value: function (mediator) {
-            if (!(mediator instanceof Sy.Lib.Mediator)) {
-                throw new TypeError('Invalid mediator');
+    setDispatcher: {
+        value: function (dispatcher) {
+            if (!(dispatcher instanceof Sy.EventDispatcher.EventDispatcherInterface)) {
+                throw new TypeError('Invalid event dispatcher');
             }
 
-            this.mediator = mediator;
+            this.dispatcher = dispatcher;
 
             return this;
         }
@@ -18515,7 +19476,7 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
                         .getRoute(this.currentState.getRoute())
                 );
 
-            this.mediator.publish(event.KEY, event);
+            this.dispatcher.dispatch(event.KEY, event);
         }
     },
 
@@ -18531,7 +19492,7 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
 
             event.setUrl(this.getUrl());
 
-            this.mediator.publish(event.KEY, event);
+            this.dispatcher.dispatch(event.KEY, event);
         }
     },
 
@@ -18596,6 +19557,7 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
     }
 
 });
+
 namespace('Sy.AppState');
 
 /**
@@ -18892,13 +19854,14 @@ namespace('Sy.AppState');
  * @package Sy
  * @subpackage AppState
  * @class
+ * @extends {Sy.EventDispatcher.Event}
  */
 
 Sy.AppState.AppStateEvent = function () {
     this.state = null;
     this.route = null;
 };
-Sy.AppState.AppStateEvent.prototype = Object.create(Object.prototype, {
+Sy.AppState.AppStateEvent.prototype = Object.create(Sy.EventDispatcher.Event.prototype, {
 
     KEY: {
         value: 'appstate.change',
@@ -18970,6 +19933,7 @@ Sy.AppState.AppStateEvent.prototype = Object.create(Object.prototype, {
     }
 
 });
+
 namespace('Sy.AppState');
 
 /**
@@ -18978,12 +19942,13 @@ namespace('Sy.AppState');
  * @package Sy
  * @subpackage AppState
  * @class
+ * @extends {Sy.EventDispatcher.Event}
  */
 
 Sy.AppState.RouteNotFoundEvent = function () {
     this.url = null;
 };
-Sy.AppState.RouteNotFoundEvent.prototype = Object.create(Object.prototype, {
+Sy.AppState.RouteNotFoundEvent.prototype = Object.create(Sy.EventDispatcher.Event.prototype, {
 
     KEY: {
         value: 'appstate.routenotfound',

@@ -6,12 +6,13 @@ namespace('Sy.AppState');
  * @package Sy
  * @subpackage AppState
  * @class
+ * @extends {Sy.EventDispatcher.Event}
  */
 
 Sy.AppState.RouteNotFoundEvent = function () {
     this.url = null;
 };
-Sy.AppState.RouteNotFoundEvent.prototype = Object.create(Object.prototype, {
+Sy.AppState.RouteNotFoundEvent.prototype = Object.create(Sy.EventDispatcher.Event.prototype, {
 
     KEY: {
         value: 'appstate.routenotfound',

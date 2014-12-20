@@ -12,7 +12,7 @@ namespace('Sy.Kernel');
 Sy.Kernel.ActionDispatcher = function () {
     this.viewport = null;
     this.controllerManager = null;
-    this.mediator = null;
+    this.dispatcher = null;
     this.logger = null;
 };
 Sy.Kernel.ActionDispatcher.prototype = Object.create(Object.prototype, {
@@ -62,21 +62,21 @@ Sy.Kernel.ActionDispatcher.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Set the mediator
+     * Set the event dispatcher
      *
-     * @param {Sy.Lib.Mediator} mediator
+     * @param {Sy.EventDispatcher.EventDispatcherInterface} dispatcher
      *
      * @return {Sy.Kernel.ActionDispatcher}
      */
 
-    setMediator: {
-        value: function (mediator) {
+    setDispatcher: {
+        value: function (dispatcher) {
 
-            if (!(mediator instanceof Sy.Lib.Mediator)) {
-                throw new TypeError('Invalid mediator');
+            if (!(dispatcher instanceof Sy.EventDispatcher.EventDispatcherInterface)) {
+                throw new TypeError('Invalid event dispatcher');
             }
 
-            this.mediator = mediator;
+            this.dispatcher = dispatcher;
 
             return this;
 
@@ -195,11 +195,12 @@ Sy.Kernel.ActionDispatcher.prototype = Object.create(Object.prototype, {
                 this.logger.info('Firing a controller\'s method...', [controller, action]);
             }
 
-            this.mediator.publish(evt.PRE_ACTION, evt);
+            this.dispatcher.dispatch(evt.PRE_ACTION, evt);
 
             controller[action].call(controller, event);
 
-            this.mediator.publish(evt.POST_ACTION, evt);
+            evt = new Sy.Event.ControllerEvent(controller, action, event);
+            this.dispatcher.dispatch(evt.POST_ACTION, evt);
 
         }
     }

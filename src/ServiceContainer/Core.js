@@ -9,7 +9,9 @@ namespace('Sy.ServiceContainer');
  */
 
 Sy.ServiceContainer.Core = function () {
-    this.initialized = {};
+    this.initialized = {
+        container: this
+    };
     this.services = {};
     this.loading = [];
     this.config = null;
@@ -38,7 +40,10 @@ Sy.ServiceContainer.Core.prototype = Object.create(Object.prototype, {
                 alias = /^@.+$/;
 
                 if (services.hasOwnProperty(name)) {
-                    if (this.services[name] instanceof Sy.ServiceContainer.Definition) {
+                    if (
+                        this.services[name] &&
+                        this.services[name] instanceof Sy.ServiceContainer.Definition
+                    ) {
                         throw new TypeError('Service name already used');
                     }
 
