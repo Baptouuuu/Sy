@@ -11,6 +11,6 @@
     "grunt-exec": "~0.4.6",
     "grunt-jscs": "~1.0.0",
     "load-grunt-tasks": "~1.0.0",
-    "venus": "~2.3.6"
+    "venus": "2.3.1"
   }
 }
