@@ -1,6 +1,7 @@
 /**
  * @venus-library jasmine
  * @venus-include ../../src/functions.js
+ * @venus-include ../../src/EventDispatcher/Event.js
  * @venus-code ../../src/Storage/LifeCycleEvent.js
  */
 

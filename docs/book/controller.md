@@ -36,7 +36,7 @@ When the controller manager listen to the viewport change, it reads this attribu
 
 When first loading a controller the framework automatically inject a set of dependencies:
 
-* the `Mediator` (setter: `setMediator`, attribute: `mediator`)
+* the `EventDispatcher` (setter: `setDispatcher`, attribute: `dispatcher`)
 * the `ServiceContainer` (setter: `setServiceContainer`, attribute: `container`)
 * the `ViewScreen` (setter: `setViewScreen`, attribute: `viewscreen`)
 
@@ -50,31 +50,31 @@ When all the dependencies are injected, the kernel call the method `init` on you
 
 ### Sleep
 
-A controller is put to *sleep* by the framework when the viewscreen it's related to is taken off the viewport. This happens via the `sleep` method of your controller. By default this method will pause any channel subscribed inside your controller via the `listen` method. This is done in order to prevent unwanted background job inside your controller (as it's not supposed to do anything anymore).
+A controller is put to *sleep* by the framework when the viewscreen it's related to is taken off the viewport. This happens via the `sleep` method of your controller. By default this method will remove any event listened inside your controller via the `listen` method. This is done in order to prevent unwanted background job inside your controller (as it's not supposed to do anything anymore).
 
-If you directly subscribe to a channel via the mediator, it will be up to you to handle what to do when the controller is put to sleep. To do that you need to override the `sleep` method, but don't forget to call the parent method to prevent any further work done by the framework.
+If you directly listen to events via the event dispatcher, it will be up to you to handle what to do when the controller is put to sleep. To do that you need to override the `sleep` method, but don't forget to call the parent method to prevent any further work done by the framework.
 
 ### Wakeup
 
-As opposed to the sleep *event*, the wakeup happens when the controller has been instanciated before and the viewscreen it's related to is taken back inside the viewport. By default, the framework will call the `wakeup` method on your controller, which will unpause any channel subscribed via the `listen` method.
+As opposed to the sleep *event*, the wakeup happens when the controller has been instanciated before and the viewscreen it's related to is taken back inside the viewport. By default, the framework will call the `wakeup` method on your controller, which will re-add all previous listeners added via the `listen` method.
 
-Once again, if you subscribed to channels directly on the mediator, it will be up to you to handle what to do by overriding the `wakeup` method.
+Once again, if you listened to events directly on the event dispatcher, it will be up to you to handle what to do by overriding the `wakeup` method.
 
 ### Destroy
 
-This last *event* happens when the framework drops the instance of your controller. It's here to properly remove the controller to leave no trace of its existance. By default, it will unsubscribe all channel subscribed via the `listen` method, but as always you can override it if you want to gracefully remove the actions of your controller from the rest of your app.
+This last *event* happens when the framework drops the instance of your controller. It's here to properly remove the controller to leave no trace of its existance. By default, it will remove all listeners added via the `listen` method, but as always you can override it if you want to gracefully remove the actions of your controller from the rest of your app.
 
 This event happens if the number of controllers instances exceed the cache limit you defined. (see [cache](#cache) section) (destroyed by FIFO principle)
 
 ## Default methods
 
-### Mediator
+### EventDispatcher
 
-Each controller come with 2 default methods related to the mediator, one called `listen` refering to the `subscribe` on the mediator and the other one `broadcast` refers to `publish`.
+Each controller come with 2 default methods related to the event dispatcher, one called `listen` refering to the `addListener` on the event dispatcher and the other one `broadcast` refers to `dispatch`.
 
-The first one takes only two arguments: the channel name and the function callback. What it does in background is that it call the `subscribe` method on the mediator and use the channel and function you passed and the most important it sets your controller as the context of the callback (aka the `this` keyword). It also save the identifier of this subscriber in an array, so it can be paused when the controller is put to sleep.
+The first one takes only two arguments: the event name and the function callback. What it does in background is that it call the `addListener` method on the event dispatcher and use the event name and function you passed and the most important it sets your controller as the context of the callback (aka the `this` keyword).
 
-The `broadcast` is nothing more than a shortcut as it only applies the arguments you pass to the `publish` method on the mediator.
+The `broadcast` is nothing more than a shortcut as it only applies the arguments you pass to the `dispatch` method on the event dispatcher.
 
 ### Storage
 
@@ -105,12 +105,12 @@ this.viewscreen
 ```
 Obviously you should do this inside the `init` method of your controller (so the listeners are added only once).
 
-By using the feature offered by the framework, it gives you access to 2 new channels published before and after the action function is called:
+By using the feature offered by the framework, it gives you access to 2 new events fired before and after the action function is called:
 
 * `controller::on::pre::action`
 * `controller::on::post::action`
 
-Each one is published with an instance of [`Sy.Event.ControllerEvent`](../../src/Event/ControllerEvent.js). It can help you listen to events on your controller from elsewhere in your app, without adding code inside the controller method.
+Each one is fired with an instance of [`Sy.Event.ControllerEvent`](../../src/Event/ControllerEvent.js). It can help you listen to events on your controller from elsewhere in your app, without adding code inside the controller method.
 
 **Important**: there's a restriction with `data-sy-action` you can't place one on elements inside a list. This behaviour is intended to prevent creating too many listeners. Instead you should place one listener on the list container and then filter the element click (or something else) inside the controller action.
 

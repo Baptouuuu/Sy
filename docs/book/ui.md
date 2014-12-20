@@ -34,12 +34,12 @@ app.getContainer()
     .get('sy::core::viewport')
     .display('viewscreen name');
 ```
-This code will inject the viewscreen node inside the viewport (or replace the previous one); it will throw an error if there's more than one child. This service is also configured with the global mediator service and publish 2 channels each time you call `.display()`:
+This code will inject the viewscreen node inside the viewport (or replace the previous one); it will throw an error if there's more than one child. This service is also configured with the global event dispatcher service and dispatch 2 events each time you call `.display()`:
 
 * `view::on::pre::display`
 * `view::on::post::display`
 
-Those channels are published, like I'm sure you've understood, before the new viewscreen is injected or replacing the old one and after this operation. They're fired with an instance of [`Sy.View.Event.ViewPortEvent`](../../src/View/Event/ViewPortEvent.js) holding the viewscreen wrapper of the one being displayed (you don't have access to the old one).
+Those events are fired, like I'm sure you've understood, before the new viewscreen is injected or replacing the old one and after this operation. They're fired with an instance of [`Sy.View.Event.ViewPortEvent`](../../src/View/Event/ViewPortEvent.js) holding the viewscreen wrapper of the one being displayed (you don't have access to the old one).
 
 ## Viewscreen
 

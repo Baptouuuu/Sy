@@ -4,7 +4,7 @@ This component is here to help you bind an url (hashbang) to anything you want. 
 
 For example, say you've defined a route named `profile` corresponding to the path `/profile/{id}`, when you'll navigate to `/path/to/index.html#/profile/42` the component will fire an event with an reference to the state related to the route and a reference to the route definitions. Via this event you'll know you are on the route named `profile` and the url placeholder `id` is set to `42`. From there, you can do whatever you want, but you'll most likely whant to change the UI.
 
-**Note**: this component relies on the [generator](../src/Lib/Generator/UUID.js) to uniquely identify a state and the [mediator](Mediator.md) to fire the event.
+**Note**: this component relies on the [generator](../src/Lib/Generator/UUID.js) to uniquely identify a state and the [event dispatcher](EventDispatcher.md) to fire the event.
 
 Before jumping into how to use all this, let's start with a bit of naming conventions. The 2 main principles are the `Route` and the `State`.
 
@@ -60,30 +60,24 @@ Once a route is set you can retrieve it via the method `getRoute(routeName)` or 
 
 ## Listen for state change
 
-Instead of manually listening to the url change, you can listen to the mediator channel `appstate.change` and you will receive an instance of [`AppStateEvent`](../src/AppState/AppStateEvent.js).
+Instead of manually listening to the url change, you can listen to the event dispatcher event `appstate.change` and you will receive an instance of [`AppStateEvent`](../src/AppState/AppStateEvent.js).
 
 Example:
 ```js
-mediator.subscribe({
-    channel: 'appstate.change',
-    fn: function (event) {
-        event.getState(); //return the new state object
-        event.getRoute(); //return the route definition associated to the state
-    }
+dispatcher.addListener('appstate.change', function (event) {
+    event.getState(); //return the new state object
+    event.getRoute(); //return the route definition associated to the state
 });
 ```
 
 ## Listen for 404
 
-In some cases a user may end up on an unknown route if they type directly in the url bar for example. You can listen to an event in the case the url matcher can't determine any valid route corresponding to the url. You need to add a subscriber to the `appstate.routenotfound` channel, the [`RouteNotFoundEvent`](../src/AppState/RouteNotFoundEvent.js) is passed as argument.
+In some cases a user may end up on an unknown route if they type directly in the url bar for example. You can listen to an event in the case the url matcher can't determine any valid route corresponding to the url. You need to add a listener to the `appstate.routenotfound` event, the [`RouteNotFoundEvent`](../src/AppState/RouteNotFoundEvent.js) is passed as argument.
 
 Example:
 ```js
-mediator.subscribe({
-    channel: 'appstate.routenotfound',
-    fn: function (event) {
-        event.getUrl(); //return the current url
-    }
+dispatcher.addListener('appstate.routenotfound', function (event) {
+    event.getUrl(); //return the current url
 });
 ```
 

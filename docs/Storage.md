@@ -194,7 +194,7 @@ repository
 
 ## UnitOfWork
 
-The `UnitOfWork` (aka UOW) is what seats between the manager and the driver, this is where the heavy stuff happens. Basically, it handles checking if entities must be updated, wrap raw data coming from the database to the appropriate entity, and fire [mediator](Mediator.md) channels before and after creation/update/removal. Most of the time you won't need to bother about it, but sometimes you may want to tune a bit more of how it should manage your entities.
+The `UnitOfWork` (aka UOW) is what seats between the manager and the driver, this is where the heavy stuff happens. Basically, it handles checking if entities must be updated, wrap raw data coming from the database to the appropriate entity, and fire an [event](EventDispatcher.md) before and after creation/update/removal. Most of the time you won't need to bother about it, but sometimes you may want to tune a bit more of how it should manage your entities.
 
 But first to access it, you do it via the manager:
 ```js
@@ -248,7 +248,7 @@ This way you have full control to what will be sent to the database.
 
 ## LifeCycleEvent
 
-Before and after an entity is created/updated or removed the [`LifeCycleEvent`](../src/Storage/LifeCycleEvent.js) is fired. It contains the entity alias and the actual entity. The event is fired via the [mediator](Mediator.md), in the end you have access to these 6 channels:
+Before and after an entity is created/updated or removed the [`LifeCycleEvent`](../src/Storage/LifeCycleEvent.js) is fired. It contains the entity alias and the actual entity. The event is fired via the [event dispatcher](EventDispatcher.md), in the end you have access to these 6 events:
 
 * `storage.pre.create`: available via `LifeCycleEvent.PRE_CREATE`
 * `storage.post.create`: available via `LifeCycleEvent.POST_CREATE`

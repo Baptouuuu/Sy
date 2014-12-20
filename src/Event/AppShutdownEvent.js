@@ -6,6 +6,7 @@ namespace('Sy.Event');
  * @package Sy
  * @subpackage Event
  * @class
+ * @extends {Sy.EventDispatcher.Event}
  */
 Sy.Event.AppShutdownEvent = function (originalEvent) {
     if (!(originalEvent instanceof BeforeUnloadEvent)) {
@@ -14,7 +15,7 @@ Sy.Event.AppShutdownEvent = function (originalEvent) {
 
     this.originalEvent = originalEvent;
 };
-Sy.Event.AppShutdownEvent.prototype = Object.create(Object.prototype, {
+Sy.Event.AppShutdownEvent.prototype = Object.create(Sy.EventDispatcher.Event.prototype, {
 
     KEY: {
         value: 'app::shutdown',

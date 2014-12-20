@@ -287,12 +287,12 @@ The placeholder above will be replaced with the dom node specified in the data o
 
 ## Events
 
-The engine can inform you when the viewport changes (meaning a viewscreen is displayed) via 2 [mediator](Mediator.md) channels:
+The engine can inform you when the viewport changes (meaning a viewscreen is displayed) via 2 [events](EventDispatcher.md):
 
 * `view::on::pre::display`
 * `view::on::post::display`
 
-Those events are published with one argument which is the `ViewPortEvent` allowing you to access the viewscreen wrapper for the node being displayed via the method `getViewScreen`.
+Those events are fired with one argument which is the `ViewPortEvent` allowing you to access the viewscreen wrapper for the node being displayed via the method `getViewScreen`.
 
 ## Extra
 

@@ -19,7 +19,7 @@ Sy.Storage.UnitOfWork = function () {
     this.scheduledForDelete = [];
     this.logger = null;
     this.generator = null;
-    this.mediator = null;
+    this.dispatcher = null;
 };
 Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
 
@@ -196,20 +196,20 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Set the mediator
+     * Set the event dispatcher
      *
-     * @param {Sy.Lib.Mediator} mediator
+     * @param {Sy.EventDispatcher.EventDispatcherInterface} dispatcher
      *
      * @return {Sy.Storage.UnitOfWork} self
      */
 
-    setMediator: {
-        value: function (mediator) {
-            if (!(mediator instanceof Sy.Lib.Mediator)) {
-                throw new TypeError('Invalid mediator');
+    setDispatcher: {
+        value: function (dispatcher) {
+            if (!(dispatcher instanceof Sy.EventDispatcher.EventDispatcherInterface)) {
+                throw new TypeError('Invalid event dispatcher');
             }
 
-            this.mediator = mediator;
+            this.dispatcher = dispatcher;
 
             return this;
         }
@@ -386,7 +386,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                     id = this.propertyAccessor.getValue(entity, key),
                     event = new Sy.Storage.LifeCycleEvent(alias, entity);
 
-                this.mediator && this.mediator.publish(
+                this.dispatcher && this.dispatcher.dispatch(
                     event.PRE_CREATE,
                     event
                 );
@@ -404,7 +404,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                             id
                         );
 
-                        this.mediator && this.mediator.publish(
+                        this.dispatcher && this.dispatcher.dispatch(
                             event.POST_CREATE,
                             event
                         );
@@ -421,7 +421,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                     id = this.propertyAccessor.getValue(entity, key),
                     event = new Sy.Storage.LifeCycleEvent(alias, entity);
 
-                this.mediator && this.mediator.publish(
+                this.dispatcher && this.dispatcher.dispatch(
                     event.PRE_UPDATE,
                     event
                 );
@@ -437,7 +437,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                         this.getEntityData(entity)
                     )
                     .then(function () {
-                        this.mediator && this.mediator.publish(
+                        this.dispatcher && this.dispatcher.dispatch(
                             event.POST_UPDATE,
                             event
                         );
@@ -454,7 +454,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                     id = this.propertyAccessor.getValue(entity, key),
                     event = new Sy.Storage.LifeCycleEvent(alias, entity);
 
-                this.mediator && this.mediator.publish(
+                this.dispatcher && this.dispatcher.dispatch(
                     event.PRE_REMOVE,
                     event
                 );
@@ -472,7 +472,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                             id
                         );
 
-                        this.mediator && this.mediator.publish(
+                        this.dispatcher && this.dispatcher.dispatch(
                             event.POST_REMOVE,
                             event
                         );

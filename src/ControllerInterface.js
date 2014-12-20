@@ -7,38 +7,32 @@ namespace('Sy');
  * @interface
  */
 
-Sy.ControllerInterface = function () {
-
-    this.container = {};
-    this.mediator = {};
-
-};
-
+Sy.ControllerInterface = function () {};
 Sy.ControllerInterface.prototype = Object.create(Object.prototype, {
 
     /**
-     * Shortcut to the mediator subscribe method
+     * Shortcut to the event dispatcher subscribe method
      * It automatically register the listener with the controller as context
      *
-     * @param {string} channel
+     * @param {string} event
      * @param {function} fn
      *
      * @return {Sy.ControllerInterface}
      */
 
     listen: {
-        value: function (channel, fn) {}
+        value: function (event, fn) {}
     },
 
     /**
-     * Shortcut to the mediator publish method.
-     * See the mediator documentation to understand how to pass arguments
+     * Shortcut to the event dispatcher dispatch method.
+     * See the event dispatcher documentation to understand how to pass arguments
      *
      * @return {Sy.ControllerInterface}
      */
 
     broadcast: {
-        value: function () {}
+        value: function (name, event) {}
     },
 
     /**
@@ -73,15 +67,15 @@ Sy.ControllerInterface.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Set the mediator
+     * Set the event dispatcher
      *
-     * @param {Sy.Lib.Mediator} mediator
+     * @param {Sy.EventDispatcher.EventDispatcherInterface} dispatcher
      *
      * @return {Sy.ControllerInterface}
      */
 
-    setMediator: {
-        value: function (mediator) {}
+    setDispatcher: {
+        value: function (dispatcher) {}
     },
 
     /**

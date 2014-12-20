@@ -1,4 +1,4 @@
-/*! sy#1.0.0 - 2014-10-09 */
+/*! sy#1.0.0 - 2014-12-20 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -2641,501 +2641,703 @@ Sy.RegistryFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
     }
 
 });
-namespace('Sy.Lib');
+namespace('Sy.EventDispatcher');
 
 /**
- * Allow to set a series of function that will be called when a channel is "published" via this object
+ * Base class to hold event data
  *
  * @package Sy
- * @subpackage Lib
+ * @subpackage EventDispatcher
  * @class
  */
 
-Sy.Lib.Mediator = function () {
-
-    this.channels = {};
-    this.generator = null;
-    this.logger = null;
-
+Sy.EventDispatcher.Event = function () {
+    this.propagationStopped = false;
+    this.dispatcher = null;
+    this.name = null;
 };
-
-Sy.Lib.Mediator.prototype = Object.create(Object.prototype, {
+Sy.EventDispatcher.Event.prototype = Object.create(Object.prototype, {
 
     /**
-     * Add a subscriber to a channel
+     * Check if the propagation is stopped
      *
-     * @param {object} options Available properties: {channel: string, fn: function, context: object, priority: integer, async: boolean}
-     *
-     * @return {string} A unique identifier for this subscriber
+     * @return {Boolean}
      */
 
-    subscribe: {
-        value: function (options) {
-
-            var options = options || {},
-                channel = null;
-
-            if (options.priority === undefined){
-                options.priority = 1;
-            }
-
-            if (this.channels[options.channel] === undefined) {
-
-                channel = new Sy.Lib.MediatorChannel(options.channel);
-                channel.setGenerator(this.generator);
-
-                if (this.logger) {
-                    channel.setLogger(this.logger);
-                }
-
-                this.channels[options.channel] = channel;
-
-            }
-
-            return this.channels[options.channel].add(
-                options.fn,
-                options.context,
-                options.priority,
-                options.async,
-                options.bubbles
-            );
-
+    isPropagationStopped: {
+        value: function () {
+            return this.propagationStopped;
         }
-
     },
 
     /**
-     * Remove an element of a channel subscribers list
-     *
-     * @param {string} channel
-     * @param {string} id Identifier returned by the method subscribe
-     *
-     * @return {Sy.Lib.Mediator}
+     * Stop the event propagation
      */
 
-    remove: {
-        value: function (channel, id) {
+    stopPropagation: {
+        value: function () {
+            this.propagationStopped = true;
+        }
+    },
 
-            if (this.channels[channel] !== undefined) {
+    /**
+     * Set the event dipatcher handling this event
+     *
+     * @param {EventDispatcherInterface} dispatcher
+     */
 
-                this.channels[channel].remove(id);
+    setDispatcher: {
+        value: function (dispatcher) {
+            if (!(dispatcher instanceof Sy.EventDispatcher.EventDispatcherInterface)) {
+                throw new TypeError('Invalid event dispatcher');
+            }
 
+            this.dispatcher = dispatcher;
+        }
+    },
+
+    /**
+     * Return the event dispacther handling this event
+     *
+     * @return {EventDispatcherInterface}
+     */
+
+    getDispatcher: {
+        value: function () {
+            return this.dispatcher;
+        }
+    },
+
+    /**
+     * Set the event name
+     *
+     * @param {String} name
+     */
+
+    setName: {
+        value: function (name) {
+            this.name = name;
+        }
+    },
+
+    /**
+     * Return the event name
+     *
+     * @return {String}
+     */
+
+    getName: {
+        value: function () {
+            return this.name;
+        }
+    }
+});
+
+namespace('Sy.EventDispatcher');
+
+/**
+ * Interface for any event dispatcher
+ *
+ * @package Sy
+ * @subpackage EventDispatcher
+ * @class
+ */
+
+Sy.EventDispatcher.EventDispatcherInterface = function () {};
+Sy.EventDispatcher.EventDispatcherInterface.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Dispatch en event
+     *
+     * @param {String} name
+     * @param {Event} event
+     *
+     * @return {Event}
+     */
+
+    dispatch: {
+        value: function (name, event) {}
+    },
+
+    /**
+     * Add a listener
+     *
+     * @param {String} name Event name
+     * @param {Function} listener
+     * @param {Integer} priority
+     *
+     * @return {EventDispatcherInterface} self
+     */
+
+    addListener: {
+        value: function (name, listener, priority) {}
+    },
+
+    /**
+     * Adds an event subsriber
+     *
+     * @param {EventSubscriberInterface} subscriber
+     *
+     * @return {EventDispatcherInterface} self
+     */
+
+    addSubscriber: {
+        value: function (subscriber) {}
+    },
+
+    /**
+     * Remove the given listener
+     *
+     * @param {String} name Event name
+     * @param {Function} listener
+     *
+     * @return {EventDispatcherInterface} self
+     */
+
+    removeListener: {
+        value: function (name, listener) {}
+    },
+
+    /**
+     * Remove a subscriber
+     *
+     * @param {EventSubscriberInterface} subscriber
+     *
+     * @return {EventDispatcherInterface} self
+     */
+
+    removeSubsriber: {
+        value: function (subscriber) {}
+    },
+
+    /**
+     * Return all the listeners for the given event name
+     *
+     * @param {String} name
+     *
+     * @return {Array}
+     */
+
+    getListeners: {
+        value: function (name) {}
+    },
+
+    /**
+     * Check if an event name has listeners
+     *
+     * @param {String} name
+     *
+     * @return {Boolean}
+     */
+
+    hasListeners: {
+        value: function (name) {}
+    }
+
+});
+
+namespace('Sy.EventDispatcher');
+
+/**
+ * Default implementation of the dispatcher interface
+ *
+ * @package Sy
+ * @subpackage EventDispatcher
+ * @class
+ * @implements {Sy.EventDispatcher.EventDispatcherInterface}
+ */
+
+Sy.EventDispatcher.EventDispatcher = function () {
+    this.listeners = {};
+    this.sorted = {};
+};
+Sy.EventDispatcher.EventDispatcher.prototype = Object.create(Sy.EventDispatcher.EventDispatcherInterface.prototype, {
+
+    /**
+     * @inheritDoc
+     */
+
+    dispatch: {
+        value: function (name, event) {
+            if (!event) {
+                event = new Sy.EventDispatcher.Event();
+            }
+
+            if (!(event instanceof Sy.EventDispatcher.Event)) {
+                throw new TypeError('Invalid event object');
+            }
+
+            event.setDispatcher(this);
+            event.setName(name);
+
+            if (!this.hasListeners(name)) {
+                return event;
+            }
+
+            this.doDispatch(this.getListeners(name), name, event);
+
+            return event;
+        }
+    },
+
+    /**
+     * Call all the listeners with the given event
+     *
+     * @private
+     * @param {Array} listeners
+     * @param {String} name Event name
+     * @param {Event} event
+     */
+
+    doDispatch: {
+        value: function (listeners, name, event) {
+            for (var i = 0, l = listeners.length; i < l; i++) {
+                listeners[i](event, name, this);
+
+                if (event.isPropagationStopped()) {
+                    break;
+                }
+            }
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    addListener: {
+        value: function (name, listener, priority) {
+            if (
+                !(listener instanceof Function) &&
+                (
+                    !(listener instanceof Array) &&
+                    !(listener[0] instanceof Object) &&
+                    !(listener[1] instanceof Function)
+                )
+            ) {
+                throw new TypeError('A listener must be a function');
+            }
+
+            if (!(this.listeners[name] instanceof Array)) {
+                this.listeners[name] = [];
+            }
+
+            if (this.sorted[name]) {
+                this.sorted[name] = undefined;
+            }
+
+            this.listeners[name].push({
+                listener: listener,
+                priority: priority || 0
+            });
+
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    addSubscriber: {
+        value: function (subscriber) {
+            if (!(subscriber instanceof Sy.EventDispatcher.EventSubscriberInterface)) {
+                throw new TypeError('Invalid event subscriber');
+            }
+
+            var subscribed = subscriber.getSubscribedEvents();
+
+            for (var name in subscribed) {
+                if (subscribed.hasOwnProperty(name)) {
+                    if (subscribed[name] instanceof Array) {
+                        for (var i = 0, l = subscribed[name].length; i < l; i++) {
+                            this.addListener(
+                                name,
+                                [subscriber, subscriber[subscribed[name][i].method]],
+                                subscribed[name][i].priority
+                            );
+                        }
+                    } else if (subscribed[name] instanceof Object) {
+                        this.addListener(
+                            name,
+                            [subscriber, subscriber[subscribed[name].method]],
+                            subscribed[name].priority
+                        );
+                    } else {
+                        this.addListener(
+                            name,
+                            subscriber[subscribed[name]]
+                        );
+                    }
+                }
             }
 
             return this;
-
         }
-
     },
 
     /**
-     * Publish a channel, all arguments after the channel name will
-     * be passed to the subscribers as arguments
-     *
-     * @param {string} channel Channel name
-     *
-     * @return {Sy.Lib.Mediator}
+     * @inheritDoc
      */
 
-    publish: {
-        value: function () {
+    removeListener: {
+        value: function (name, listener) {
+            if (
+                !(listener instanceof Function) &&
+                (
+                    !(listener instanceof Array) &&
+                    !(listener[0] instanceof Object) &&
+                    !(listener[1] instanceof Function)
+                )
+            ) {
+                throw new TypeError('Invalid event listener');
+            }
 
-            if (arguments.length === 0) {
+            if (!this.listeners.hasOwnProperty(name)) {
                 return this;
             }
 
-            var channel = Array.prototype.slice.call(arguments, 0, 1)[0],
-                args = Array.prototype.slice.call(arguments, 1);
+            if (this.sorted[name]) {
+                this.sorted[name] = undefined;
+            }
 
-            if (this.channels[channel] !== undefined) {
-
-                this.channels[channel].publish(args);
-
+            for (var i = 0, l = this.listeners[name].length; i < l; i++) {
+                if (
+                    (
+                        listener instanceof Array &&
+                        this.listeners[name][i].listener[0] === listener[0] &&
+                        this.listeners[name][i].listener[1] === listener[1]
+                    ) ||
+                    this.listeners[name][i].listener === listener
+                ) {
+                    this.listeners[name].splice(i, 1);
+                    break;
+                }
             }
 
             return this;
-
         }
-
     },
 
     /**
-     * Pause a channel from being fired
-     *
-     * @param {string} channel
-     * @param {string} subscriber Subscriber id, if you want to pause only one subscriber (optional)
-     *
-     * @return {Sy.Lib.Mediator}
+     * @inheritDoc
      */
 
-    pause: {
-        value: function (channel, subscriber) {
+    removeSubscriber: {
+        value: function (subscriber) {
+            if (!(subscriber instanceof Sy.EventDispatcher.EventSubscriberInterface)) {
+                throw new TypeError('Invalid event subscriber');
+            }
 
-            if (this.channels[channel] !== undefined) {
+            var subscribed = subscriber.getSubscribedEvents();
 
-                this.channels[channel].stopped = true;
+            for (var name in subscribed) {
+                if (subscribed.hasOwnProperty(name)) {
+                    if (subscribed[name] instanceof Array) {
+                        for (var i = 0, l = subscribed[name].length; i < l; i++) {
+                            this.removeListener(
+                                name,
+                                [subscriber, subscriber[subscribed[name][i].method]]
+                            );
+                        }
+                    } else if (subscribed[name] instanceof Object) {
+                        this.removeListener(
+                            name,
+                            [subscriber, subscriber[subscribed[name].method]]
+                        );
+                    } else {
+                        this.removeListener(
+                            name,
+                            subscriber[subscribed[name]]
+                        );
+                    }
+                }
+            }
 
-                if (subscriber) {
-                    this.channels[channel].pause(subscriber);
+            return this;
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    getListeners: {
+        value: function (name) {
+            if (!this.hasListeners(name)) {
+                return [];
+            }
+
+            if (!this.sorted[name]) {
+                this.sortListeners(name);
+            }
+
+            return this.sorted[name];
+        }
+    },
+
+    /**
+     * @inheritDoc
+     */
+
+    hasListeners: {
+        value: function (name) {
+            return !!this.listeners[name] && !!this.listeners[name].length;
+        }
+    },
+
+    /**
+     * Reorder listeners by their priority
+     *
+     * @private
+     * @param {String} name Event name
+     */
+
+    sortListeners: {
+        value: function (name) {
+            this.listeners[name].sort(function (a, b) {
+                return a.priority < b.priority;
+            });
+            this.sorted[name] = this.listeners[name].map(function (element) {
+                if (element.listener instanceof Array) {
+                    return element.listener[1].bind(element.listener[0]);
                 }
 
-            }
-
-            return this;
-
-        }
-
-    },
-
-    /**
-     * Unpause a channel from being fired
-     *
-     * @param {string} channel
-     * @param {string} subscriber Subscriber id, if you want to unpause only one subscriber (optional)
-     *
-     * @return {Sy.Lib.Mediator}
-     */
-
-    unpause: {
-        value: function (channel, subscriber) {
-
-            if (this.channels[channel] !== undefined) {
-
-                this.channels[channel].stopped = false;
-
-                if (subscriber) {
-                    this.channels[channel].unpause(subscriber);
-                }
-
-            }
-
-            return this;
-
-        }
-
-    },
-
-    /**
-     * Say if a channel is paused or not
-     *
-     * @param {string} channel
-     *
-     * @return {boolean}
-     */
-
-    paused: {
-        value: function (channel) {
-
-            if (this.channels[channel] === undefined) {
-
-                return;
-
-            }
-
-            return this.channels[channel].stopped;
-
-        }
-
-    },
-
-    /**
-     * Generator dependency setter
-     *
-     * @param {Sy.Lib.Generator.Interface} object
-     *
-     * @return {Sy.Lib.Mediator}
-     */
-
-    setGenerator: {
-        value: function (object) {
-
-            if (!(object instanceof Sy.Lib.Generator.Interface)) {
-                throw new TypeError('Invalid generator');
-            }
-
-            this.generator = object;
-
-            return this;
-
-        }
-    },
-
-    /**
-     * Logger dependency setter
-     *
-     * @param {Sy.Lib.Logger.Interface} object
-     *
-     * @return {Sy.Lib.Mediator}
-     */
-
-    setLogger: {
-        value: function (object) {
-
-            if (!(object instanceof Sy.Lib.Logger.Interface)) {
-                throw new TypeError('Invalid logger');
-            }
-
-            this.logger = object;
-
-            return this;
-
+                return element.listener;
+            });
         }
     }
 
 });
+
+namespace('Sy.EventDispatcher');
 
 /**
- * Channel object to be instanciated every time a new channel is created
+ * Disptacher fixed throughout the runtime
  *
  * @package Sy
- * @subpackage Lib
+ * @subpackage EventDispatcher
  * @class
- *
- * @param {string} name
+ * @implements {Sy.EventDispatcher.EventDispatcherInterface}
  */
 
-Sy.Lib.MediatorChannel = function (name) {
+Sy.EventDispatcher.ImmutableEventDispatcher = function (dispatcher) {
+    if (!(dispatcher instanceof Sy.EventDispatcher.EventDispatcherInterface)) {
+        throw new TypeError('Invalid event dispatcher');
+    }
 
-    this.name = name || '';
-    this.stopped = false;
-    this.subscribers = {};
-    this.generator = null;
-    this.logger = null;
-
-};
-
-Sy.Lib.MediatorChannel.prototype = Object.create(Object.prototype, {
+    this.dispatcher = dispatcher;
+}
+Sy.EventDispatcher.ImmutableEventDispatcher.prototype = Object.create(Sy.EventDispatcher.EventDispatcherInterface.prototype, {
 
     /**
-     * Add a subscriber to the channel
-     *
-     * @param {function} fn
-     * @param {object} context Callback context
-     * @param {integer} priority
-     * @param {boolean} async
-     * @param {boolean} bubbles Set to true if you want errors to bubbles up (otherwise it's catched by the library)
+     * @inheritDoc
      */
 
-    add: {
-        value: function (fn, context, priority, async, bubbles) {
-
-            var guid = this.generator.generate();
-
-            this.subscribers[guid] = {
-                fn: fn,
-                context: context || window,
-                priority: priority || 1,
-                async: !!async,
-                bubbles: !!bubbles,
-                stopped: false
-            };
-
-            return guid;
-
-        }
-
-    },
-
-    /**
-     * Remove an element of the subscribers list
-     *
-     * @param {string} id
-     *
-     * @return {Sy.Lib.MediatorChannel}
-     */
-
-    remove: {
-        value: function (id) {
-
-            delete this.subscribers[id];
-
-            return this;
-
-        }
-
-    },
-
-    /**
-     * Call every subscribers function when a channel is published
-     *
-     * @param {Array} args Arguments to be passed to the subscribers
-     *
-     * @return {Sy.Lib.MediatorChannel}
-     */
-
-    publish: {
-        value: function (args) {
-
-            var args = args || [];
-
-            if (this.stopped === false) {
-
-                var fns = [];
-
-                for (var s in this.subscribers) {
-
-                    if (this.subscribers.hasOwnProperty(s) && this.subscribers[s].stopped === false) {
-
-                        fns.push(this.subscribers[s]);
-
-                    }
-
-                }
-
-                fns.sort(function (a, b) {
-                    return a.priority - b.priority;
-                });
-
-                for (var i = 0, l = fns.length; i < l; i++) {
-
-                    try {
-
-                        var subscriber = fns[i];
-
-                        if (subscriber.async === true) {
-                            setTimeout(
-                                this.subscriberCall,
-                                0,
-                                this,
-                                subscriber.fn,
-                                subscriber.context,
-                                args
-                            );
-                        } else {
-                            this.subscriberCall(
-                                this,
-                                subscriber.fn,
-                                subscriber.context,
-                                args
-                            );
-                        }
-
-                    } catch (error) {
-
-                        if (this.logger) {
-                            this.logger.error(error.message, error);
-                        }
-
-                        if (subscriber.bubbles === true) {
-                            throw error;
-                        }
-
-                    }
-
-                }
-
-            }
-
-            return this;
-
-        }
-
-    },
-
-    /**
-     * Generator dependency setter
-     *
-     * @param {Sy.Lib.Generator.interface} object
-     *
-     * @return {Sy.Lib.MediatorChannel}
-     */
-
-    setGenerator: {
-        value: function (object) {
-
-            if (!(object instanceof Sy.Lib.Generator.Interface)) {
-                throw new TypeError('Invalid generator');
-            }
-
-            this.generator = object;
-
-            return this;
-
+    dispatch: {
+        value: function (name, event) {
+            return this.dispatcher.dispatch(name, event);
         }
     },
 
     /**
-     * Logger dependency setter
-     *
-     * @param {Sy.Lib.Logger.Interface} object
-     *
-     * @return {Sy.Lib.MediatorChannel}
+     * @inheritDoc
      */
 
-    setLogger: {
-        value: function (object) {
-
-            if (!(object instanceof Sy.Lib.Logger.Interface)) {
-                throw new TypeError('Invalid logger');
-            }
-
-            this.logger = object;
-
-            return this;
-
+    addListener: {
+        value: function (name, listener, priority) {
+            throw new Error('Unmodifiable event dispatchers must not be modified');
         }
     },
 
     /**
-     * Handle calling subscribers and catching exceptions it may throw
-     *
-     * @param {Sy.Lib.MediatorChannel} self Channel instance
-     * @param {function} fn
-     * @param {object} context Subscriber context
-     * @param {Array} args Subscriber arguments
-     *
-     * @return {void}
+     * @inheritDoc
      */
 
-    subscriberCall: {
-        value: function (self, fn, context, args) {
-
-            fn.apply(context, args);
-
+    addSubscriber: {
+        value: function (subscriber) {
+            throw new Error('Unmodifiable event dispatchers must not be modified');
         }
     },
 
     /**
-     * Prevent a subscriber from being fired when the channel is published
-     *
-     * @param {string} id Subscriber id
-     *
-     * @return {Sy.Lib.MediatorChannel}
+     * @inheritDoc
      */
 
-    pause: {
-        value: function (id) {
-
-            if (this.subscribers[id]) {
-                this.subscribers[id].stopped = true;
-            }
-
-            return this;
-
+    removeListener: {
+        value: function (name, listener) {
+            throw new Error('Unmodifiable event dispatchers must not be modified');
         }
     },
 
     /**
-     * Re-enable a subscriber from being fired if it has been paused before
-     *
-     * @param {string} id
-     *
-     * @return {Sy.Lib.MediatorChannel}
+     * @inheritDoc
      */
 
-    unpause: {
-        value: function (id) {
+    removeSubscriber: {
+        value: function (subscriber) {
+            throw new Error('Unmodifiable event dispatchers must not be modified');
+        }
+    },
 
-            if (this.subscribers[id]) {
-                this.subscribers[id].stopped = false;
-            }
+    /**
+     * @inheritDoc
+     */
 
-            return this;
+    getListeners: {
+        value: function (name) {
+            return this.dispatcher.getListeners(name);
+        }
+    },
 
+    /**
+     * @inheritDoc
+     */
+
+    hasListeners: {
+        value: function (name) {
+            return this.dispatcher.hasListeners(name);
         }
     }
 
 });
+
+namespace('Sy.EventDispatcher');
+
+/**
+ * Interface to define required method for event subscribers
+ *
+ * @package Sy
+ * @interface
+ */
+
+Sy.EventDispatcher.EventSubscriberInterface = function () {};
+Sy.EventDispatcher.EventSubscriberInterface.prototype = Object.create(Object.prototype, {
+
+    /**
+     * Return an object of events that the object subscribed to
+     * <code>
+     * {
+     *     'event name': 'method name',
+     *     'event name': {
+     *         method: 'function name in the object', //required
+     *         priority: 'integer' //optional
+     *     },
+     *     'event name': [
+     *         {method: 'method', priority: 'integer'},
+     *         {method: 'method', priority: 'integer'},
+     *     ]
+     * }
+     * </code>
+     *
+     * @return {Object}
+     */
+
+    getSubscribedEvents: {
+        value: function () {}
+    }
+
+});
+
+namespace('Sy.EventDispatcher');
+
+/**
+ * Generic event that an hold any data
+ *
+ * @package Sy
+ * @subpackage EventDispatcher
+ * @class
+ * @extends {Sy.EventDispatcher.Event}
+ */
+
+Sy.EventDispatcher.GenericEvent = function (subject, args) {
+    Sy.EventDispatcher.Event.call(this);
+
+    if (args !== undefined && !(args instanceof Object)) {
+        throw new TypeError('Event arguments must be an object');
+    }
+
+    this.subject = subject;
+    this.args = args || {};
+};
+Sy.EventDispatcher.GenericEvent.prototype = Object.create(Sy.EventDispatcher.Event.prototype, {
+
+    /**
+     * Return the event subject
+     *
+     * @return {String}
+     */
+
+    getSubject: {
+        value: function () {
+            return this.subject;
+        }
+    },
+
+    /**
+     * Return an argument
+     *
+     * @param {String} key
+     *
+     * @return {mixed}
+     */
+
+    getArgument: {
+        value: function (key) {
+            return this.args[key];
+        }
+    },
+
+    /**
+     * Set an argument
+     *
+     * @param {String} key
+     * @param {mixed} data
+     *
+     * @return {GenericEvent} self
+     */
+
+    setArgument: {
+        value: function (key, data) {
+            this.args[key] = data;
+
+            return this;
+        }
+    },
+
+    /**
+     * Return all the arguments
+     *
+     * @return {Object}
+     */
+
+    getArguments: {
+        value: function () {
+            return this.args;
+        }
+    },
+
+    /**
+     * Set all arguments at once
+     *
+     * @param {Object} args
+     *
+     * @return {GenericEvent} self
+     */
+
+    setArguments: {
+        value: function (args) {
+            if (!(args instanceof Object)) {
+                throw new TypeError('Event arguments must be an object');
+            }
+
+            this.args = args;
+
+            return this;
+        }
+    }
+});
+
 namespace('Sy');
 
 /**
@@ -3843,6 +4045,7 @@ namespace('Sy.Storage');
  * @package Sy
  * @subpackage Storage
  * @class
+ * @extends {Sy.EventDispatcher.Event}
  */
 
 Sy.Storage.LifeCycleEvent = function (alias, entity) {
@@ -3850,7 +4053,7 @@ Sy.Storage.LifeCycleEvent = function (alias, entity) {
     this.entity = entity;
     this.aborted = false;
 };
-Sy.Storage.LifeCycleEvent.prototype = Object.create(Object.prototype, {
+Sy.Storage.LifeCycleEvent.prototype = Object.create(Sy.EventDispatcher.Event.prototype, {
 
     PRE_CREATE: {
         value: 'storage.pre.create',
@@ -4632,7 +4835,7 @@ Sy.Storage.UnitOfWork = function () {
     this.scheduledForDelete = [];
     this.logger = null;
     this.generator = null;
-    this.mediator = null;
+    this.dispatcher = null;
 };
 Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
 
@@ -4809,20 +5012,20 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Set the mediator
+     * Set the event dispatcher
      *
-     * @param {Sy.Lib.Mediator} mediator
+     * @param {Sy.EventDispatcher.EventDispatcherInterface} dispatcher
      *
      * @return {Sy.Storage.UnitOfWork} self
      */
 
-    setMediator: {
-        value: function (mediator) {
-            if (!(mediator instanceof Sy.Lib.Mediator)) {
-                throw new TypeError('Invalid mediator');
+    setDispatcher: {
+        value: function (dispatcher) {
+            if (!(dispatcher instanceof Sy.EventDispatcher.EventDispatcherInterface)) {
+                throw new TypeError('Invalid event dispatcher');
             }
 
-            this.mediator = mediator;
+            this.dispatcher = dispatcher;
 
             return this;
         }
@@ -4999,7 +5202,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                     id = this.propertyAccessor.getValue(entity, key),
                     event = new Sy.Storage.LifeCycleEvent(alias, entity);
 
-                this.mediator && this.mediator.publish(
+                this.dispatcher && this.dispatcher.dispatch(
                     event.PRE_CREATE,
                     event
                 );
@@ -5017,7 +5220,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                             id
                         );
 
-                        this.mediator && this.mediator.publish(
+                        this.dispatcher && this.dispatcher.dispatch(
                             event.POST_CREATE,
                             event
                         );
@@ -5034,7 +5237,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                     id = this.propertyAccessor.getValue(entity, key),
                     event = new Sy.Storage.LifeCycleEvent(alias, entity);
 
-                this.mediator && this.mediator.publish(
+                this.dispatcher && this.dispatcher.dispatch(
                     event.PRE_UPDATE,
                     event
                 );
@@ -5050,7 +5253,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                         this.getEntityData(entity)
                     )
                     .then(function () {
-                        this.mediator && this.mediator.publish(
+                        this.dispatcher && this.dispatcher.dispatch(
                             event.POST_UPDATE,
                             event
                         );
@@ -5067,7 +5270,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                     id = this.propertyAccessor.getValue(entity, key),
                     event = new Sy.Storage.LifeCycleEvent(alias, entity);
 
-                this.mediator && this.mediator.publish(
+                this.dispatcher && this.dispatcher.dispatch(
                     event.PRE_REMOVE,
                     event
                 );
@@ -5085,7 +5288,7 @@ Sy.Storage.UnitOfWork.prototype = Object.create(Object.prototype, {
                             id
                         );
 
-                        this.mediator && this.mediator.publish(
+                        this.dispatcher && this.dispatcher.dispatch(
                             event.POST_REMOVE,
                             event
                         );
@@ -5350,7 +5553,7 @@ Sy.Storage.UnitOfWorkFactory = function () {
     this.propertyAccessor = null;
     this.logger = null;
     this.generator = null;
-    this.mediator = null;
+    this.dispatcher = null;
 };
 Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.prototype, {
 
@@ -5463,20 +5666,20 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
     },
 
     /**
-     * Set the mediator
+     * Set the event dispatcher
      *
-     * @param {Sy.Lib.Mediator} mediator
+     * @param {Sy.EventDispatcher.EventDispatcherInterface} dispatcher
      *
      * @return {Sy.Storage.UnitOfWorkFactory} self
      */
 
-    setMediator: {
-        value: function (mediator) {
-            if (!(mediator instanceof Sy.Lib.Mediator)) {
-                throw new TypeError('Invalid mediator');
+    setDispatcher: {
+        value: function (dispatcher) {
+            if (!(dispatcher instanceof Sy.EventDispatcher.EventDispatcherInterface)) {
+                throw new TypeError('Invalid event dispatcher');
             }
 
-            this.mediator = mediator;
+            this.dispatcher = dispatcher;
 
             return this;
         }
@@ -5501,7 +5704,7 @@ Sy.Storage.UnitOfWorkFactory.prototype = Object.create(Sy.FactoryInterface.proto
                 .setPropertyAccessor(this.propertyAccessor)
                 .setLogger(this.logger)
                 .setGenerator(this.generator)
-                .setMediator(this.mediator);
+                .setDispatcher(this.dispatcher);
         }
     }
 

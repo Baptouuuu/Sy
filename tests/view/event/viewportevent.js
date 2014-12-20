@@ -1,6 +1,7 @@
 /**
  * @venus-library jasmine
  * @venus-include ../../../src/functions.js
+ * @venus-include ../../../src/EventDispatcher/Event.js
  * @venus-include ../../../src/View/NodeWrapper.js
  * @venus-include ../../../src/View/ViewScreen.js
  * @venus-code ../../../src/View/Event/ViewPortEvent.js

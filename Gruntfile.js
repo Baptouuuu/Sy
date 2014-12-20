@@ -193,6 +193,14 @@ module.exports = function (grunt) {
             'src/AppState/RouteNotFoundEvent.js',
             'src/AppState/UrlMatcher.js',
         ],
+        eventDispatcher = [
+            'src/EventDispatcher/Event.js',
+            'src/EventDispatcher/EventDispatcherInterface.js',
+            'src/EventDispatcher/EventDispatcher.js',
+            'src/EventDispatcher/ImmutableEventDispatcher.js',
+            'src/EventDispatcher/EventSubscriberInterface.js',
+            'src/EventDispatcher/GenericEvent.js',
+        ],
         framework = [
             'src/functions.js',
             'src/ControllerInterface.js',
@@ -204,7 +212,6 @@ module.exports = function (grunt) {
             'src/Event/AppShutdownEvent.js',
             'src/Event/ControllerEvent.js',
             'src/Controller.js',
-            'src/EventSubscriberInterface.js',
             'src/FrameworkBundle/Config/Configuration.js',
             'src/FrameworkBundle/Config/Service.js',
             'src/FormBundle/Config/Service.js',
@@ -215,6 +222,8 @@ module.exports = function (grunt) {
             'src/ViewBundle/Config/Service.js',
             'src/ViewBundle/Subscriber/AppStateSubscriber.js',
             'src/AppStateBundle/Config/Service.js',
+            'src/EventDispatcherBundle/ContainerAwareEventDispatcher.js',
+            'src/EventDispatcherBundle/Config/Service.js',
         ],
         frameworkPasses = [
             'src/FrameworkBundle/CompilerPass/EventSubscriberPass.js',
@@ -225,6 +234,7 @@ module.exports = function (grunt) {
             'src/ViewBundle/CompilerPass/RegisterViewScreenWrapperPass.js',
             'src/ViewBundle/CompilerPass/RegisterSubscriberPass.js',
             'src/AppStateBundle/CompilerPass/RegisterRoutesPass.js',
+            'src/EventDispatcherBundle/CompilerPass/RegisterListenersPass.js',
         ],
         unique = function (el, idx, array) {
             if (array.indexOf(el) !== idx && array.indexOf(el) < idx) {
@@ -237,8 +247,10 @@ module.exports = function (grunt) {
     generator.unshift('src/functions.js');
     logger.unshift('src/functions.js');
     configurator.unshift('src/functions.js');
+    eventDispatcher.unshift('src/functions.js');
     serviceContainer = serviceContainer.concat(propertyAccessor);
     registry = factory.concat(registry);
+    appState = eventDispatcher.concat(appState);
     mediator = mediator
         .concat(generator)
         .concat(logger);
@@ -251,7 +263,7 @@ module.exports = function (grunt) {
     storage = factory  //need the observe-js vendor
         .concat(logger)
         .concat(http)
-        .concat(mediator)
+        .concat(eventDispatcher)
         .concat(registry)
         .concat(stateRegistry)
         .concat(generator)
@@ -266,7 +278,7 @@ module.exports = function (grunt) {
     view = factory
         .concat(registry)
         .concat(generator)
-        .concat(mediator)
+        .concat(eventDispatcher)
         .concat(dom)
         .concat(view);
     translator = translator
@@ -284,7 +296,8 @@ module.exports = function (grunt) {
     translator.unshift('src/functions.js');
     appState.unshift('src/functions.js');
 
-    framework = framework
+    framework = eventDispatcher
+        .concat(framework)
         .concat(generator)
         .concat(logger)
         .concat(factory)
@@ -312,6 +325,7 @@ module.exports = function (grunt) {
     validator = validator.filter(unique);
     view = view.filter(unique);
     translator = translator.filter(unique);
+    appState = appState.filter(unique);
     framework = framework.filter(unique);
 
     grunt.initConfig({
@@ -336,7 +350,8 @@ module.exports = function (grunt) {
                     'dist/service-container.min.js': serviceContainer,
                     'dist/translator.min.js': translator,
                     'dist/property-accessor.min.js': propertyAccessor,
-                    'dist/appstate.min.js': appState
+                    'dist/appstate.min.js': appState,
+                    'dist/event-dispatcher.min.js': eventDispatcher
                 }
             }
         },
@@ -403,6 +418,10 @@ module.exports = function (grunt) {
             appState: {
                 src: appState,
                 dest: 'dist/appstate.js'
+            },
+            eventDispatcher: {
+                src: eventDispatcher,
+                dest: 'dist/event-dispatcher.js'
             }
         },
         'bower-install': {

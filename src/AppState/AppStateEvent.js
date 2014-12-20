@@ -6,13 +6,14 @@ namespace('Sy.AppState');
  * @package Sy
  * @subpackage AppState
  * @class
+ * @extends {Sy.EventDispatcher.Event}
  */
 
 Sy.AppState.AppStateEvent = function () {
     this.state = null;
     this.route = null;
 };
-Sy.AppState.AppStateEvent.prototype = Object.create(Object.prototype, {
+Sy.AppState.AppStateEvent.prototype = Object.create(Sy.EventDispatcher.Event.prototype, {
 
     KEY: {
         value: 'appstate.change',

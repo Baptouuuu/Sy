@@ -12,7 +12,7 @@ Sy.AppState.Core = function () {
     this.matcher = null;
     this.provider = null;
     this.generator = null;
-    this.mediator = null;
+    this.dispatcher = null;
     this.handler = null;
     this.currentState = null;
 };
@@ -79,20 +79,20 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
     },
 
     /**
-     * Set te mediator
+     * Set the event dispatcher
      *
-     * @param {Sy.Lib.Mediator} mediator
+     * @param {Sy.EventDispatcher.EventDispatcherInterface} dispatcher
      *
      * @return {Sy.AppState.Core} self
      */
 
-    setMediator: {
-        value: function (mediator) {
-            if (!(mediator instanceof Sy.Lib.Mediator)) {
-                throw new TypeError('Invalid mediator');
+    setDispatcher: {
+        value: function (dispatcher) {
+            if (!(dispatcher instanceof Sy.EventDispatcher.EventDispatcherInterface)) {
+                throw new TypeError('Invalid event dispatcher');
             }
 
-            this.mediator = mediator;
+            this.dispatcher = dispatcher;
 
             return this;
         }
@@ -194,7 +194,7 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
                         .getRoute(this.currentState.getRoute())
                 );
 
-            this.mediator.publish(event.KEY, event);
+            this.dispatcher.dispatch(event.KEY, event);
         }
     },
 
@@ -210,7 +210,7 @@ Sy.AppState.Core.prototype = Object.create(Object.prototype, {
 
             event.setUrl(this.getUrl());
 
-            this.mediator.publish(event.KEY, event);
+            this.dispatcher.dispatch(event.KEY, event);
         }
     },
 

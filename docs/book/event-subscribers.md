@@ -2,60 +2,25 @@
 
 [< Previous chapter (Form)](form.md) | [Next chapter (Routing)](routing.md)
 
-The [mediator](../Mediator.md) is used a lot in the framework, and is a good way to keep your code loosely coupled in your app. However, it's not really clear where you should register to channels and how you should organize all these subscribers.
+The [event dispatcher](../EventDispatcher.md) is used a lot in the framework, and is a good way to keep your code loosely coupled in your app. However, it's not really clear where you should register to events and how you should organize all these subscribers.
 
-The framework allows you to register them automatically by registering a [service](service-container.md) tagged with the name `event.subscriber`. Such service must implement the interface [`Sy.EventSubscriberInterface`](../../src/EventSubscriberInterface.js).
+The framework allows you to register them automatically by registering a [service](service-container.md) tagged with the name `event.subscriber` or `event.listener`.
 
 By convention you should put these services classes in `App.Bundle.{BundleName}.Subscriber` namespace.
 
-Example:
+[Register your service](service-ontainer.md) like this:
 ```js
-namespace('App.Bundle.Foo.Subscriber');
-
-App.Bundle.Foo.Subscriber.MySubscriber = function () {};
-App.Bundle.Foo.Subscriber.MySubscriber.prototype = Object.create(Sy.EventSubscriberInterface.prototype, {
-
-    getSubscribedEvents: {
-        value: function () {
-
-            return {
-                'channel name': {
-                    method: 'methodName', //required
-                    priority: 1, //optional
-                    async: false //optional
-                }
-            };
-
-        }
-    },
-
-    methodName: {
-        value: function () {
-            //this method will be called every time 'channel name' is published
-        }
+container.set({
+    'my::listener': {
+        constructor: 'Path.To.Listener.Class',
+        tags: [{name: 'event.listener', event: 'event name', method: 'method name', priority: 1}]
     }
-
 });
 ```
+This way you can defined as many events listeners as you wish by simply adding another tag.
 
-And register it in the service container in the file `App.Bundle.{BundleName}.Config.Service` like this:
-```js
-App.Bundle.Foo.Config.Service = function () {};
-App.Bundle.Foo.Config.Service.prototype = Object.create(Object.prototype, {
+If your class inherits `EventSubscriberInterface`, your tag must look like `{name: 'event.subscriber'}`.
 
-    define: {
-        value: function (container) {
-            container.set({
-                'my::subscriber': {
-                    constructor: 'App.Bundle.Foo.Subscriber.MySubscriber',
-                    tags: [{name: 'event.subscriber'}]
-                }
-            });
-        }
-    }
+At boot time, the framework will search for services with these tags and will automatically subscribe to the defined events. The really nicething about this is that your listeners/subscribers services will be loaded only when the event is first fired. So you can add complex dependencies to your listeners without slowing down your app at boot time.
 
-});
-```
-At boot time, the framework will search for services tagged with `event.subscriber` and will automatically subscribe to the defined channels.
-
-Moreover, the method context, meaning the `this` keyword, is set to the instance of the subscriber class (alias the service instance), so you can call other methods defined in the subscriber class. What's very useful is that as a service you can easily inject dependencies in your subscriber like any other services.
+This way, even by declaring as `event.listener`, your methods will be bind to the service instance (meaning `this` in your listener will point to your service instance).

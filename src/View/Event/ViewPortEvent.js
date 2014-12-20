@@ -6,6 +6,7 @@ namespace('Sy.View.Event');
  * @package Sy
  * @subpackage View.Event
  * @class
+ * @extends {Sy.EventDispatcher.Event}
  */
 
 Sy.View.Event.ViewPortEvent = function (viewscreen) {
@@ -15,7 +16,7 @@ Sy.View.Event.ViewPortEvent = function (viewscreen) {
 
 	this.viewscreen = viewscreen;
 };
-Sy.View.Event.ViewPortEvent.prototype = Object.create(Object.prototype, {
+Sy.View.Event.ViewPortEvent.prototype = Object.create(Sy.EventDispatcher.Event.prototype, {
 
 	PRE_DISPLAY: {
 		value: 'view::on::pre::display',
