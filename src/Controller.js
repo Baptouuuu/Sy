@@ -26,7 +26,7 @@ Sy.Controller.prototype = Object.create(Sy.ControllerInterface.prototype, {
     listen: {
         value: function (channel, fn) {
 
-            var fn = fn.bind(this);
+            var fn = [this, fn];
 
             this.dispatcher.addListener(
                 channel,
