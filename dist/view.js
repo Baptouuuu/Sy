@@ -1,4 +1,4 @@
-/*! sy#1.1.0 - 2014-12-20 */
+/*! sy#1.1.1 - 2014-12-24 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -841,7 +841,7 @@ Sy.EventDispatcher.EventDispatcher.prototype = Object.create(Sy.EventDispatcher.
                     } else {
                         this.addListener(
                             name,
-                            subscriber[subscribed[name]]
+                            [subscriber, subscriber[subscribed[name]]]
                         );
                     }
                 }
@@ -923,7 +923,7 @@ Sy.EventDispatcher.EventDispatcher.prototype = Object.create(Sy.EventDispatcher.
                     } else {
                         this.removeListener(
                             name,
-                            subscriber[subscribed[name]]
+                            [subscriber, subscriber[subscribed[name]]]
                         );
                     }
                 }
