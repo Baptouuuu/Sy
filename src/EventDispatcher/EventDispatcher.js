@@ -128,7 +128,7 @@ Sy.EventDispatcher.EventDispatcher.prototype = Object.create(Sy.EventDispatcher.
                     } else {
                         this.addListener(
                             name,
-                            subscriber[subscribed[name]]
+                            [subscriber, subscriber[subscribed[name]]]
                         );
                     }
                 }
@@ -210,7 +210,7 @@ Sy.EventDispatcher.EventDispatcher.prototype = Object.create(Sy.EventDispatcher.
                     } else {
                         this.removeListener(
                             name,
-                            subscriber[subscribed[name]]
+                            [subscriber, subscriber[subscribed[name]]]
                         );
                     }
                 }
