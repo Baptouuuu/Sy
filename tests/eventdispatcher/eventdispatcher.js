@@ -32,7 +32,9 @@ describe('event dispatcher', function () {
             }
         },
 
-        method: {value: function () {}}
+        method: {value: function (event) {
+            event.setArgument('context', this);
+        }}
     });
 
     beforeEach(function () {
@@ -111,6 +113,25 @@ describe('event dispatcher', function () {
         });
         d.dispatch('foo');
         expect(dispatched).toBe(true);
+    });
+
+    it('should dispatch an event with the right context', function () {
+        var subscriber = new Subscriber(),
+            event;
+
+        d.addSubscriber(subscriber);
+
+        event = new Sy.EventDispatcher.GenericEvent('test');
+        d.dispatch('foo', event);
+        expect(event.getArgument('context')).toBe(subscriber);
+
+        event = new Sy.EventDispatcher.GenericEvent('test');
+        d.dispatch('bar', event);
+        expect(event.getArgument('context')).toBe(subscriber);
+
+        event = new Sy.EventDispatcher.GenericEvent('test');
+        d.dispatch('baz', event);
+        expect(event.getArgument('context')).toBe(subscriber);
     });
 
     it('should dispatch a custom event', function () {
