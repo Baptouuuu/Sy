@@ -119,7 +119,11 @@ Sy.View.List.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
                 throw new ReferenceError('The type "' + type + '" does not exist for the list "' + this.getName() + '"');
             }
 
-            node = this.elements[idx].cloneNode(true);
+            if (window.HTMLTemplateElement && this.elements[idx] instanceof HTMLTemplateElement) {
+                node = document.importNode(this.elements[idx].content, true);
+            } else {
+                node = this.elements[idx].cloneNode(true);
+            }
 
             return this.engine.render(node, data);
 
