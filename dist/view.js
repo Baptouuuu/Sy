@@ -1,4 +1,4 @@
-/*! sy#1.1.1 - 2014-12-24 */
+/*! sy#1.2.0 - 2015-01-13 */
 /**
  * Transform a dotted string to a multi level object.
  * String like "Foo.Bar.Baz" is like doing window.Foo = {Bar: {Baz: {}}}.
@@ -2162,7 +2162,11 @@ Sy.View.List.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
                 throw new ReferenceError('The type "' + type + '" does not exist for the list "' + this.getName() + '"');
             }
 
-            node = this.elements[idx].cloneNode(true);
+            if (window.HTMLTemplateElement && this.elements[idx] instanceof HTMLTemplateElement) {
+                node = document.importNode(this.elements[idx].content, true);
+            } else {
+                node = this.elements[idx].cloneNode(true);
+            }
 
             return this.engine.render(node, data);
 
@@ -2244,6 +2248,7 @@ Sy.View.List.prototype = Object.create(Sy.View.NodeWrapper.prototype, {
     }
 
 });
+
 namespace('Sy.View');
 
 /**
@@ -2676,13 +2681,15 @@ Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface
     render: {
         value: function (node, data, exempt) {
 
-            if (!node.dataset.syUuid) {
-                this.register(node);
-            }
+            if (!(node instanceof DocumentFragment)) {
+                if (!node.dataset.syUuid) {
+                    this.register(node);
+                }
 
-            if (node.dataset.syUuid && this.registry.has(node.dataset.syUuid)) {
-                this.renderAllAttributes(node, data);
-                this.renderContent(node, data, exempt);
+                if (node.dataset.syUuid && this.registry.has(node.dataset.syUuid)) {
+                    this.renderAllAttributes(node, data);
+                    this.renderContent(node, data, exempt);
+                }
             }
 
             if (node.childElementCount > 0) {

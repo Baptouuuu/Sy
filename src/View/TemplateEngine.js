@@ -67,13 +67,15 @@ Sy.View.TemplateEngine.prototype = Object.create(Sy.View.TemplateEngineInterface
     render: {
         value: function (node, data, exempt) {
 
-            if (!node.dataset.syUuid) {
-                this.register(node);
-            }
+            if (!(node instanceof DocumentFragment)) {
+                if (!node.dataset.syUuid) {
+                    this.register(node);
+                }
 
-            if (node.dataset.syUuid && this.registry.has(node.dataset.syUuid)) {
-                this.renderAllAttributes(node, data);
-                this.renderContent(node, data, exempt);
+                if (node.dataset.syUuid && this.registry.has(node.dataset.syUuid)) {
+                    this.renderAllAttributes(node, data);
+                    this.renderContent(node, data, exempt);
+                }
             }
 
             if (node.childElementCount > 0) {

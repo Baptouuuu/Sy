@@ -3,12 +3,14 @@
     <head></head>
     <body>
        <ul data-sy-list="listName">
-           <li data-type="first">
-               {{ foo }}
-           </li>
-           <li data-type="second">
-               {{ foo }}
-           </li>
+            <li data-type="first">
+                {{ foo }}
+            </li>
+            <template data-type="second">
+                <li>
+                    {{ foo }}
+                </li>
+            </template>
        </ul>
     </body>
 </html>

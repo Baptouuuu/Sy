@@ -179,6 +179,35 @@ To access to all the lists of the layout:
 layout.getLists();
 ```
 
+### `<template>`
+
+HTML5 added a new html tag called `template`, its purpose fits right in our needs here. We want to express an html markup but don't want it active, as some tag may trigger invalid http calls (ie: an `img` tag with a `src` attribute filled like this `{{ some.src.value }}`).
+
+The list wrapper handles well such tag, let's reuse the example above but now with this tag:
+
+```html
+<section data-sy-layout="your-layout-name">
+  <ul data-sy-list="your-list-name">
+    <template data-type="alpha">
+      <li>
+        This a element of type "{{ _type }}" with the value: {{ alpha.value }}
+      </li>
+    </template>
+    <template data-type="beta">
+      <li>
+        This a element of type "{{ _type }}" with the value: {{ beta.value }}
+      </li>
+    </template>
+  </ul>
+</section>
+```
+
+This snippet will be rendered exactly the same as before.
+
+**Note**: as you may have noticed, you need to set the `data-type` attribute on the `template` tag.
+
+**Important**: in case the browser doen't support this tag yet, it will be treated as a standard `div`, so your list will still appear. But in our case the rendered `li`s will be wrapped in `template` tags (so don't be to restrictive on your css selectors).
+
 ### Custom wrappers
 
 You can create your own `List` wrapper by creating a class inheriting from the default one and then register it in the appropriate factory.
@@ -284,6 +313,8 @@ renderer.render(node, {
 </div>
 ```
 The placeholder above will be replaced with the dom node specified in the data object. And if you try to re-render the `div` it will first remove the child and re-append the node from the data object.
+
+Another great thing is about a `DocumentFragment`, when calling `render` instead of passing a regular DOM object you use a document fragment. The engine will understand that this is not a node to be rendered but will check the subtree to render it.
 
 ## Events
 
