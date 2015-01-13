@@ -139,18 +139,20 @@
             </core-toolbar>
             <section class="contacts" data-sy-layout="body">
                 <div data-sy-list="contacts" flex horizontal layout wrap>
-                    <div class="contact-card" horizontal layout>
-                        <a href="#{{url}}">
-                            <img src="{{p.pictureUrl}}" alt="" >
-                        </a>
-                        <div class="infos" flex self-center>
-                            <div class="line">{{p.firstname}} {{p.lastname}}</div>
-                            <div class="line">{{p.address}}</div>
-                            <div class="line">{{p.zipcode}} {{p.city}}</div>
-                            <div class="line">{{p.phone}}</div>
+                    <template>
+                        <div class="contact-card" horizontal layout>
+                            <a href="#{{url}}">
+                                <img src="{{p.pictureUrl}}" alt="" >
+                            </a>
+                            <div class="infos" flex self-center>
+                                <div class="line">{{p.firstname}} {{p.lastname}}</div>
+                                <div class="line">{{p.address}}</div>
+                                <div class="line">{{p.zipcode}} {{p.city}}</div>
+                                <div class="line">{{p.phone}}</div>
+                            </div>
+                            <paper-shadow z="1"></paper-shadow>
                         </div>
-                        <paper-shadow z="1"></paper-shadow>
-                    </div>
+                    </template>
                 </div>
             </section>
         </section>
