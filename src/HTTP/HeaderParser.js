@@ -45,7 +45,14 @@ Sy.HTTP.HeaderParser.prototype = Object.create(Object.prototype, {
                         break;
                 }
 
-                obj[header] = value;
+                if (!obj.hasOwnProperty(header)) {
+                    obj[header] = value;
+                } else {
+                    obj[header] = [
+                        obj[header],
+                        value
+                    ];
+                }
 
             }
 
