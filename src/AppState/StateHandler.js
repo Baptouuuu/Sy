@@ -9,7 +9,7 @@ namespace('Sy.AppState');
  */
 
 Sy.AppState.StateHandler = function () {
-    this.storage = localStorage;
+    this.storage = sessionStorage;
     this.key = 'sy::history';
     this.states = [];
 

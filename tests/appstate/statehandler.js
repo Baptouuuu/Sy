@@ -23,7 +23,7 @@ describe('appstate statehandler', function () {
     });
 
     it('should load previous history states', function () {
-        localStorage.setItem(
+        sessionStorage.setItem(
             'sy::history',
             JSON.stringify([{uuid: 'uuid', route: 'route', variables: {}}])
         );
@@ -34,15 +34,15 @@ describe('appstate statehandler', function () {
     });
 
     it('should save the history in localstorage', function () {
-        localStorage.removeItem('sy::history');
+        sessionStorage.removeItem('sy::history');
 
         var h = new Sy.AppState.StateHandler();
 
         h.createState('uuid', 'route', {});
         h.saveHistory();
 
-        expect(!!localStorage.getItem('sy::history')).toBe(true);
-        expect(JSON.parse(localStorage.getItem('sy::history'))).toEqual([{
+        expect(!!sessionStorage.getItem('sy::history')).toBe(true);
+        expect(JSON.parse(sessionStorage.getItem('sy::history'))).toEqual([{
             uuid: 'uuid',
             route: 'route',
             variables: {}
