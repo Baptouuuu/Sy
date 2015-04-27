@@ -31,7 +31,7 @@ Sy.HTTP.HeaderParser.prototype = Object.create(Object.prototype, {
                 value,
                 index;
 
-            for (var i = 0, l = headersList.length - 1; i < l; i++) {
+            for (var i = 0, l = headersList.length; i < l; i++) {
 
                 index = headersList[i].indexOf(':');
                 header = headersList[i].substring(0, index);
@@ -45,7 +45,14 @@ Sy.HTTP.HeaderParser.prototype = Object.create(Object.prototype, {
                         break;
                 }
 
-                obj[header] = value;
+                if (!obj.hasOwnProperty(header)) {
+                    obj[header] = value;
+                } else {
+                    obj[header] = [
+                        obj[header],
+                        value
+                    ];
+                }
 
             }
 

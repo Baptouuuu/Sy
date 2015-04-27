@@ -155,7 +155,13 @@ Sy.HTTP.Manager.prototype = Object.create(Object.prototype, {
 
             for (var header in headers) {
                 if (headers.hasOwnProperty(header)) {
-                    req.xhr.setRequestHeader(header, headers[header]);
+                    if (headers[header] instanceof Array) {
+                        for (var i = 0, l = headers[header].length; i < l; i++) {
+                            req.xhr.setRequestHeader(header, headers[header][i]);
+                        }
+                    } else {
+                        req.xhr.setRequestHeader(header, headers[header]);
+                    }
                 }
             }
 
